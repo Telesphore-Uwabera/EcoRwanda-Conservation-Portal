@@ -109,10 +109,10 @@ The public registration portal is designed for 'volunteer' and 'researcher' role
     cd backend
     node -e "require('bcryptjs').hash('strong_password', 10).then(hash => console.log(hash));"
     ```
-    Replace `'strong_password'` with your actual password. Copy the output (the long hash string).
+    Replace `'strong_password'` with the actual password. Copy the output (the long hash string).
 
 2.  **Insert Administrator Document via MongoDB Compass:**
-    *   Open MongoDB Compass and connect to your local MongoDB instance using the URI: `mongodb://localhost:27017/eco_volunteer_portal`.
+    *   Open MongoDB Compass and connect to local MongoDB instance using the URI: `mongodb://localhost:27017/eco_volunteer_portal`.
     *   Navigate to the `eco_volunteer_portal` database.
     *   Select or create the `users` collection.
     *   Click "ADD DATA" -> "Insert Document".
