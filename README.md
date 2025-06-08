@@ -65,7 +65,7 @@ npm install
 # Example .env content:
 # MONGODB_URI=mongodb://localhost:27017/eco_volunteer_portal
 # PORT=5000
-# JWT_SECRET=your_jwt_secret_key (important for authentication)
+# JWT_SECRET=jwt_secret_key (important for authentication)
 
 # Start the backend server (development mode with nodemon)
 npm run dev
@@ -77,7 +77,7 @@ The backend server should now be running on `http://localhost:5000`.
 In a new terminal, navigate to the `frontend` directory, install dependencies, and start the development server.
 
 ```bash
-# Navigate to the frontend directory (if you're in the project root)
+# Navigate to the frontend directory 
 cd frontend
 
 # Install frontend dependencies
@@ -107,9 +107,9 @@ The public registration portal is designed for 'volunteer' and 'researcher' role
     Open a terminal, navigate to the `backend` directory, and run the following command to generate a bcrypt hash for your desired administrator password:
     ```bash
     cd backend
-    node -e "require('bcryptjs').hash('your_strong_password', 10).then(hash => console.log(hash));"
+    node -e "require('bcryptjs').hash('strong_password', 10).then(hash => console.log(hash));"
     ```
-    Replace `'your_strong_password'` with your actual password. Copy the output (the long hash string).
+    Replace `'strong_password'` with your actual password. Copy the output (the long hash string).
 
 2.  **Insert Administrator Document via MongoDB Compass:**
     *   Open MongoDB Compass and connect to your local MongoDB instance using the URI: `mongodb://localhost:27017/eco_volunteer_portal`.
@@ -121,13 +121,13 @@ The public registration portal is designed for 'volunteer' and 'researcher' role
         {
           "firstName": "Admin",
           "lastName": "User",
-          "email": "admin@example.com",
-          "password": "YOUR_GENERATED_HASH_HERE",
+          "email": "admin@ecorwanda.org",
+          "password": "GENERATED_HASH_HERE",
           "role": "administrator",
           "organization": "Admin Org",
           "location": "Admin Location",
           "verified": true,
-          "createdAt": { "$date": "2024-07-20T00:00:00.000Z" }
+          "createdAt": { "$date": "2025-06-10T00:00:00.000Z" }
         }
         ```
         Ensure the `createdAt` field uses `{"$date": "ISO_DATE_STRING"}` format for proper BSON date type.
