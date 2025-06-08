@@ -195,17 +195,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <Avatar>
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
                 <AvatarFallback className="bg-emerald-100 text-emerald-800">
-                  {user.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+                  {`${user.firstName[0]}${user.lastName[0]}`}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 truncate">
-                  {user.name}
+                  Welcome back, {user.firstName}!
+                </p>
+                <p className="text-sm text-gray-900 truncate">
+                  {user.firstName} {user.lastName}
                 </p>
                 <Badge className={cn("text-xs", getRoleColor(user.role))}>
                   {getRoleDisplayName(user.role)}

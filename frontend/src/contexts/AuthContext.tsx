@@ -75,18 +75,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signup = async (data: SignupData): Promise<void> => {
     setAuthState((prev) => ({ ...prev, loading: true }));
     try {
-      const response = await api.post('/auth/register', data);
-      const { user, token } = response.data;
-      
-      // Store user data and token
-      const userData = { ...user, token };
-      localStorage.setItem("eco-user", JSON.stringify(userData));
-      
-      setAuthState({
-        user: userData,
-        isAuthenticated: true,
-        loading: false,
-      });
+      await api.post('/auth/register', data);
+      setAuthState((prev) => ({ ...prev, loading: false }));
     } catch (error) {
       setAuthState({
         user: null,

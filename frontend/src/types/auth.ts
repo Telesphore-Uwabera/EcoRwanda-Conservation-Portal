@@ -3,7 +3,8 @@ export type UserRole = "volunteer" | "researcher" | "ranger" | "administrator";
 export interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
   avatar?: string;
   location?: string;
@@ -26,7 +27,8 @@ export interface LoginCredentials {
 export interface SignupData {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
   location?: string;
   organization?: string;

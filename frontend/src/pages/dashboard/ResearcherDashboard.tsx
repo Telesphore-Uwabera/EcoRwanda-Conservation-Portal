@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Card,
@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
+import api from "@/config/api"; // Import your API instance
 import {
   BookOpen,
   Database,
@@ -26,53 +27,87 @@ import {
   Award,
   Microscope,
   Globe,
+  Clock,
 } from "lucide-react";
+
+// Define interfaces for the data structures
+interface ResearcherStats {
+  publishedFindings: number;
+  activeProjects: number;
+  volunteerCollaborators: number;
+  datasetDownloads: number;
+}
+
+interface ActiveProject {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  location: string;
+  startDate: string;
+  volunteersNeeded: number;
+}
+
+interface RecentPublication {
+  id: string;
+  title: string;
+  journal: string;
+  date: string;
+  downloads: number;
+  citations: number;
+}
+
+interface CollaborationRequest {
+  id: string;
+  title: string;
+  requiredSkills: string[];
+  volunteers: number;
+  target: number;
+  deadline: string;
+}
 
 export default function ResearcherDashboard() {
   const { user } = useAuth();
   const isOnline = useOfflineStatus();
 
-  // TODO: Fetch stats and active projects from MongoDB backend
-  const stats = {};
-  const activeProjects = [];
+  // State to hold fetched data
+  const [stats, setStats] = useState<ResearcherStats>({
+    publishedFindings: 0,
+    activeProjects: 0,
+    volunteerCollaborators: 0,
+    datasetDownloads: 0,
+  });
+  const [activeProjects, setActiveProjects] = useState<ActiveProject[]>([]);
+  const [recentPublications, setRecentPublications] = useState<RecentPublication[]>([]);
+  const [collaborationRequests, setCollaborationRequests] = useState<CollaborationRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const recentPublications = [
-    {
-      id: "1",
-      title: "Camera Trap Data Analysis: Wildlife Population Trends in Nyungwe",
-      journal: "African Journal of Ecology",
-      date: "2024-01-10",
-      downloads: 89,
-      citations: 12,
-    },
-    {
-      id: "2",
-      title: "Community-Based Conservation: Lessons from Rwanda",
-      journal: "Conservation Biology",
-      date: "2023-12-15",
-      downloads: 156,
-      citations: 8,
-    },
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // TODO: Replace with actual API endpoint for researcher dashboard
+        const response = await api.get('/researcher/dashboard-data'); 
+        const data = response.data;
 
-  const collaborationRequests = [
-    {
-      id: "1",
-      title: "Need volunteers for bird counting survey",
-      requiredSkills: ["Bird identification", "Data recording"],
-      volunteers: 12,
-      target: 20,
-      deadline: "2024-02-15",
-    },
-    {
-      id: "2",
-      title: "Water quality monitoring assistance",
-      requiredSkills: ["Basic chemistry", "GPS usage"],
-      volunteers: 6,
-      target: 15,
-      deadline: "2024-02-28",
-    },
-  ];
+        setStats(data.stats);
+        setActiveProjects(data.activeProjects);
+        setRecentPublications(data.recentPublications);
+        setCollaborationRequests(data.collaborationRequests);
+      } catch (err) {
+        console.error('Error fetching researcher dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) { // Fetch data only if user is logged in
+      fetchDashboardData();
+    }
+  }, [user]); // Re-run when user changes
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -109,7 +144,7 @@ export default function ResearcherDashboard() {
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-gray-900">
-          Research Dashboard 🔬
+          Welcome back, {user?.firstName}! 🔬
         </h1>
         <p className="text-gray-600">
           Advance scientific understanding of Rwanda's ecosystems
@@ -128,7 +163,7 @@ export default function ResearcherDashboard() {
             <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-600" />
               <span className="text-2xl font-bold text-blue-900">
-                {stats.publishedFindings}
+                {stats.publishedFindings.toLocaleString()}
               </span>
             </div>
           </CardContent>
@@ -144,7 +179,7 @@ export default function ResearcherDashboard() {
             <div className="flex items-center gap-2">
               <Microscope className="h-5 w-5 text-emerald-600" />
               <span className="text-2xl font-bold text-emerald-900">
-                {stats.activeProjects}
+                {stats.activeProjects.toLocaleString()}
               </span>
             </div>
           </CardContent>
@@ -160,7 +195,7 @@ export default function ResearcherDashboard() {
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-amber-600" />
               <span className="text-2xl font-bold text-amber-900">
-                {stats.volunteerCollaborators}
+                {stats.volunteerCollaborators.toLocaleString()}
               </span>
             </div>
           </CardContent>
@@ -176,7 +211,7 @@ export default function ResearcherDashboard() {
             <div className="flex items-center gap-2">
               <Download className="h-5 w-5 text-purple-600" />
               <span className="text-2xl font-bold text-purple-900">
-                {stats.datasetDownloads}
+                {stats.datasetDownloads.toLocaleString()}
               </span>
             </div>
           </CardContent>
@@ -250,54 +285,49 @@ export default function ResearcherDashboard() {
             <CardDescription>Your ongoing research initiatives</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {activeProjects.map((project) => (
-              <div
-                key={project.id}
-                className="p-4 rounded-lg border border-gray-200"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-medium text-gray-900">
-                        {project.title}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getStatusColor(project.status)}>
-                          {project.status.replace("_", " ")}
-                        </Badge>
-                        <span
-                          className={`text-sm ${getPriorityColor(project.priority)}`}
-                        >
-                          {project.priority} priority
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Progress value={project.progress} className="h-2" />
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>{project.progress}% complete</span>
-                      <span>{project.volunteers} volunteers</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+            {loading ? (
+              <p>Loading projects...</p>
+            ) : error ? (
+              <p className="text-red-600">{error}</p>
+            ) : activeProjects.length === 0 ? (
+              <p className="text-gray-500">No active projects found.</p>
+            ) : (
+              activeProjects.map((project) => (
+                <div
+                  key={project.id}
+                  className="p-4 rounded-lg border border-gray-200"
+                >
+                  <h4 className="font-medium text-gray-900">{project.title}</h4>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {project.description}
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
                       {project.location}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      Due {project.deadline}
+                      <Clock className="h-3 w-3" />
+                      Starts: {project.startDate}
                     </span>
                   </div>
+                  <div className="flex justify-between items-center mt-3">
+                    <Badge className={getStatusColor(project.status)}>
+                      {project.status}
+                    </Badge>
+                    <Button size="sm">
+                      <Users className="h-4 w-4 mr-1" />
+                      View Project ({project.volunteersNeeded} needed)
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/researcher/projects">Manage All Projects</Link>
-            </Button>
+              ))
+            )}
+            {activeProjects.length > 0 && (
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/researcher/projects">View All Projects</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -305,100 +335,109 @@ export default function ResearcherDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-emerald-600" />
+              <BookOpen className="h-5 w-5 text-emerald-600" />
               Recent Publications
             </CardTitle>
             <CardDescription>
-              Your published research and findings
+              Your latest published research findings
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentPublications.map((pub) => (
-              <div key={pub.id} className="p-4 rounded-lg bg-gray-50">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-gray-900 leading-tight">
-                    {pub.title}
+            {loading ? (
+              <p>Loading publications...</p>
+            ) : error ? (
+              <p className="text-red-600">{error}</p>
+            ) : recentPublications.length === 0 ? (
+              <p className="text-gray-500">No recent publications found.</p>
+            ) : (
+              recentPublications.map((publication) => (
+                <div
+                  key={publication.id}
+                  className="p-4 rounded-lg border border-gray-200"
+                >
+                  <h4 className="font-medium text-gray-900">
+                    {publication.title}
                   </h4>
-                  <p className="text-sm text-blue-600 font-medium">
-                    {pub.journal}
+                  <p className="text-sm text-gray-600">
+                    {publication.journal} - {publication.date}
                   </p>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span>{pub.date}</span>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
                     <span className="flex items-center gap-1">
                       <Download className="h-3 w-3" />
-                      {pub.downloads} downloads
+                      {publication.downloads.toLocaleString()} Downloads
                     </span>
                     <span className="flex items-center gap-1">
-                      <Award className="h-3 w-3" />
-                      {pub.citations} citations
+                      <FileText className="h-3 w-3" />
+                      {publication.citations.toLocaleString()} Citations
                     </span>
                   </div>
                 </div>
-              </div>
-            ))}
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/researcher/publications">View All Publications</Link>
-            </Button>
+              ))
+            )}
+            {recentPublications.length > 0 && (
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/researcher/findings">View All Findings</Link>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Collaboration Requests */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-amber-600" />
+              Collaboration Requests
+            </CardTitle>
+            <CardDescription>
+              Requests for volunteer assistance in your research
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loading ? (
+              <p>Loading requests...</p>
+            ) : error ? (
+              <p className="text-red-600">{error}</p>
+            ) : collaborationRequests.length === 0 ? (
+              <p className="text-gray-500">No collaboration requests found.</p>
+            ) : (
+              collaborationRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="p-4 rounded-lg border border-gray-200"
+                >
+                  <h4 className="font-medium text-gray-900">{request.title}</h4>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {request.requiredSkills.map((skill) => (
+                      <Badge key={skill} variant="outline" className="text-xs">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {request.volunteers}/{request.target} volunteers
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Deadline: {request.deadline}
+                    </span>
+                  </div>
+                  <Button size="sm" className="mt-3 w-full">
+                    View Details
+                  </Button>
+                </div>
+              ))
+            )}
+            {collaborationRequests.length > 0 && (
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/researcher/requests">View All Requests</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Volunteer Collaboration */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-amber-600" />
-            Volunteer Collaboration Requests
-          </CardTitle>
-          <CardDescription>
-            Get help from the volunteer community
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {collaborationRequests.map((request) => (
-              <div
-                key={request.id}
-                className="p-4 rounded-lg border border-gray-200"
-              >
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900">{request.title}</h4>
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap gap-1">
-                      {request.requiredSkills.map((skill) => (
-                        <Badge
-                          key={skill}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                    <Progress
-                      value={(request.volunteers / request.target) * 100}
-                      className="h-2"
-                    />
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>
-                        {request.volunteers}/{request.target} volunteers
-                      </span>
-                      <span>Due {request.deadline}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4">
-            <Button asChild className="w-full bg-amber-600 hover:bg-amber-700">
-              <Link to="/researcher/request-volunteers">
-                Create New Request
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

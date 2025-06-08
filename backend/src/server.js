@@ -3,20 +3,56 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+
+// Debug: Check if .env file exists
+const envPath = path.resolve(process.cwd(), '.env');
+console.log('Checking .env file...');
+if (fs.existsSync(envPath)) {
+  console.log('.env file exists at:', envPath);
+  console.log('Contents of .env file:');
+  console.log(fs.readFileSync(envPath, 'utf8'));
+} else {
+  console.log('.env file does not exist at:', envPath);
+}
 
 // Debug: Log environment variables and file paths
 console.log('Current directory:', process.cwd());
 console.log('Environment variables:', {
   MONGODB_URI: process.env.MONGODB_URI,
-  PORT: process.env.PORT
+  PORT: process.env.PORT,
+  JWT_SECRET: process.env.JWT_SECRET ? 'Set' : 'Not Set'
 });
-console.log('Looking for .env file in:', path.resolve(process.cwd(), '.env'));
+console.log('Looking for .env file in:', envPath);
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Request body:', req.body);
+  next();
+});
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const volunteerDashboardRoutes = require('./routes/volunteerDashboard');
+const researcherDashboardRoutes = require('./routes/researcherDashboard');
+const rangerDashboardRoutes = require('./routes/rangerDashboard');
+const adminDashboardRoutes = require('./routes/adminDashboard');
+const userManagementRoutes = require('./routes/userManagement');
+
+// Use routes
+app.use('/api/auth', authRoutes);
+app.use('/api/volunteer-dashboard', volunteerDashboardRoutes);
+app.use('/api/researcher-dashboard', researcherDashboardRoutes);
+app.use('/api/ranger-dashboard', rangerDashboardRoutes);
+app.use('/api/admin-dashboard', adminDashboardRoutes);
+app.use('/api/users', userManagementRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
@@ -26,6 +62,11 @@ app.get('/', (req, res) => {
 // Connect to MongoDB with detailed error handling
 if (!process.env.MONGODB_URI) {
   console.error('MONGODB_URI is not defined in environment variables');
+  process.exit(1);
+}
+
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is not defined in environment variables');
   process.exit(1);
 }
 

@@ -35,6 +35,9 @@ import VerifyReports from "./pages/ranger/VerifyReports";
 import PatrolData from "./pages/ranger/PatrolData";
 import ThreatMap from "./pages/ranger/ThreatMap";
 
+// Admin Pages
+import UserManagementPage from "./pages/admin/UserManagementPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -162,20 +165,12 @@ const App = () => (
               }
             />
 
-            {/* Admin Routes - Coming Soon */}
+            {/* Admin Routes */}
             <Route
-              path="/admin/*"
+              path="/admin/users"
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
-                  <div className="p-6 text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                      Admin Features Coming Soon
-                    </h2>
-                    <p className="text-gray-600">
-                      User management, analytics, and system settings will be
-                      available in the next update.
-                    </p>
-                  </div>
+                  <UserManagementPage />
                 </RoleGuard>
               }
             />

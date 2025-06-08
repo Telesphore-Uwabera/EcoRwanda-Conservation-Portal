@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,8 @@ import {
 
 export default function Signup() {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -37,6 +38,7 @@ export default function Signup() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const { signup, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -75,15 +77,25 @@ export default function Signup() {
 
     try {
       await signup({
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         role: formData.role,
         location: formData.location || undefined,
         organization: formData.organization || undefined,
       });
-
-      navigate(getDashboardRoute(formData.role));
+      setSuccess(true);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        role: "",
+        location: "",
+        organization: "",
+      });
     } catch (err) {
       setError("Failed to create account. Please try again.");
     }
@@ -98,27 +110,51 @@ export default function Signup() {
       title="Join EcoRwanda"
       subtitle="Create your account to start contributing to conservation"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {error && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              {error}
-            </AlertDescription>
-          </Alert>
-        )}
+      {success ? (
+        <div className="space-y-6 text-center">
+          <div className="text-emerald-700 text-2xl font-bold">Registration successful!</div>
+          <div className="text-gray-700">You can now log in with your credentials.</div>
+          <Link
+            to="/auth/login"
+            className="inline-block mt-4 px-6 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+          >
+            Go to Login
+          </Link>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              placeholder="John Doe"
-              required
-              className="h-11"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => handleInputChange("firstName", e.target.value)}
+                placeholder="John"
+                required
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => handleInputChange("lastName", e.target.value)}
+                placeholder="Doe"
+                required
+                className="h-11"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -133,125 +169,125 @@ export default function Signup() {
               className="h-11"
             />
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="role">Select Your Role</Label>
-          <Select
-            value={formData.role}
-            onValueChange={(value) => handleInputChange("role", value)}
-          >
-            <SelectTrigger className="h-11">
-              <SelectValue placeholder="Choose your role in conservation" />
-            </SelectTrigger>
-            <SelectContent>
-              {roleOptions.map((role) => (
-                <SelectItem
-                  key={role.value}
-                  value={role.value}
-                  className="py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <role.icon className={`h-5 w-5 ${role.color}`} />
-                    <div>
-                      <div className="font-medium">{role.label}</div>
-                      <div className="text-sm text-gray-500">
-                        {role.description}
+          <div className="space-y-2">
+            <Label htmlFor="role">Select Your Role</Label>
+            <Select
+              value={formData.role}
+              onValueChange={(value) => handleInputChange("role", value)}
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Choose your role in conservation" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleOptions.map((role) => (
+                  <SelectItem
+                    key={role.value}
+                    value={role.value}
+                    className="py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <role.icon className={`h-5 w-5 ${role.color}`} />
+                      <div>
+                        <div className="font-medium">{role.label}</div>
+                        <div className="text-sm text-gray-500">
+                          {role.description}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="location">Location (Optional)</Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => handleInputChange("location", e.target.value)}
-              placeholder="Kigali, Rwanda"
-              className="h-11"
-            />
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="organization">Organization (Optional)</Label>
-            <Input
-              id="organization"
-              value={formData.organization}
-              onChange={(e) =>
-                handleInputChange("organization", e.target.value)
-              }
-              placeholder="Your organization"
-              className="h-11"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="location">Location (Optional)</Label>
               <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                placeholder="Create password"
-                required
-                className="h-11 pr-10"
+                id="location"
+                value={formData.location}
+                onChange={(e) => handleInputChange("location", e.target.value)}
+                placeholder="Kigali, Rwanda"
+                className="h-11"
               />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="organization">Organization (Optional)</Label>
+              <Input
+                id="organization"
+                value={formData.organization}
+                onChange={(e) =>
+                  handleInputChange("organization", e.target.value)
+                }
+                placeholder="Your organization"
+                className="h-11"
+              />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) =>
-                handleInputChange("confirmPassword", e.target.value)
-              }
-              placeholder="Confirm password"
-              required
-              className="h-11"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  placeholder="Create password"
+                  required
+                  className="h-11 pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  handleInputChange("confirmPassword", e.target.value)
+                }
+                placeholder="Confirm password"
+                required
+                className="h-11"
+              />
+            </div>
           </div>
-        </div>
 
-        <Button
-          type="submit"
-          className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
-          disabled={loading}
-        >
-          {loading ? "Creating Account..." : "Create Account"}
-        </Button>
-
-        <div className="text-center">
-          <Link
-            to="/auth/login"
-            className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+          <Button
+            type="submit"
+            className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
+            disabled={loading}
           >
-            Already have an account? Sign in
-          </Link>
-        </div>
-      </form>
+            {loading ? "Creating Account..." : "Create Account"}
+          </Button>
+
+          <div className="text-center">
+            <Link
+              to="/auth/login"
+              className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              Already have an account? Sign in
+            </Link>
+          </div>
+        </form>
+      )}
     </AuthLayout>
   );
 }
