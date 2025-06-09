@@ -80,7 +80,7 @@ exports.deleteUser = async (req, res) => {
 // @route   POST /api/users/register
 // @access  Private/Admin
 exports.registerUserByAdmin = async (req, res) => {
-  const { firstName, lastName, email, password, role } = req.body;
+  const { firstName, lastName, email, password, role, location, organization } = req.body;
 
   try {
     // Check if user already exists
@@ -102,6 +102,8 @@ exports.registerUserByAdmin = async (req, res) => {
       email,
       password, // Password will be hashed by pre-save hook in User model
       role,
+      location,
+      organization,
     });
 
     // Hash password (already handled by pre-save hook, but explicit for clarity)

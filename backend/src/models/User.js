@@ -28,6 +28,16 @@ const userSchema = new mongoose.Schema({
     enum: ['volunteer', 'researcher', 'ranger', 'administrator'],
     default: 'volunteer'
   },
+  location: {
+    type: String,
+    trim: true,
+    required: false, // Optional field
+  },
+  organization: {
+    type: String,
+    trim: true,
+    required: false, // Optional field
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -68,7 +68,10 @@ const UserManagementPage: React.FC = () => {
     lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     role: "ranger", // Default to ranger
+    location: "",
+    organization: "",
   });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
@@ -144,15 +147,26 @@ const UserManagementPage: React.FC = () => {
     e.preventDefault();
     setRegisterLoading(true);
     setRegisterError(null);
+
+    if (newUserData.password !== newUserData.confirmPassword) {
+      setRegisterError("Passwords do not match.");
+      setRegisterLoading(false);
+      return;
+    }
+
     try {
-      await api.post('/users/register', newUserData);
+      const { confirmPassword, ...dataToSend } = newUserData;
+      await api.post('/users/register', dataToSend);
       toast.success("User registered successfully!");
       setNewUserData({
         firstName: "",
         lastName: "",
         email: "",
         password: "",
+        confirmPassword: "",
         role: "ranger",
+        location: "",
+        organization: "",
       });
       setIsRegistering(false);
       fetchUsers(); // Refresh the user list
@@ -201,47 +215,51 @@ const UserManagementPage: React.FC = () => {
       </div>
 
       {isRegistering && (
-        <Card className="mb-6 p-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PlusCircle className="h-5 w-5 text-green-600" />
-              Register New User
+        <Card className="mb-10 p-8 shadow-2xl border-b-4 border-blue-600 rounded-xl">
+          <CardHeader className="bg-blue-50 rounded-t-xl p-6">
+            <CardTitle className="flex items-center gap-4 text-3xl font-extrabold text-blue-800">
+              <PlusCircle className="h-8 w-8 text-blue-700" />
+              Register New User Account
             </CardTitle>
-            <CardDescription>Create a new user account with a specific role.</CardDescription>
+            <CardDescription className="text-blue-700 mt-3 text-lg">Empower your administration by securely creating new user accounts with tailored roles and essential details.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleRegisterNewUser} className="space-y-4">
+          <CardContent className="p-10 bg-white rounded-b-xl">
+            <form onSubmit={handleRegisterNewUser} className="space-y-10">
               {registerError && (
-                <AlertDialog variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Registration Error</AlertTitle>
-                  <AlertDescription>{registerError}</AlertDescription>
+                <AlertDialog variant="destructive" className="bg-red-100 border-l-4 border-red-500 text-red-800 p-5 rounded-lg shadow-md">
+                  <AlertTriangle className="h-7 w-7 text-red-600 mr-3" />
+                  <div>
+                    <AlertTitle className="text-red-900 font-bold text-xl mb-1">Registration Error</AlertTitle>
+                    <AlertDescription className="text-red-800 text-lg">{registerError}</AlertDescription>
+                  </div>
                 </AlertDialog>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <Label htmlFor="firstName" className="font-bold text-gray-800 text-lg">First Name</Label>
                   <Input
                     id="firstName"
                     name="firstName"
                     value={newUserData.firstName}
                     onChange={handleNewUserChange}
                     required
+                    className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out text-lg text-gray-900 shadow-sm"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="lastName" className="font-bold text-gray-800 text-lg">Last Name</Label>
                   <Input
                     id="lastName"
                     name="lastName"
                     value={newUserData.lastName}
                     onChange={handleNewUserChange}
                     required
+                    className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out text-lg text-gray-900 shadow-sm"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div className="space-y-3">
+                <Label htmlFor="email" className="font-bold text-gray-800 text-lg">Email Address</Label>
                 <Input
                   id="email"
                   name="email"
@@ -249,23 +267,61 @@ const UserManagementPage: React.FC = () => {
                   value={newUserData.email}
                   onChange={handleNewUserChange}
                   required
+                  className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out text-lg text-gray-900 shadow-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={newUserData.password}
-                  onChange={handleNewUserChange}
-                  required
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <Label htmlFor="password" className="font-bold text-gray-800 text-lg">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={newUserData.password}
+                    onChange={handleNewUserChange}
+                    required
+                    className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out text-lg text-gray-900 shadow-sm"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label htmlFor="confirmPassword" className="font-bold text-gray-800 text-lg">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={newUserData.confirmPassword}
+                    onChange={handleNewUserChange}
+                    required
+                    className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out text-lg text-gray-900 shadow-sm"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <Label htmlFor="location" className="font-bold text-gray-800 text-lg">Location (Optional)</Label>
+                  <Input
+                    id="location"
+                    name="location"
+                    value={newUserData.location}
+                    onChange={handleNewUserChange}
+                    className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out text-lg text-gray-900 shadow-sm"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label htmlFor="organization" className="font-bold text-gray-800 text-lg">Organization (Optional)</Label>
+                  <Input
+                    id="organization"
+                    name="organization"
+                    value={newUserData.organization}
+                    onChange={handleNewUserChange}
+                    className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out text-lg text-gray-900 shadow-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="role" className="font-bold text-gray-800 text-lg">Select Role</Label>
                 <Select value={newUserData.role} onValueChange={handleNewUserRoleChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out text-lg text-gray-900 shadow-sm">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -276,11 +332,11 @@ const UserManagementPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" disabled={registerLoading}>
+              <Button type="submit" disabled={registerLoading} className="w-full py-5 px-10 bg-blue-700 text-white font-extrabold text-xl uppercase tracking-wider rounded-xl hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-600 focus:ring-offset-2 transition duration-300 ease-in-out shadow-2xl transform hover:scale-105">
                 {registerLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-8 w-8 animate-spin mr-4" />
                 ) : (
-                  <PlusCircle className="h-4 w-4 mr-2" />
+                  <PlusCircle className="h-8 w-8 mr-4" />
                 )}
                 Register User
               </Button>
@@ -290,50 +346,52 @@ const UserManagementPage: React.FC = () => {
       )}
 
       {loading && (
-        <div className="flex items-center justify-center min-h-[200px]">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-          <p className="ml-2 text-gray-700">Loading users...</p>
+        <div className="flex items-center justify-center min-h-[200px] my-10">
+          <Loader2 className="h-10 w-10 animate-spin text-gray-500" />
+          <p className="ml-4 text-xl text-gray-700">Loading users...</p>
         </div>
       )}
 
       {error && (
-        <AlertDialog variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+        <AlertDialog variant="destructive" className="bg-red-100 border-l-4 border-red-500 text-red-800 p-5 rounded-lg shadow-md">
+          <AlertTriangle className="h-7 w-7 text-red-600 mr-3" />
+          <div>
+            <AlertTitle className="text-red-900 font-bold text-xl mb-1">Error</AlertTitle>
+            <AlertDescription className="text-red-800 text-lg">{error}</AlertDescription>
+          </div>
         </AlertDialog>
       )}
 
       {!loading && !error && (
-        <Card>
-          <CardHeader>
-            <CardTitle>All Users ({users.length})</CardTitle>
+        <Card className="shadow-lg border border-gray-200">
+          <CardHeader className="bg-gray-50 p-4 rounded-t-lg">
+            <CardTitle className="text-2xl font-semibold text-gray-800">All Users ({users.length})</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Registered On</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-gray-600 font-medium text-base">Name</TableHead>
+                  <TableHead className="text-gray-600 font-medium text-base">Email</TableHead>
+                  <TableHead className="text-gray-600 font-medium text-base">Role</TableHead>
+                  <TableHead className="text-gray-600 font-medium text-base">Registered On</TableHead>
+                  <TableHead className="text-right text-gray-600 font-medium text-base">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((user) => (
-                  <TableRow key={user._id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={user._id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <TableCell className="font-medium text-gray-800">
                       {user.firstName} {user.lastName}
                     </TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell className="text-gray-700">{user.email}</TableCell>
                     <TableCell>
                       {editingUserId === user._id ? (
                         <Select
                           value={selectedRole}
                           onValueChange={setSelectedRole}
                         >
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className="w-[180px] p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
                             <SelectValue placeholder="Select a role" />
                           </SelectTrigger>
                           <SelectContent>
@@ -347,54 +405,47 @@ const UserManagementPage: React.FC = () => {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={getRoleColor(user.role)}>
-                          {user.role}
+                        <Badge className={`px-3 py-1 rounded-full text-xs font-semibold ${getRoleColor(user.role)}`}>
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell>
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right flex space-x-2 justify-end">
-                      {editingUserId === user._id ? (
-                        <Button
-                          size="sm"
-                          onClick={() => handleSaveRole(user._id)}
-                          disabled={!selectedRole || deleteLoading === user._id}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" /> Save
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditRole(user)}
-                          disabled={deleteLoading === user._id || user.role === 'administrator'} // Disable edit for administrators
-                        >
-                          <Edit className="h-4 w-4 mr-1" /> Edit Role
-                        </Button>
-                      )}
+                    <TableCell className="text-gray-700">{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
                       <Button
+                        variant="outline"
                         size="sm"
+                        className="mr-2 px-3 py-1 text-sm"
+                        onClick={() => handleEditRole(user)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
                         variant="destructive"
+                        size="sm"
+                        className="px-3 py-1 text-sm"
                         onClick={() => handleDeleteUser(user._id)}
-                        disabled={deleteLoading === user._id || user.role === 'administrator'} // Prevent deleting administrators
+                        disabled={deleteLoading === user._id}
                       >
                         {deleteLoading === user._id ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Trash2 className="h-4 w-4 mr-1" />
+                          <Trash2 className="h-4 w-4" />
                         )}
-                        Delete
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
+                {users.length === 0 && !loading && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                      No users found.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
-            {users.length === 0 && !loading && !error && (
-                <p className="text-center text-gray-500 mt-4">No users found.</p>
-            )}
           </CardContent>
         </Card>
       )}
@@ -402,4 +453,4 @@ const UserManagementPage: React.FC = () => {
   );
 };
 
-export default UserManagementPage; 
+export default UserManagementPage;
