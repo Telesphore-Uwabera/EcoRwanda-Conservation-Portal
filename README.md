@@ -18,6 +18,74 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 - **User Management (Admin):** Ability to view, update roles, and delete user accounts.
 - **API Integration:** Secure communication between frontend and backend.
 
+## Screenshots
+
+### Authentication & Registration
+![Login Page](screenshots/login.png)
+*Login page with fields for user credentials and role-based authentication.*
+
+![Registration Page](screenshots/registration.png)
+*User registration form for volunteers and researchers, allowing new users to sign up.*
+
+![Post Registration](screenshots/postregister.png)
+*Confirmation or success page shown after successful registration.*
+
+### Dashboards
+![Admin Dashboard](screenshots/admin-dashboard.png)
+*Administrator dashboard showing system overview, statistics, and management tools.*
+
+![Volunteer Dashboard](screenshots/volunteer-dashboard.png)
+*Volunteer dashboard with personalized activities, tasks, and project updates.*
+
+![Researcher Dashboard](screenshots/researcher-dashboard.png)
+*Researcher dashboard displaying research projects, data, and collaboration tools.*
+
+### User Management & Admin
+![User Management](screenshots/user-management.png)
+*Admin interface for managing user accounts, roles, and permissions.*
+
+![Admin Register](screenshots/adminRegister.png)
+*Admin registration or creation form, used for adding new administrators.*
+
+### Volunteer Features
+![Volunteer Main](screenshots/volunteer.png)
+*General volunteer interface, possibly showing volunteer profile or main menu.*
+
+![Volunteer Projects](screenshots/volunteerProjects.png)
+*List or overview of projects available to volunteers.*
+
+![Volunteer Reports](screenshots/volunteerReports.png)
+*Section where volunteers can view or manage their submitted reports.*
+
+![Volunteer Submit Report](screenshots/volunteerSubmitreport.png)
+*Form or page for volunteers to submit new reports.*
+
+### Researcher Features
+![Researcher Main](screenshots/researcher.png)
+*General researcher interface, possibly showing researcher profile or main menu.*
+
+![Researcher Requests](screenshots/researcherRequests.png)
+*Page for researchers to view or manage their requests (e.g., data, collaboration).*
+
+![Researcher Datahub](screenshots/researcherDatahub.png)
+*Central hub for researchers to access and manage research data.*
+
+![Researcher Publish](screenshots/researcherPublish.png)
+*Interface for researchers to publish new findings or reports.*
+
+### Other Screenshots
+![Frontend Overview](screenshots/frontend.png)
+*Overview of the frontend application, possibly the landing or home page.*
+
+![Backend Overview](screenshots/backend.png)
+*Overview of the backend admin panel or API dashboard.*
+
+![MongoDB](screenshots/mongodb.png)
+*Screenshot of the MongoDB database interface, showing collections or data.*
+
+![MongoDB 1](screenshots/mongodb1.png)
+*Another view of the MongoDB database, possibly a different collection or data set.*
+
 ## Technologies Used
 
 ### Frontend
@@ -149,4 +217,44 @@ If you're using PowerShell and encounter errors with commands like `cd backend &
 ```powershell
 cd backend
 npm start
+```
+
+### Backend Environment Variables (`backend/.env`)
+
+Create a `.env` file in the `backend` directory with the following variables:
+
+```
+MONGODB_URI=mongodb://localhost:27017/eco_volunteer_portal
+PORT=5000
+JWT_SECRET=secret_jwt_key_here
+
+# Email Configuration for Password Reset (Example for Gmail)
+# If using Gmail, you might need an App Password if 2FA is enabled.
+# Generate one here: https://myaccount.google.com/apppasswords
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587 # or 465 for SSL
+EMAIL_USER=email@gmail.com
+EMAIL_PASS=gmail_app_password
+```
+
+**Note:** Replace `secret_jwt_key_here`, `email@gmail.com`, and `gmail_app_password` with your actual secure values. For `JWT_SECRET`, ensure it's a strong, random string.
+
+### Frontend Configuration (`frontend/src/config/api.ts`)
+
+Ensure `API_BASE_URL` is set correctly to `/api` to utilize the Vite proxy for development.
+
+```typescript
+// frontend/src/config/api.ts
+export const API_BASE_URL = '/api'; // This uses Vite's proxy in development
+```
+
+### Troubleshooting
+
+*   **`&&` operator in PowerShell:** If you are using PowerShell on Windows and encounter errors when trying to run `cd backend && npm start`, you may need to run the commands separately:
+    ```bash
+    cd backend
+    npm start
+    ```
+
+*   **`npm ERR! code ENOENT`:** This means `npm` can't find a `package.json` file. Ensure you are in the correct directory (`backend` or `frontend`) before running `npm install` or `npm start`/`npm run dev`.
 ``` 
