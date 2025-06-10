@@ -124,8 +124,8 @@ exports.forgotPassword = async (req, res) => {
 
     await user.save();
 
-    // Construct the reset URL (frontend URL)
-    const resetUrl = `http://localhost:3000/auth/reset-password/${resetToken}`;
+    // Construct the reset URL using an environment variable for flexibility
+    const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password/${resetToken}`;
 
     // Send the email
     await sendEmail({
@@ -159,6 +159,12 @@ exports.resetPassword = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ message: 'Password reset token is invalid or has expired.' });
+    }
+
+    // Check if the new password is the same as the current password
+    const isSamePassword = await user.comparePassword(newPassword);
+    if (isSamePassword) {
+      return res.status(400).json({ message: 'New password cannot be the same as your current password.' });
     }
 
     // Set new password
