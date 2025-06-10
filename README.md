@@ -49,7 +49,7 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 
 ### Volunteer Features
 ![Volunteer Main](screenshots/volunteer.png)
-*General volunteer interface, possibly showing volunteer profile or main menu.*
+*General volunteer interface, showing volunteer profile or main menu.*
 
 ![Volunteer Projects](screenshots/volunteerProjects.png)
 *List or overview of projects available to volunteers.*
@@ -62,7 +62,7 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 
 ### Researcher Features
 ![Researcher Main](screenshots/researcher.png)
-*General researcher interface, possibly showing researcher profile or main menu.*
+*General researcher interface, showing researcher profile or main menu.*
 
 ![Researcher Requests](screenshots/researcherRequests.png)
 *Page for researchers to view or manage their requests (e.g., data, collaboration).*
