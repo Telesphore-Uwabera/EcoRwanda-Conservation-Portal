@@ -1,5 +1,7 @@
 # Eco-Volunteer-Research-Collaboration-Portal
 
+[GitHub Repository](https://github.com/Telesphore-Uwabera/EcoRwanda-Conservation-Portal/)
+
 This project is an Eco-Volunteer and Research Collaboration Portal, designed to facilitate collaboration between volunteers, researchers, and park rangers in ecological conservation efforts. It provides a centralized platform for managing users, tracking activities, and accessing relevant data.
 
 ## Project Structure
@@ -75,7 +77,7 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 
 ### Other Screenshots
 ![Frontend Overview](screenshots/frontend.png)
-*Overview of the frontend application, possibly the landing or home page.*
+*Overview of the frontend application, the landing or home page.*
 
 ![Backend Overview](screenshots/backend.png)
 *Overview of the backend admin panel or API dashboard.*
@@ -84,7 +86,7 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 *Screenshot of the MongoDB database interface, showing collections or data.*
 
 ![MongoDB 1](screenshots/mongodb1.png)
-*Another view of the MongoDB database, possibly a different collection or data set.*
+*Another view of the MongoDB database, a different collection or data set.*
 
 ## Technologies Used
 
