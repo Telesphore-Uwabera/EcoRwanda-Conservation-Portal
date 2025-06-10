@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const crypto = require('crypto'); // Import crypto module
+const sendEmail = require('../utils/sendEmail'); // Import the sendEmail utility
 // You might need a nodemailer transporter setup here or in a separate utility
 // const sendEmail = require('../utils/sendEmail'); // Assuming a utility to send emails
 
@@ -126,12 +127,12 @@ exports.forgotPassword = async (req, res) => {
     // Construct the reset URL (frontend URL)
     const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password/${resetToken}`;
 
-    // In a real application, you would send an email here
-    // await sendEmail({
-    //   email: user.email,
-    //   subject: 'Password Reset Token',
-    //   message: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.`,
-    // });
+    // Send the email
+    await sendEmail({
+      email: user.email,
+      subject: 'Password Reset Token',
+      message: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.`,
+    });
 
     res.status(200).json({ message: 'If an account with that email exists, a password reset link has been sent to your inbox.' });
   } catch (error) {
