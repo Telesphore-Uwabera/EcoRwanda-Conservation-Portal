@@ -205,7 +205,7 @@ const UserManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6">
       <OfflineIndicator isOnline={isOnline} />
       <Toaster position="top-center" />
 
