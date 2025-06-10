@@ -263,7 +263,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content */}
       <div className="ml-64">
-        <main className="p-6">{children}</main>
+        <main className="py-6">
+          <div className="mx-5">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

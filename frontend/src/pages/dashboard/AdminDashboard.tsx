@@ -230,7 +230,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6">
       <OfflineIndicator isOnline={isOnline} />
 
       {/* Header */}
