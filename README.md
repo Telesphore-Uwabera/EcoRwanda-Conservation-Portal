@@ -49,7 +49,7 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 
 ### Volunteer Features
 ![Volunteer Main](screenshots/volunteer.png)
-*General volunteer interface, possibly showing volunteer profile or main menu.*
+*General volunteer interface, showing volunteer profile or main menu.*
 
 ![Volunteer Projects](screenshots/volunteerProjects.png)
 *List or overview of projects available to volunteers.*
@@ -62,7 +62,7 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 
 ### Researcher Features
 ![Researcher Main](screenshots/researcher.png)
-*General researcher interface, possibly showing researcher profile or main menu.*
+*General researcher interface, showing researcher profile or main menu.*
 
 ![Researcher Requests](screenshots/researcherRequests.png)
 *Page for researchers to view or manage their requests (e.g., data, collaboration).*
@@ -75,7 +75,7 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 
 ### Other Screenshots
 ![Frontend Overview](screenshots/frontend.png)
-*Overview of the frontend application, possibly the landing or home page.*
+*Overview of the frontend application, the landing or home page.*
 
 ![Backend Overview](screenshots/backend.png)
 *Overview of the backend admin panel or API dashboard.*
@@ -84,7 +84,7 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 *Screenshot of the MongoDB database interface, showing collections or data.*
 
 ![MongoDB 1](screenshots/mongodb1.png)
-*Another view of the MongoDB database, possibly a different collection or data set.*
+*Another view of the MongoDB database, a different collection or data set.*
 
 ## Technologies Used
 
