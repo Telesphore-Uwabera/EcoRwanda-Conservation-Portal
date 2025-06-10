@@ -61,6 +61,7 @@ const UserManagementPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
+  const [originalRole, setOriginalRole] = useState<string>("");
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const [newUserData, setNewUserData] = useState({
@@ -101,6 +102,13 @@ const UserManagementPage: React.FC = () => {
   const handleEditRole = (user: User) => {
     setEditingUserId(user._id);
     setSelectedRole(user.role);
+    setOriginalRole(user.role);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
+    setSelectedRole("");
+    setOriginalRole("");
   };
 
   const handleSaveRole = async (userId: string) => {
@@ -110,10 +118,13 @@ const UserManagementPage: React.FC = () => {
       await api.put(`/users/${userId}/role`, { role: selectedRole });
       toast.success("User role updated successfully!");
       setEditingUserId(null);
+      setSelectedRole("");
+      setOriginalRole("");
       fetchUsers(); // Re-fetch users to reflect changes
     } catch (err: any) {
       console.error("Error updating user role:", err);
       toast.error(err.response?.data?.message || "Failed to update user role.");
+      setSelectedRole(originalRole);
     }
   };
 
@@ -387,23 +398,41 @@ const UserManagementPage: React.FC = () => {
                     <TableCell className="text-gray-700">{user.email}</TableCell>
                     <TableCell>
                       {editingUserId === user._id ? (
-                        <Select
-                          value={selectedRole}
-                          onValueChange={setSelectedRole}
-                        >
-                          <SelectTrigger className="w-[180px] p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
-                            <SelectValue placeholder="Select a role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="volunteer">Volunteer</SelectItem>
-                            <SelectItem value="researcher">Researcher</SelectItem>
-                            <SelectItem value="ranger">Ranger</SelectItem>
-                            {/* Admin cannot change another admin's role or demote self */}
-                            {currentUser?.id !== user._id && currentUser?.role === 'administrator' && (
-                               <SelectItem value="administrator">Administrator</SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={selectedRole}
+                            onValueChange={setSelectedRole}
+                          >
+                            <SelectTrigger className="w-[180px] p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+                              <SelectValue placeholder="Select a role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="volunteer">Volunteer</SelectItem>
+                              <SelectItem value="researcher">Researcher</SelectItem>
+                              <SelectItem value="ranger">Ranger</SelectItem>
+                              {/* Admin cannot change another admin's role or demote self */}
+                              {currentUser?.id !== user._id && currentUser?.role === 'administrator' && (
+                                <SelectItem value="administrator">Administrator</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-2 py-1"
+                            onClick={() => handleSaveRole(user._id)}
+                          >
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-2 py-1"
+                            onClick={handleCancelEdit}
+                          >
+                            <XCircle className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
                       ) : (
                         <Badge className={`px-3 py-1 rounded-full text-xs font-semibold ${getRoleColor(user.role)}`}>
                           {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
