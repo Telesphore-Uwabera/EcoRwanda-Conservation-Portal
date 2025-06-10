@@ -13,6 +13,8 @@ import NotFound from "./pages/NotFound";
 // Auth Pages
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 // Dashboard Pages
 import VolunteerDashboard from "./pages/dashboard/VolunteerDashboard";
@@ -52,6 +54,8 @@ const App = () => (
             <Route path="/" element={<Navigate to="/auth/login" replace />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
 
             {/* Dashboard Routes */}
             <Route

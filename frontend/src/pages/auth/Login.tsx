@@ -88,6 +88,14 @@ export default function Login() {
             </button>
           </div>
         </div>
+        <div className="text-right text-sm">
+          <Link
+            to="/auth/forgot-password"
+            className="text-emerald-600 hover:text-emerald-700 font-medium"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         <Button
           type="submit"
