@@ -56,9 +56,7 @@ export default function Signup() {
       description: "Publish findings, access data hub",
       icon: BookOpen,
       color: "text-blue-600",
-    },
-    
-
+    }
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
