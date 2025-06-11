@@ -117,8 +117,8 @@ Follow these instructions to set up and run the project on your local machine.
 
 - Node.js (v14 or higher recommended)
 - npm (Node Package Manager)
-- MongoDB (Community Server or Atlas)
-- MongoDB Compass (for database inspection and initial admin setup)
+- **MongoDB Atlas Account:** (For cloud-hosted database. A free M0 Sandbox tier is sufficient for development.)
+- MongoDB Compass (Optional, for database inspection and initial admin setup)
 
 ### 1. Backend Setup
 
@@ -131,11 +131,11 @@ cd backend
 # Install backend dependencies
 npm install
 
-# Create a .env file in the backend directory with your MongoDB URI and PORT
+# Create a .env file in the backend directory with your MongoDB Atlas URI and PORT
 # Example .env content:
-# MONGODB_URI=mongodb://localhost:27017/eco_volunteer_portal
+# MONGODB_URI=mongodb+srv://<username>:<password>@yourcluster.mongodb.net/eco_volunteer_portal?retryWrites=true&w=majority
 # PORT=5000
-# JWT_SECRET=jwt_secret_key (important for authentication)
+# JWT_SECRET=your_strong_jwt_secret_key (important for authentication)
 
 # Start the backend server (development mode with nodemon)
 npm run dev
@@ -165,13 +165,13 @@ Ensure that `frontend/src/config/api.ts` has `API_BASE_URL` set to `/api`. This 
 const API_BASE_URL = '/api';
 ```
 
-### 3. Database Connection and Initial Administrator Setup
+### 3. Database Connection and Initial Administrator Setup (MongoDB Atlas)
 
-The backend connects to MongoDB using the `MONGODB_URI` specified in your `backend/.env` file. The default database name used in the backend is `eco_volunteer_portal`.
+The backend connects to MongoDB Atlas using the `MONGODB_URI` specified in your `backend/.env` file. Ensure you have configured a user and allowed network access in your MongoDB Atlas project. The default database name used in the backend is `eco_volunteer_portal`.
 
-**Creating the Initial Administrator (Superuser):**
+**Creating the Initial Administrator (Superuser) via MongoDB Compass or Atlas UI:**
 
-The public registration portal is designed for 'volunteer' and 'researcher' roles. To create the first 'administrator' account, you need to insert it directly into your MongoDB database.
+The public registration portal is designed for 'volunteer' and 'researcher' roles. To create the first 'administrator' account, you need to insert it directly into your MongoDB Atlas database.
 
 1.  **Generate a Hashed Password:**
     Open a terminal, navigate to the `backend` directory, and run the following command to generate a bcrypt hash for your desired administrator password:
@@ -181,12 +181,12 @@ The public registration portal is designed for 'volunteer' and 'researcher' role
     ```
     Replace `'strong_password'` with the actual password. Copy the output (the long hash string).
 
-2.  **Insert Administrator Document via MongoDB Compass:**
-    *   Open MongoDB Compass and connect to local MongoDB instance using the URI: `mongodb://localhost:27017/eco_volunteer_portal`.
-    *   Navigate to the `eco_volunteer_portal` database.
+2.  **Insert Administrator Document via MongoDB Compass or Atlas UI:**
+    *   Open MongoDB Compass and connect to your MongoDB Atlas cluster using the URI (e.g., `mongodb+srv://<username>:<password>@yourcluster.mongodb.net/`).
+    *   Navigate to the `eco_volunteer_portal` database (or your chosen database name).
     *   Select or create the `users` collection.
     *   Click "ADD DATA" -> "Insert Document".
-    *   Switch to "JSON View" (the `{}` icon) and paste the following JSON, replacing placeholders with your details and the **hashed password** you just generated:
+    *   Switch to "JSON View" (the `{}` icon) and paste the following JSON, replacing `GENERATED_HASH_HERE` with the **hashed password** you just generated:
         ```json
         {
           "firstName": "Admin",
@@ -197,10 +197,10 @@ The public registration portal is designed for 'volunteer' and 'researcher' role
           "organization": "Admin Org",
           "location": "Admin Location",
           "verified": true,
-          "createdAt": { "$date": "2025-06-10T00:00:00.000Z" }
+          "createdAt": { "$date": "ISO_DATE_STRING" }
         }
         ```
-        Ensure the `createdAt` field uses `{"$date": "ISO_DATE_STRING"}` format for proper BSON date type.
+        Ensure the `createdAt` field uses `{"$date": "ISO_DATE_STRING"}` format for proper BSON date type (e.g., `"2025-06-10T00:00:00.000Z"`).
     *   Click "INSERT".
 
 ### 4. Registering Volunteers and Researchers via Portal
@@ -212,7 +212,7 @@ Once your backend is running and connected, you can register new 'volunteer' and
 All users (administrators, researchers, volunteers, and park rangers if created by an admin) can log in through the main login portal at `http://localhost:3000/auth/login` using their registered email and password.
 
 ---
-**Note on Password Hashing:** If you encounter "Invalid email or password" errors after manually inserting users, it's often due to discrepancies in bcrypt hashing. The recommended approach for an initial admin is direct DB insertion, and for other roles (and subsequent admins), use the application's own registration/admin tools to ensure correct hashing.
+**Note on Password Hashing:** If you encounter "Invalid email or password" errors after manually inserting users, it's often due to discrepancies in bcrypt hashing. The recommended approach for an initial admin is direct DB insertion via the methods above, and for other roles (and subsequent admins), use the application's own registration/admin tools to ensure correct hashing.
 
 **Troubleshooting `&&` in PowerShell:**
 If you're using PowerShell and encounter errors with commands like `cd backend && npm start`, you need to run them separately:
@@ -226,9 +226,9 @@ npm start
 Create a `.env` file in the `backend` directory with the following variables:
 
 ```
-MONGODB_URI=mongodb://localhost:27017/eco_volunteer_portal
+MONGODB_URI=mongodb+srv://<username>:<password>@yourcluster.mongodb.net/eco_volunteer_portal?retryWrites=true&w=majority
 PORT=5000
-JWT_SECRET=secret_jwt_key_here
+JWT_SECRET=your_strong_jwt_secret_key
 
 # Email Configuration for Password Reset (Example for Gmail)
 # If using Gmail, you might need an App Password if 2FA is enabled.
@@ -239,7 +239,7 @@ EMAIL_USER=email@gmail.com
 EMAIL_PASS=gmail_app_password
 ```
 
-**Note:** Replace `secret_jwt_key_here`, `email@gmail.com`, and `gmail_app_password` with your actual secure values. For `JWT_SECRET`, ensure it's a strong, random string.
+**Note:** Replace `<username>`, `<password>`, `yourcluster.mongodb.net`, `eco_volunteer_portal`, `your_strong_jwt_secret_key`, `email@gmail.com`, and `gmail_app_password` with actual secure values. For `JWT_SECRET`, ensure it's a strong, random string.
 
 ### Frontend Configuration (`frontend/src/config/api.ts`)
 
@@ -259,4 +259,8 @@ export const API_BASE_URL = '/api'; // This uses Vite's proxy in development
     ```
 
 *   **`npm ERR! code ENOENT`:** This means `npm` can't find a `package.json` file. Ensure you are in the correct directory (`backend` or `frontend`) before running `npm install` or `npm start`/`npm run dev`.
+*   **`querySrv ENOTFOUND` error:** This usually means your machine cannot resolve the MongoDB Atlas cluster's hostname. Ensure:
+    *   Your MongoDB Atlas Network Access is configured to allow your current IP address (or temporarily, "Allow Access from Anywhere" 0.0.0.0/0).
+    *   Your local DNS settings are working correctly (e.g., try flushing your DNS cache `ipconfig /flushdns` or setting public DNS servers like Google DNS 8.8.8.8/8.8.4.4).
+*   **Database connection string:** Double-check that your `MONGODB_URI` in `backend/.env` exactly matches the connection string provided by MongoDB Atlas, including the correct username, password, cluster name, and database name.
 ``` 
