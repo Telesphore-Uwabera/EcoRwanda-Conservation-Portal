@@ -62,12 +62,14 @@ interface UserMetrics {
 }
 
 interface RecentActivity {
-  id: string;
-  type: string;
+  id?: string; // Optional, if ID is not always present from backend
+  type: string; // e.g., "user_registration", "project_created"
+  title: string;
   description: string;
-  user: string;
-  timestamp: string;
+  user?: string; // Optional
+  timestamp?: string; // Optional
   status: string;
+  createdAt: string; // Used for sorting
 }
 
 interface SystemAlert {
@@ -82,39 +84,19 @@ interface SystemAlert {
 interface DashboardStats {
   totalUsers: number;
   totalProjects: number;
-  totalResearch: number;
-  totalConservation: number;
+  researchStudies: number;
+  conservationAreas: number;
+  totalParkRangers: number;
   userDistribution: {
     volunteers: number;
     researchers: number;
     rangers: number;
+    administrators: number;
   };
   projectStatus: Array<{ _id: string; count: number }>;
   researchStatus: Array<{ _id: string; count: number }>;
   conservationStatus: Array<{ _id: string; count: number }>;
-  recentActivities: {
-    projects: Array<{
-      title: string;
-      description: string;
-      status: string;
-      createdAt: string;
-      type: string;
-    }>;
-    research: Array<{
-      title: string;
-      description: string;
-      status: string;
-      createdAt: string;
-      type: string;
-    }>;
-    conservation: Array<{
-      title: string;
-      description: string;
-      status: string;
-      createdAt: string;
-      type: string;
-    }>;
-  };
+  recentActivities: RecentActivity[]; // Correctly defined as an array of RecentActivity
 }
 
 export default function AdminDashboard() {
@@ -287,7 +269,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-purple-600" />
               <span className="text-2xl font-bold text-purple-900">
-                {stats.totalResearch.toLocaleString()}
+                {stats.researchStudies.toLocaleString()}
               </span>
             </div>
           </CardContent>
@@ -303,7 +285,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <ClipboardList className="h-5 w-5 text-orange-600" />
               <span className="text-2xl font-bold text-orange-900">
-                {stats.totalConservation.toLocaleString()}
+                {stats.conservationAreas.toLocaleString()}
               </span>
             </div>
           </CardContent>
@@ -320,7 +302,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-yellow-600" />
               <span className="text-2xl font-bold text-yellow-900">
-                {stats.userDistribution.rangers.toLocaleString()}
+                {stats.totalParkRangers.toLocaleString()}
               </span>
             </div>
           </CardContent>
@@ -395,52 +377,63 @@ export default function AdminDashboard() {
                   {stats.userDistribution.rangers.toLocaleString()} users
                 </Badge>
               </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                <span className="text-sm font-medium text-gray-700">Administrators</span>
+                <Badge className={getRoleColor("administrator")}>
+                  {stats.userDistribution.administrators.toLocaleString()} users
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Recent Activities */}
-        <Card>
+        <Card className="p-6 shadow-sm border rounded-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-purple-600" />
+            <CardTitle className="text-2xl font-bold text-gray-900 flex items-center">
+              <Activity className="h-6 w-6 mr-2 text-orange-600" />
               Recent Activities
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-600 mt-2">
               Latest project, research, and conservation updates
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {[...(stats.recentActivities.projects || []).map(p => ({...p, type: 'project_created'})),
-              ...(stats.recentActivities.research || []).map(r => ({...r, type: 'research_added'})),
-              ...(stats.recentActivities.conservation || []).map(c => ({...c, type: 'conservation_update'}))]
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .slice(0, 5)
-              .map((activity, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-gray-50"
-                >
-                  <div className="mt-0.5">{getActivityIcon(activity.type || '')}</div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {activity.title}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm text-gray-600">Status: {activity.status}</p>
-                      <Badge className={getStatusColor(activity.status)}>
-                        {activity.status.replace("_", " ")}
-                      </Badge>
+          <CardContent>
+            {stats.recentActivities && stats.recentActivities.length > 0 ? (
+              <div className="space-y-4">
+                {stats.recentActivities.map((activity, index) => (
+                  <div
+                    key={activity.id || activity.title + activity.createdAt + index} // Use ID if available, else a composite key
+                    className="flex items-center space-x-3"
+                  >
+                    <div className="flex-shrink-0">
+                      {getActivityIcon(activity.type)}
                     </div>
-                    <p className="text-xs text-gray-500">
-                      {new Date(activity.createdAt).toLocaleDateString()}
-                    </p>
+                    <div className="flex-grow">
+                      <p className="font-medium text-gray-900">
+                        {activity.title}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {activity.description}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(activity.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Badge className={getStatusColor(activity.status)}>
+                      {activity.status.replace("_", " ")}
+                    </Badge>
                   </div>
-                </div>
-              ))}
-            <Button variant="outline" className="w-full" asChild>
-              <Link to="/admin/activity-log">View All Activities</Link>
-            </Button>
+                ))}
+                <Button variant="outline" className="w-full" asChild>
+                  <Link to="/admin/activity-log">View All Activities</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 py-10">
+                <p>No recent activities found.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
