@@ -1,73 +1,44 @@
+const ResearchProject = require('../models/ResearchProject');
+const WildlifeReport = require('../models/WildlifeReport'); // Potentially used for collaboration requests related to reports
+const User = require('../models/User');
+
 const getResearcherDashboardData = async (req, res) => {
   try {
-    // In a real application, fetch personalized data for the logged-in researcher
-    // For now, we'll provide mock data.
+    const userId = req.user.userId; // Assuming userId is available from authentication middleware
+
+    // TODO: Fetch count of published findings by this researcher
+    const publishedFindingsCount = 0; // Replace with actual database query
+
+    // Fetch count of active research projects led by this researcher
+    const activeProjectsCount = await ResearchProject.countDocuments({
+      leadResearcher: userId,
+      status: { $in: ['active', 'data_collection', 'analysis'] },
+    });
+
+    // TODO: Count unique volunteer collaborators (e.g., from projects)
+    const volunteerCollaboratorsCount = 0; // Replace with actual database query
+
+    // TODO: Count dataset downloads (requires a Dataset model or tracking in ResearchProject)
+    const datasetDownloadsCount = 0; // Replace with actual database query
 
     const stats = {
-      publishedFindings: 7, // Example: count of findings published by this researcher
-      activeProjects: 2,    // Example: count of active projects led by this researcher
-      volunteerCollaborators: 15, // Example: count of volunteers collaborated with
-      datasetDownloads: 230, // Example: count of downloads of datasets uploaded by this researcher
+      publishedFindings: publishedFindingsCount,
+      activeProjects: activeProjectsCount,
+      volunteerCollaborators: volunteerCollaboratorsCount,
+      datasetDownloads: datasetDownloadsCount,
     };
 
-    const activeProjects = [
-      {
-        id: "projA",
-        title: "Impact of Climate Change on Rwandan Biodiversity",
-        description: "Long-term study on species adaptation and ecosystem resilience.",
-        status: "data_collection",
-        location: "Nyungwe NP",
-        startDate: "2023-09-01",
-        volunteersNeeded: 5,
-      },
-      {
-        id: "projB",
-        title: "Ecotourism Revenue vs. Conservation Funding",
-        description: "Analyzing the economic contribution of ecotourism to conservation.",
-        status: "analysis",
-        location: "Kigali, Various Parks",
-        startDate: "2024-01-15",
-        volunteersNeeded: 0,
-      },
-    ];
+    // Fetch active research projects led by this researcher
+    const activeProjects = await ResearchProject.find({
+      leadResearcher: userId,
+      status: { $in: ['active', 'data_collection', 'analysis'] },
+    }).limit(5); // Limit to 5 active projects
 
-    const recentPublications = [
-      {
-        id: "pubX",
-        title: "Habitat Fragmentation Effects on Primates in Gishwati",
-        journal: "Primates Conservation Journal",
-        date: "2024-05-20",
-        downloads: 95,
-        citations: 15,
-      },
-      {
-        id: "pubY",
-        title: "Sustainable Land Use Practices in Rural Rwanda",
-        journal: "Environmental Management",
-        date: "2024-03-10",
-        downloads: 180,
-        citations: 22,
-      },
-    ];
+    // TODO: Fetch recent publications by this researcher (requires a Publication model)
+    const recentPublications = []; // Replace with actual database query
 
-    const collaborationRequests = [
-      {
-        id: "collabR1",
-        title: "Data Collection for Akagera Herbivore Study",
-        requiredSkills: ["GPS navigation", "Wildlife tracking"],
-        volunteers: 3,
-        target: 8,
-        deadline: "2024-07-20",
-      },
-      {
-        id: "collabR2",
-        title: "Translation of Field Guides to Kinyarwanda",
-        requiredSkills: ["Kinyarwanda fluency", "Conservation knowledge"],
-        volunteers: 1,
-        target: 2,
-        deadline: "2024-08-01",
-      },
-    ];
+    // TODO: Fetch collaboration requests (might need a dedicated model or link to reports)
+    const collaborationRequests = []; // Replace with actual database query
 
     res.json({
       stats,

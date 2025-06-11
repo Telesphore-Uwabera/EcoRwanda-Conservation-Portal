@@ -1,94 +1,51 @@
 const User = require('../models/User');
-const Project = require('../models/Project');
-const Research = require('../models/Research');
-const Conservation = require('../models/Conservation');
+const ResearchProject = require('../models/ResearchProject');
+const ConservationProject = require('../models/ConservationProject');
 const Volunteer = require('../models/Volunteer');
 const Researcher = require('../models/Researcher');
 const Ranger = require('../models/Ranger');
 
 exports.getDashboardStats = async (req, res) => {
     try {
-        // Get total counts
+        console.log('Attempting to fetch admin dashboard stats...');
+
         const totalUsers = await User.countDocuments();
-        const totalProjects = await Project.countDocuments();
-        const totalResearch = await Research.countDocuments();
-        const totalConservation = await Conservation.countDocuments();
+        console.log('totalUsers:', totalUsers);
 
-        // Get user type counts
-        const totalVolunteers = await Volunteer.countDocuments();
-        const totalResearchers = await Researcher.countDocuments();
-        const totalRangers = await Ranger.countDocuments();
+        const totalProjects = await ResearchProject.countDocuments() + await ConservationProject.countDocuments();
+        console.log('totalProjects:', totalProjects);
 
-        // Get recent activities
-        const recentProjects = await Project.find()
-            .sort({ createdAt: -1 })
-            .limit(5)
-            .select('title description status createdAt');
+        const researchStudies = await ResearchProject.countDocuments();
+        console.log('researchStudies:', researchStudies);
 
-        const recentResearch = await Research.find()
-            .sort({ createdAt: -1 })
-            .limit(5)
-            .select('title description status createdAt');
+        const conservationAreas = await ConservationProject.countDocuments();
+        console.log('conservationAreas:', conservationAreas);
 
-        const recentConservation = await Conservation.find()
-            .sort({ createdAt: -1 })
-            .limit(5)
-            .select('title description status createdAt');
+        const totalParkRangers = await User.countDocuments({ role: 'ranger' });
+        console.log('totalParkRangers:', totalParkRangers);
 
-        // Get user distribution
         const userDistribution = {
-            volunteers: totalVolunteers,
-            researchers: totalResearchers,
-            rangers: totalRangers
+            volunteers: await User.countDocuments({ role: 'volunteer' }),
+            researchers: await User.countDocuments({ role: 'researcher' }),
+            rangers: await User.countDocuments({ role: 'ranger' }),
+            administrators: await User.countDocuments({ role: 'administrator' }),
         };
+        console.log('userDistribution:', userDistribution);
 
-        // Get project status distribution
-        const projectStatus = await Project.aggregate([
-            {
-                $group: {
-                    _id: '$status',
-                    count: { $sum: 1 }
-                }
-            }
-        ]);
+        // TODO: Fetch recent activities (e.g., latest reports, new projects, user registrations)
+        const recentActivities = [];
 
-        // Get research status distribution
-        const researchStatus = await Research.aggregate([
-            {
-                $group: {
-                    _id: '$status',
-                    count: { $sum: 1 }
-                }
-            }
-        ]);
-
-        // Get conservation status distribution
-        const conservationStatus = await Conservation.aggregate([
-            {
-                $group: {
-                    _id: '$status',
-                    count: { $sum: 1 }
-                }
-            }
-        ]);
-
-        res.json({
+        res.status(200).json({
             totalUsers,
             totalProjects,
-            totalResearch,
-            totalConservation,
+            researchStudies,
+            conservationAreas,
+            totalParkRangers,
             userDistribution,
-            projectStatus,
-            researchStatus,
-            conservationStatus,
-            recentActivities: {
-                projects: recentProjects,
-                research: recentResearch,
-                conservation: recentConservation
-            }
+            recentActivities,
         });
     } catch (error) {
         console.error('Error fetching admin dashboard stats:', error);
-        res.status(500).json({ message: 'Error fetching dashboard statistics' });
+        res.status(500).json({ message: 'Server Error' });
     }
 }; 

@@ -1,75 +1,55 @@
+const WildlifeReport = require('../models/WildlifeReport');
+const Patrol = require('../models/Patrol');
+const User = require('../models/User'); // Assuming User model is needed for populating related fields or specific user queries
+
 const getRangerDashboardData = async (req, res) => {
   try {
-    // In a real application, fetch personalized data for the logged-in ranger
-    // For now, we'll provide mock data.
+    const userId = req.user.userId; // Assuming userId is available from authentication middleware
+
+    // Fetch count of reports to verify (pending reports)
+    const reportsToVerifyCount = await WildlifeReport.countDocuments({ status: 'pending' });
+
+    // Fetch count of patrols completed by this ranger
+    const patrolsCompletedCount = await Patrol.countDocuments({
+      ranger: userId,
+      status: 'completed',
+    });
+
+    // Fetch count of threats detected (high or critical urgency reports)
+    const threatsDetectedCount = await WildlifeReport.countDocuments({
+      urgency: { $in: ['high', 'critical'] },
+    });
+
+    // TODO: Calculate average response time (requires more detailed logic based on report verification times)
+    const responseTime = "N/A"; 
 
     const stats = {
-      reportsToVerify: 5, // Example: count of reports assigned to this ranger
-      patrolsCompleted: 18, // Example: count of patrols completed by this ranger
-      threatsDetected: 2,   // Example: count of threats detected by this ranger
-      responseTime: "12 min", // Example: average response time for this ranger
+      reportsToVerify: reportsToVerifyCount,
+      patrolsCompleted: patrolsCompletedCount,
+      threatsDetected: threatsDetectedCount,
+      responseTime: responseTime,
     };
 
-    const urgentAlerts = [
-      {
-        id: "alert1",
-        type: "poaching",
-        location: "Sector B-3, Akagera NP",
-        reporter: "Automated Sensor",
-        time: "1 hour ago",
-        status: "active",
-        priority: "critical",
-      },
-      {
-        id: "alert2",
-        type: "illegal_entry",
-        location: "Western Boundary, Volcanoes NP",
-        reporter: "Patrol Team Alpha",
-        time: "30 minutes ago",
-        status: "responding",
-        priority: "high",
-      },
-    ];
+    // Fetch urgent alerts (high or critical urgency reports)
+    const urgentAlerts = await WildlifeReport.find({
+      urgency: { $in: ['high', 'critical'] },
+    }).sort({ submittedAt: -1 }).limit(5); // Limit to 5 urgent alerts
 
-    const pendingReports = [
-      {
-        id: "pr1",
-        title: "Illegal charcoal production site",
-        location: "Gishwati Forest outskirts",
-        submittedBy: "Local Resident",
-        submittedAt: "2024-06-12 10:00",
-        urgency: "high",
-        evidence: ["photos", "video"],
-      },
-      {
-        id: "pr2",
-        title: "Injured chimpanzee sighting",
-        location: "Nyungwe Forest Canopy Walk",
-        submittedBy: "Tourist",
-        submittedAt: "2024-06-11 16:30",
-        urgency: "critical",
-        evidence: ["photos"],
-      },
-    ];
+    // Fetch pending reports for verification
+    const pendingReports = await WildlifeReport.find({ status: 'pending' })
+      .sort({ submittedAt: -1 })
+      .limit(5); // Limit to 5 pending reports
 
-    const todayPatrols = [
-      {
-        id: "patrol1",
-        route: "Eastern Sector Patrol",
-        status: "in_progress",
-        duration: "2 hours",
-        findings: "Observing animal behavior. All clear.",
-        ranger: "You",
-      },
-      {
-        id: "patrol2",
-        route: "Southern Wetland Survey",
-        status: "scheduled",
-        duration: "4 hours",
-        findings: "To be started",
-        ranger: "Alice Mukamana",
-      },
-    ];
+    // Fetch today's patrols for this ranger
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const todayPatrols = await Patrol.find({
+      ranger: userId,
+      patrolDate: { $gte: startOfToday, $lt: endOfToday },
+    }).sort({ patrolDate: 1 }); // Sort by time
 
     res.json({
       stats,
