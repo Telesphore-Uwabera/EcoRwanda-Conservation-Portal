@@ -16,6 +16,11 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Prevent ranger registration through public endpoint
+    if (role === 'ranger') {
+      return res.status(403).json({ message: 'Ranger registration is not allowed through this endpoint. Please contact an administrator.' });
+    }
+
     // Create new user
     const user = new User({
       email,
@@ -58,18 +63,23 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Login attempt for email:', email);
 
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('User not found for email:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    console.log('User found with role:', user.role);
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      console.log('Password mismatch for user:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    console.log('Password verified for user:', email);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -84,9 +94,12 @@ exports.login = async (req, res) => {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      role: user.role
+      role: user.role,
+      location: user.location,
+      organization: user.organization
     };
 
+    console.log('Login successful for user:', email, 'with role:', user.role);
     res.json({
       message: 'Login successful',
       user: userData,
