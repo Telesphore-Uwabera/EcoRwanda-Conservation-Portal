@@ -1,6 +1,6 @@
 # Eco-Volunteer-Research-Collaboration-Portal
 
-[GitHub Repository](https://github.com/Telesphore-Uwabera/EcoRwanda-Conservation-Portal/)
+[GitHub Repository](image.pnghttps://github.com/Telesphore-Uwabera/EcoRwanda-Conservation-Portal/)
 
 This project is an Eco-Volunteer and Research Collaboration Portal, designed to facilitate collaboration between volunteers, researchers, and park rangers in ecological conservation efforts. It provides a centralized platform for managing users, tracking activities, and accessing relevant data.
 
@@ -189,6 +189,10 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
    ```
 
 ### Free Deployment Guide
+
+##### Live Deployment
+- Frontend: [https://ecorwandaconservationportal.netlify.app/](https://ecorwandaconservationportal.netlify.app/)
+- Backend: [https://ecorwanda-conservation-portal.onrender.com](https://ecorwanda-conservation-portal.onrender.com)
 
 #### Backend Deployment (Node.js/Express)
 
