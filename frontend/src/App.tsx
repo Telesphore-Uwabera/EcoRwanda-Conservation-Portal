@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleGuard } from "@/components/common/RoleGuard";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 // Pages
 import Index from "./pages/Index";
@@ -63,7 +64,9 @@ const App = () => (
               path="/dashboard/volunteer"
               element={
                 <RoleGuard allowedRoles={["volunteer"]}>
-                  <VolunteerDashboard />
+                  <DashboardLayout>
+                    <VolunteerDashboard />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -71,7 +74,9 @@ const App = () => (
               path="/dashboard/researcher"
               element={
                 <RoleGuard allowedRoles={["researcher"]}>
-                  <ResearcherDashboard />
+                  <DashboardLayout>
+                    <ResearcherDashboard />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -79,7 +84,9 @@ const App = () => (
               path="/dashboard/ranger"
               element={
                 <RoleGuard allowedRoles={["ranger"]}>
-                  <RangerDashboard />
+                  <DashboardLayout>
+                    <RangerDashboard />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -87,7 +94,9 @@ const App = () => (
               path="/dashboard/admin"
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
-                  <AdminDashboard />
+                  <DashboardLayout>
+                    <AdminDashboard />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -97,7 +106,9 @@ const App = () => (
               path="/volunteer/submit-report"
               element={
                 <RoleGuard allowedRoles={["volunteer"]}>
-                  <SubmitReport />
+                  <DashboardLayout>
+                    <SubmitReport />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -105,7 +116,9 @@ const App = () => (
               path="/volunteer/my-reports"
               element={
                 <RoleGuard allowedRoles={["volunteer"]}>
-                  <MyReports />
+                  <DashboardLayout>
+                    <MyReports />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -113,7 +126,9 @@ const App = () => (
               path="/volunteer/projects"
               element={
                 <RoleGuard allowedRoles={["volunteer"]}>
-                  <ViewProjects />
+                  <DashboardLayout>
+                    <ViewProjects />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -123,7 +138,9 @@ const App = () => (
               path="/researcher/publish"
               element={
                 <RoleGuard allowedRoles={["researcher"]}>
-                  <PublishFindings />
+                  <DashboardLayout>
+                    <PublishFindings />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -131,7 +148,9 @@ const App = () => (
               path="/researcher/data-hub"
               element={
                 <RoleGuard allowedRoles={["researcher"]}>
-                  <DataHub />
+                  <DashboardLayout>
+                    <DataHub />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -139,7 +158,9 @@ const App = () => (
               path="/researcher/request-volunteers"
               element={
                 <RoleGuard allowedRoles={["researcher"]}>
-                  <RequestVolunteers />
+                  <DashboardLayout>
+                    <RequestVolunteers />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -149,7 +170,9 @@ const App = () => (
               path="/ranger/verify-reports"
               element={
                 <RoleGuard allowedRoles={["ranger"]}>
-                  <VerifyReports />
+                  <DashboardLayout>
+                    <VerifyReports />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -157,7 +180,9 @@ const App = () => (
               path="/ranger/patrol-data"
               element={
                 <RoleGuard allowedRoles={["ranger"]}>
-                  <PatrolData />
+                  <DashboardLayout>
+                    <PatrolData />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -165,7 +190,9 @@ const App = () => (
               path="/ranger/threat-map"
               element={
                 <RoleGuard allowedRoles={["ranger"]}>
-                  <ThreatMap />
+                  <DashboardLayout>
+                    <ThreatMap />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -175,7 +202,9 @@ const App = () => (
               path="/admin/users"
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
-                  <UserManagementPage />
+                  <DashboardLayout>
+                    <UserManagementPage />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
@@ -183,7 +212,9 @@ const App = () => (
               path="/admin/users/:id"
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
-                  <UserProfileViewPage />
+                  <DashboardLayout>
+                    <UserProfileViewPage />
+                  </DashboardLayout>
                 </RoleGuard>
               }
             />
