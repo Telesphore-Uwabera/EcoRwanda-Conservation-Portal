@@ -261,18 +261,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <LogOut className="h-5 w-5" />
               Sign Out
             </Button>
+            <div className="text-center text-xs text-gray-500 mt-2">
+              © {new Date().getFullYear()} EcoRwanda. All rights reserved.
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="ml-64">
-        <main className="py-6">
-          <div className="mx-5">
-            {children}
-          </div>
-        </main>
-      </div>
+      {/* Main content */}
+      <main className="flex-1 p-8 overflow-y-auto pl-64">
+        {children}
+      </main>
     </div>
   );
 };
