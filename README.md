@@ -188,6 +188,137 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
    npm run dev
    ```
 
+### Free Deployment Guide
+
+#### Backend Deployment (Node.js/Express)
+
+1. **Render.com** (Free Tier)
+   - 750 hours/month free
+   - Automatic HTTPS
+   - Easy deployment from GitHub
+   - Steps:
+     1. Create account on render.com
+     2. Connect GitHub repository
+     3. Create new Web Service
+     4. Select backend repository
+     5. Configure:
+        - Build Command: `npm install`
+        - Start Command: `npm start`
+        - Add environment variables
+
+2. **Railway.app** (Free Tier)
+   - $5 credit monthly
+   - 500 hours/month free
+   - Automatic deployments
+   - Steps:
+     1. Create account on railway.app
+     2. Connect GitHub repository
+     3. Deploy backend service
+     4. Configure environment variables
+
+#### Frontend Deployment (React)
+
+1. **Netlify** (Free Tier)
+   - Unlimited static sites
+   - Continuous deployment
+   - Free SSL certificates
+   - Steps:
+     1. Create account on netlify.com
+     2. Connect GitHub repository
+     3. Configure build settings:
+        - Build command: `npm run build`
+        - Publish directory: `dist`
+     4. Set environment variables
+
+2. **Vercel** (Free Tier)
+   - Unlimited static sites
+   - Automatic HTTPS
+   - Global CDN
+   - Steps:
+     1. Create account on vercel.com
+     2. Import GitHub repository
+     3. Configure build settings
+     4. Deploy
+
+#### Database Deployment (MongoDB)
+
+1. **MongoDB Atlas** (Free Tier)
+   - 512MB storage
+   - Shared RAM
+   - Shared vCPU
+   - Steps:
+     1. Create account on mongodb.com
+     2. Create free cluster
+     3. Configure network access (IP whitelist)
+     4. Create database user
+     5. Get connection string
+     6. Update backend environment variables
+
+#### File Storage
+
+1. **Cloudinary** (Free Tier)
+   - 25 credits/month
+   - 25GB storage
+   - Steps:
+     1. Create account on cloudinary.com
+     2. Get API credentials
+     3. Update environment variables
+
+#### Environment Configuration
+
+1. **Backend (.env)**
+   ```
+   MONGODB_URI=mongodb_atlas_uri
+   PORT=5000
+   JWT_SECRET=jwt_secret
+   CLOUDINARY_CLOUD_NAME=cloud_name
+   CLOUDINARY_API_KEY=api_key
+   CLOUDINARY_API_SECRET=api_secret
+   FRONTEND_URL=frontend_url
+   ```
+
+2. **Frontend (.env)**
+   ```
+   VITE_API_URL=backend_url
+   VITE_CLOUDINARY_CLOUD_NAME=cloud_name
+   ```
+
+#### Free Domain Options
+
+1. **Freenom** (Free for 12 months)
+   - .tk, .ml, .ga, .cf, .gq domains
+   - Steps:
+     1. Create account on freenom.com
+     2. Choose free domain
+     3. Configure DNS settings
+     4. Point to hosting
+
+2. **GitHub Pages** (Free)
+   - username.github.io
+   - Steps:
+     1. Enable GitHub Pages in repository settings
+     2. Configure custom domain (if using Freenom)
+
+#### Free Monitoring Tools
+
+1. **Uptime Monitoring**
+   - UptimeRobot (Free Tier)
+     - 50 monitors
+     - 5-minute intervals
+     - Email notifications
+
+2. **Error Tracking**
+   - Sentry (Free Tier)
+     - 5,000 errors/month
+     - 7-day data retention
+     - Basic features
+
+3. **Analytics**
+   - Google Analytics (Free)
+     - Basic analytics
+     - User tracking
+     - Performance monitoring
+
 ### Initial Administrator Setup
 
 1. **Generate Password Hash**
