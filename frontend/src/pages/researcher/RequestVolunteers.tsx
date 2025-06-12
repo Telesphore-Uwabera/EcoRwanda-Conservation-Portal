@@ -41,6 +41,13 @@ import {
   UserPlus,
   Eye,
 } from "lucide-react";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 
 export default function RequestVolunteers() {
   const { user } = useAuth();
@@ -239,12 +246,12 @@ export default function RequestVolunteers() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+        <div className="space-y-2 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-3">
             <Users className="h-8 w-8 text-amber-600" />
             Request Volunteer Assistance
           </h1>
@@ -264,69 +271,46 @@ export default function RequestVolunteers() {
           </Alert>
         )}
 
-        {/* Tab Navigation */}
-        <div className="flex gap-4 border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab("create")}
-            className={`pb-2 px-1 font-medium ${
-              activeTab === "create"
-                ? "border-b-2 border-amber-600 text-amber-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Create New Request
-          </button>
-          <button
-            onClick={() => setActiveTab("existing")}
-            className={`pb-2 px-1 font-medium ${
-              activeTab === "existing"
-                ? "border-b-2 border-amber-600 text-amber-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            My Requests (
-            {existingRequests.filter((r) => r.status === "active").length})
-          </button>
-        </div>
+        {/* Tabs for sections */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="create">Create New Request</TabsTrigger>
+            <TabsTrigger value="existing">My Requests ({existingRequests.length})</TabsTrigger>
+          </TabsList>
 
-        {/* Create New Request Tab */}
-        {activeTab === "create" && (
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Basic Information */}
+          {/* Create New Request Tab */}
+          <TabsContent value="create" className="space-y-6 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-amber-600" />
-                  Project Information
-                </CardTitle>
+                <CardTitle>Project Information</CardTitle>
                 <CardDescription>
-                  Provide details about your research project and volunteer
-                  needs
+                  Provide details about your research project and volunteer needs
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Project Title</Label>
+                  <Label htmlFor="projectTitle">Project Title</Label>
                   <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    id="projectTitle"
                     placeholder="Give your project a clear, descriptive title"
-                    required
+                    value={formData.title}
+                    onChange={(e) =>
+                      handleInputChange("title", e.target.value)
+                    }
+                    className="w-full"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Project Description</Label>
+                  <Label htmlFor="projectDescription">Project Description</Label>
                   <Textarea
-                    id="description"
+                    id="projectDescription"
+                    placeholder="Describe your research project, its goals, and how volunteers will contribute"
                     value={formData.description}
                     onChange={(e) =>
                       handleInputChange("description", e.target.value)
                     }
-                    placeholder="Describe your research project, its goals, and how volunteers will contribute"
-                    rows={4}
-                    required
+                    className="min-h-[100px] w-full"
                   />
                 </div>
 
@@ -334,17 +318,16 @@ export default function RequestVolunteers() {
                   <Label htmlFor="objectives">Specific Objectives</Label>
                   <Textarea
                     id="objectives"
+                    placeholder="List the specific tasks and objectives volunteers will help with"
                     value={formData.objectives}
                     onChange={(e) =>
                       handleInputChange("objectives", e.target.value)
                     }
-                    placeholder="List the specific tasks and objectives volunteers will help with"
-                    rows={3}
-                    required
+                    className="min-h-[80px] w-full"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
                     <Select
@@ -353,41 +336,33 @@ export default function RequestVolunteers() {
                         handleInputChange("location", value)
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select project location" />
                       </SelectTrigger>
                       <SelectContent>
-                        {rwandaLocations.map((location) => (
-                          <SelectItem key={location} value={location}>
-                            {location}
+                        {rwandaLocations.map((loc) => (
+                          <SelectItem key={loc} value={loc}>
+                            {loc}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="volunteersNeeded">
-                      Number of Volunteers Needed
-                    </Label>
+                    <Label htmlFor="volunteersNeeded">Number of Volunteers Needed</Label>
                     <Input
                       id="volunteersNeeded"
                       type="number"
-                      min="1"
-                      max="100"
                       value={formData.volunteersNeeded}
                       onChange={(e) =>
-                        handleInputChange(
-                          "volunteersNeeded",
-                          parseInt(e.target.value),
-                        )
+                        handleInputChange("volunteersNeeded", parseInt(e.target.value))
                       }
-                      required
+                      className="w-full"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="startDate">Start Date</Label>
                     <Input
@@ -397,10 +372,9 @@ export default function RequestVolunteers() {
                       onChange={(e) =>
                         handleInputChange("startDate", e.target.value)
                       }
-                      required
+                      className="w-full"
                     />
                   </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="endDate">End Date</Label>
                     <Input
@@ -410,54 +384,107 @@ export default function RequestVolunteers() {
                       onChange={(e) =>
                         handleInputChange("endDate", e.target.value)
                       }
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="applicationDeadline">
-                      Application Deadline
-                    </Label>
-                    <Input
-                      id="applicationDeadline"
-                      type="date"
-                      value={formData.applicationDeadline}
-                      onChange={(e) =>
-                        handleInputChange("applicationDeadline", e.target.value)
-                      }
-                      required
+                      className="w-full"
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Requirements */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5 text-blue-600" />
-                  Volunteer Requirements
-                </CardTitle>
-                <CardDescription>
-                  Specify the skills and requirements for volunteers
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="applicationDeadline">Application Deadline</Label>
+                  <Input
+                    id="applicationDeadline"
+                    type="date"
+                    value={formData.applicationDeadline}
+                    onChange={(e) =>
+                      handleInputChange("applicationDeadline", e.target.value)
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="skills">Skills</Label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      id="newSkill"
+                      placeholder="Add a required or preferred skill"
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && addSkill()}
+                      className="flex-1"
+                      list="skill-suggestions"
+                    />
+                    <datalist id="skill-suggestions">
+                      {skillSuggestions.map((skill) => (
+                        <option key={skill} value={skill} />
+                      ))}
+                    </datalist>
+                    <Select value={skillType} onValueChange={setSkillType}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Skill Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="required">Required</SelectItem>
+                        <SelectItem value="preferred">Preferred</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" onClick={addSkill}>
+                      <Plus className="h-4 w-4 mr-2" /> Add Skill
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.requiredSkills.map((skill) => (
+                      <Badge
+                        key={skill}
+                        variant="default"
+                        className="flex items-center gap-1 pr-1 bg-emerald-500 hover:bg-emerald-600"
+                      >
+                        {skill} (Required)
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSkill(skill, "required")}
+                          className="h-5 w-5 p-0 text-white hover:text-red-100"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                    {formData.preferredSkills.map((skill) => (
+                      <Badge
+                        key={skill}
+                        variant="secondary"
+                        className="flex items-center gap-1 pr-1"
+                      >
+                        {skill} (Preferred)
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSkill(skill, "preferred")}
+                          className="h-5 w-5 p-0"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="timeCommitment">Time Commitment</Label>
                     <Input
                       id="timeCommitment"
+                      placeholder="e.g., 20 hours/week, full-time for 3 months"
                       value={formData.timeCommitment}
                       onChange={(e) =>
                         handleInputChange("timeCommitment", e.target.value)
                       }
-                      placeholder="e.g., 2-3 days per week, Full-time for 2 weeks"
-                      required
+                      className="w-full"
                     />
                   </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="difficultyLevel">Difficulty Level</Label>
                     <Select
@@ -466,17 +493,19 @@ export default function RequestVolunteers() {
                         handleInputChange("difficultyLevel", value)
                       }
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select difficulty level" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select difficulty" />
                       </SelectTrigger>
                       <SelectContent>
                         {difficultyLevels.map((level) => (
                           <SelectItem key={level.value} value={level.value}>
-                            <div>
-                              <div className="font-medium">{level.label}</div>
-                              <div className="text-xs text-gray-500">
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {level.label}
+                              </span>
+                              <span className="text-xs text-gray-500">
                                 {level.description}
-                              </div>
+                              </span>
                             </div>
                           </SelectItem>
                         ))}
@@ -485,179 +514,56 @@ export default function RequestVolunteers() {
                   </div>
                 </div>
 
-                {/* Skills */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Required Skills</Label>
-                    <div className="flex gap-2">
-                      <Select value={skillType} onValueChange={setSkillType}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="required">Required</SelectItem>
-                          <SelectItem value="preferred">Preferred</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        value={newSkill}
-                        onChange={(e) => setNewSkill(e.target.value)}
-                        placeholder="Add a skill requirement"
-                        onKeyPress={(e) =>
-                          e.key === "Enter" && (e.preventDefault(), addSkill())
-                        }
-                      />
-                      <Button
-                        type="button"
-                        onClick={addSkill}
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                      {skillSuggestions.slice(0, 8).map((skill) => (
-                        <button
-                          key={skill}
-                          type="button"
-                          onClick={() => {
-                            setNewSkill(skill);
-                            addSkill();
-                          }}
-                          className="text-left p-2 rounded border border-gray-200 hover:bg-gray-50 text-xs"
-                        >
-                          {skill}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {(formData.requiredSkills.length > 0 ||
-                    formData.preferredSkills.length > 0) && (
-                    <div className="space-y-3">
-                      {formData.requiredSkills.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">
-                            Required Skills:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {formData.requiredSkills.map((skill) => (
-                              <Badge
-                                key={skill}
-                                className="bg-red-100 text-red-800 flex items-center gap-1"
-                              >
-                                {skill}
-                                <button
-                                  type="button"
-                                  onClick={() => removeSkill(skill, "required")}
-                                  className="ml-1 hover:text-red-600"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {formData.preferredSkills.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">
-                            Preferred Skills:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {formData.preferredSkills.map((skill) => (
-                              <Badge
-                                key={skill}
-                                variant="outline"
-                                className="flex items-center gap-1"
-                              >
-                                {skill}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    removeSkill(skill, "preferred")
-                                  }
-                                  className="ml-1 hover:text-red-600"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Support & Benefits */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-emerald-600" />
-                  Support & Benefits
-                </CardTitle>
-                <CardDescription>
-                  What support and benefits will you provide to volunteers?
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="training"
-                      checked={formData.trainingProvided}
-                      onCheckedChange={(checked) =>
-                        handleInputChange("trainingProvided", checked)
-                      }
-                    />
-                    <Label htmlFor="training">Training will be provided</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="accommodation"
-                      checked={formData.accommodationProvided}
-                      onCheckedChange={(checked) =>
-                        handleInputChange("accommodationProvided", checked)
-                      }
-                    />
-                    <Label htmlFor="accommodation">
-                      Accommodation will be provided
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="transportation"
-                      checked={formData.transportationProvided}
-                      onCheckedChange={(checked) =>
-                        handleInputChange("transportationProvided", checked)
-                      }
-                    />
-                    <Label htmlFor="transportation">
-                      Transportation will be provided
-                    </Label>
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="compensation">
-                    Compensation & Benefits (Optional)
-                  </Label>
-                  <Textarea
+                  <Label htmlFor="compensation">Compensation (Optional)</Label>
+                  <Input
                     id="compensation"
+                    placeholder="e.g., Stipend, accommodation, travel"
                     value={formData.compensation}
                     onChange={(e) =>
                       handleInputChange("compensation", e.target.value)
                     }
-                    placeholder="Describe any compensation, stipends, meals, certificates, or other benefits"
-                    rows={3}
+                    className="w-full"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="trainingProvided"
+                      checked={formData.trainingProvided}
+                      onCheckedChange={(checked: boolean) =>
+                        handleInputChange("trainingProvided", checked)
+                      }
+                    />
+                    <Label htmlFor="trainingProvided">
+                      Training Provided
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="accommodationProvided"
+                      checked={formData.accommodationProvided}
+                      onCheckedChange={(checked: boolean) =>
+                        handleInputChange("accommodationProvided", checked)
+                      }
+                    />
+                    <Label htmlFor="accommodationProvided">
+                      Accommodation Provided
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="transportationProvided"
+                      checked={formData.transportationProvided}
+                      onCheckedChange={(checked: boolean) =>
+                        handleInputChange("transportationProvided", checked)
+                      }
+                    />
+                    <Label htmlFor="transportationProvided">
+                      Transportation Provided
+                    </Label>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -665,160 +571,120 @@ export default function RequestVolunteers() {
                   <Input
                     id="contactInfo"
                     type="email"
+                    placeholder="Enter contact email or phone number"
                     value={formData.contactInfo}
                     onChange={(e) =>
                       handleInputChange("contactInfo", e.target.value)
                     }
-                    placeholder="Email for volunteer applications"
-                    required
+                    className="w-full"
                   />
                 </div>
               </CardContent>
             </Card>
-
-            {/* Submit */}
-            <div className="flex gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => navigate("/dashboard/researcher")}
-                disabled={isSubmitting}
-              >
-                Save as Draft
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1 bg-amber-600 hover:bg-amber-700"
-                disabled={
-                  isSubmitting || !formData.title || !formData.description
-                }
-              >
+            <div className="flex justify-end">
+              <Button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
                 {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Posting Request...
-                  </>
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
                 ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Post Volunteer Request
-                  </>
+                  <>Submit Request <Users className="ml-2 h-4 w-4" /></>
                 )}
               </Button>
             </div>
-          </form>
-        )}
+          </TabsContent>
 
-        {/* Existing Requests Tab */}
-        {activeTab === "existing" && (
-          <div className="space-y-6">
+          {/* My Requests Tab */}
+          <TabsContent value="existing" className="space-y-6 mt-6">
+            <h2 className="text-xl font-semibold text-gray-900">
+              My Existing Volunteer Requests
+            </h2>
             {existingRequests.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No volunteer requests yet
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    Create your first volunteer request to get help with your
-                    research projects
+              <Card className="text-center py-10">
+                <CardContent>
+                  <MessageSquare className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600">
+                    You haven't posted any volunteer requests yet.
                   </p>
                   <Button
                     onClick={() => setActiveTab("create")}
-                    className="bg-amber-600 hover:bg-amber-700"
+                    className="mt-4"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create First Request
+                    Create Your First Request
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="grid gap-4">
                 {existingRequests.map((request) => (
-                  <Card
-                    key={request.id}
-                    className="hover:shadow-md transition-shadow"
-                  >
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {request.title}
-                            </h3>
-                            <p className="text-sm text-gray-700 line-clamp-2">
-                              {request.description}
-                            </p>
-                          </div>
-                          <Badge className={getStatusColor(request.status)}>
-                            {request.status}
+                  <Card key={request.id}>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <CardTitle>{request.title}</CardTitle>
+                      <Badge className={getStatusColor(request.status)}>
+                        {request.status}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {request.description}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {request.location}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(request.startDate)} - {formatDate(request.endDate)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {request.duration}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <UserPlus className="h-4 w-4 text-gray-500" />
+                        <Progress value={(request.volunteersApplied / request.volunteersNeeded) * 100} className="w-full" />
+                        <span className="text-sm font-medium">
+                          {request.volunteersApplied}/{request.volunteersNeeded} Volunteers
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          Difficulty: {request.difficultyLevel}
+                        </Badge>
+                        {request.compensation && (
+                          <Badge variant="outline" className="text-xs">
+                            Compensation: {request.compensation}
                           </Badge>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1">
-                          {request.requiredSkills.map((skill) => (
-                            <Badge
-                              key={skill}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {request.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Posted {formatDate(request.postedDate)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Deadline {formatDate(request.deadline)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MessageSquare className="h-3 w-3" />
-                            {request.responses} responses
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm">
-                            <span className="font-medium text-emerald-600">
-                              {request.volunteersApplied}
-                            </span>
-                            <span className="text-gray-600">
-                              {" "}
-                              / {request.volunteersNeeded} volunteers applied
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Applications
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              <MessageSquare className="h-4 w-4 mr-2" />
-                              Manage
-                            </Button>
-                          </div>
-                        </div>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {request.requiredSkills.map((skill) => (
+                          <Badge key={skill} variant="secondary" className="text-xs bg-emerald-100 text-emerald-800">
+                            {skill} (Required)
+                          </Badge>
+                        ))}
+                        {request.preferredSkills.map((skill) => (
+                          <Badge key={skill} variant="secondary" className="text-xs">
+                            {skill} (Preferred)
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="flex justify-end gap-2 mt-4">
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-2" /> View Applicants
+                        </Button>
+                        <Button size="sm">
+                          <MessageSquare className="h-4 w-4 mr-2" /> Manage
+                          Responses
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             )}
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

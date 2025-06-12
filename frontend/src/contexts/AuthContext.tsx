@@ -6,6 +6,7 @@ interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   signup: (data: SignupData) => Promise<void>;
   logout: () => void;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,8 +26,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
+        // Ensure 'verified' property is correctly set, defaulting to false if undefined
+        const userWithVerified: User = {
+          ...user,
+          verified: typeof user.verified === 'boolean' ? user.verified : false,
+        };
+
         setAuthState({
-          user,
+          user: userWithVerified,
           isAuthenticated: true,
           loading: false,
         });
@@ -96,6 +103,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+  const updateUser = (user: User): void => {
+    setAuthState((prev) => ({ ...prev, user }));
+    localStorage.setItem("eco-user", JSON.stringify(user));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -103,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         signup,
         logout,
+        updateUser,
       }}
     >
       {children}

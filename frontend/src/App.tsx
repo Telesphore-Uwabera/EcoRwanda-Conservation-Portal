@@ -39,6 +39,7 @@ import ThreatMap from "./pages/ranger/ThreatMap";
 
 // Admin Pages
 import UserManagementPage from "./pages/admin/UserManagementPage";
+import UserProfileViewPage from "./pages/admin/UserProfileViewPage";
 
 const queryClient = new QueryClient();
 
@@ -175,6 +176,14 @@ const App = () => (
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
                   <UserManagementPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/users/:id"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <UserProfileViewPage />
                 </RoleGuard>
               }
             />

@@ -40,6 +40,8 @@ import {
   Users,
   Award,
   Loader2,
+  ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function PublishFindings() {
@@ -253,12 +255,12 @@ export default function PublishFindings() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+        <div className="space-y-2 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-3">
             <BookOpen className="h-8 w-8 text-blue-600" />
             Publish Research Findings
           </h1>
@@ -279,45 +281,38 @@ export default function PublishFindings() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="space-y-6"
-          >
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic">Basic Information</TabsTrigger>
               <TabsTrigger value="content">Research Content</TabsTrigger>
-              <TabsTrigger value="data">Data & Files</TabsTrigger>
+              <TabsTrigger value="files">Data & Files</TabsTrigger>
               <TabsTrigger value="review">Review & Submit</TabsTrigger>
             </TabsList>
 
             {/* Basic Information Tab */}
-            <TabsContent value="basic" className="space-y-6">
+            <TabsContent value="basic" className="space-y-6 mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Basic Information
-                  </CardTitle>
+                  <CardTitle>Basic Information</CardTitle>
                   <CardDescription>
                     Provide the fundamental details about your research study
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="title">Research Title</Label>
                     <Input
                       id="title"
+                      placeholder="Enter a descriptive title for your research"
                       value={formData.title}
                       onChange={(e) =>
                         handleInputChange("title", e.target.value)
                       }
-                      placeholder="Enter a descriptive title for your research"
-                      required
+                      className="w-full"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="category">Research Category</Label>
                       <Select
@@ -326,25 +321,18 @@ export default function PublishFindings() {
                           handleInputChange("category", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select research category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {researchCategories.map((category) => (
-                            <SelectItem
-                              key={category.value}
-                              value={category.value}
-                            >
-                              <div className="flex items-center gap-2">
-                                <span>{category.icon}</span>
-                                <span>{category.label}</span>
-                              </div>
+                          {researchCategories.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              {cat.icon} {cat.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="location">Study Location</Label>
                       <Select
@@ -353,13 +341,13 @@ export default function PublishFindings() {
                           handleInputChange("location", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select study location" />
                         </SelectTrigger>
                         <SelectContent>
-                          {rwandaEcosystems.map((location) => (
-                            <SelectItem key={location} value={location}>
-                              {location}
+                          {rwandaEcosystems.map((loc) => (
+                            <SelectItem key={loc} value={loc}>
+                              {loc}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -367,30 +355,29 @@ export default function PublishFindings() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="startDate">Study Period Start</Label>
+                      <Label htmlFor="studyPeriodStart">Study Period Start</Label>
                       <Input
-                        id="startDate"
+                        id="studyPeriodStart"
                         type="date"
                         value={formData.studyPeriod.start}
                         onChange={(e) =>
                           handleInputChange("studyPeriod.start", e.target.value)
                         }
-                        required
+                        className="w-full"
                       />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="endDate">Study Period End</Label>
+                      <Label htmlFor="studyPeriodEnd">Study Period End</Label>
                       <Input
-                        id="endDate"
+                        id="studyPeriodEnd"
                         type="date"
                         value={formData.studyPeriod.end}
                         onChange={(e) =>
                           handleInputChange("studyPeriod.end", e.target.value)
                         }
-                        required
+                        className="w-full"
                       />
                     </div>
                   </div>
@@ -399,571 +386,423 @@ export default function PublishFindings() {
                     <Label htmlFor="abstract">Abstract</Label>
                     <Textarea
                       id="abstract"
+                      placeholder="Provide a concise summary of your research objectives, key findings, and implications"
                       value={formData.abstract}
                       onChange={(e) =>
                         handleInputChange("abstract", e.target.value)
                       }
-                      placeholder="Provide a concise summary of your research objectives, methodology, key findings, and implications"
-                      rows={6}
-                      required
+                      className="min-h-[120px] w-full"
                     />
                     <p className="text-sm text-gray-500">
                       {formData.abstract.length}/500 characters recommended
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <Label>Keywords</Label>
-                    <div className="flex gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="keywords">Keywords</Label>
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Input
+                        id="newKeyword"
+                        placeholder="Add keywords (e.g., gorilla, conservation, ecosystem)"
                         value={newKeyword}
                         onChange={(e) => setNewKeyword(e.target.value)}
-                        placeholder="Add keywords (e.g., gorilla, conservation, ecosystem)"
-                        onKeyPress={(e) =>
-                          e.key === "Enter" &&
-                          (e.preventDefault(), addKeyword())
-                        }
+                        onKeyDown={(e) => e.key === "Enter" && addKeyword()}
+                        className="flex-1"
                       />
-                      <Button
-                        type="button"
-                        onClick={addKeyword}
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4" />
+                      <Button type="button" onClick={addKeyword}>
+                        <Plus className="h-4 w-4 mr-2" /> Add
                       </Button>
                     </div>
-                    {formData.keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {formData.keywords.map((keyword) => (
-                          <Badge
-                            key={keyword}
-                            variant="secondary"
-                            className="flex items-center gap-1"
-                          >
-                            {keyword}
-                            <button
-                              type="button"
-                              onClick={() => removeKeyword(keyword)}
-                              className="ml-1 hover:text-red-600"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Research Content Tab */}
-            <TabsContent value="content" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5 text-emerald-600" />
-                    Research Content
-                  </CardTitle>
-                  <CardDescription>
-                    Detail your methodology, findings, and implications
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="methodology">Methodology</Label>
-                    <Textarea
-                      id="methodology"
-                      value={formData.methodology}
-                      onChange={(e) =>
-                        handleInputChange("methodology", e.target.value)
-                      }
-                      placeholder="Describe your research methodology, data collection methods, and analytical approaches"
-                      rows={4}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="findings">Key Findings</Label>
-                    <Textarea
-                      id="findings"
-                      value={formData.findings}
-                      onChange={(e) =>
-                        handleInputChange("findings", e.target.value)
-                      }
-                      placeholder="Present your main research findings and results"
-                      rows={6}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="implications">
-                      Conservation Implications
-                    </Label>
-                    <Textarea
-                      id="implications"
-                      value={formData.implications}
-                      onChange={(e) =>
-                        handleInputChange("implications", e.target.value)
-                      }
-                      placeholder="Discuss the conservation implications and potential applications of your findings"
-                      rows={4}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="fundingSource">
-                      Funding Source (Optional)
-                    </Label>
-                    <Input
-                      id="fundingSource"
-                      value={formData.fundingSource}
-                      onChange={(e) =>
-                        handleInputChange("fundingSource", e.target.value)
-                      }
-                      placeholder="Name of funding organization or grant"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="ethicalApproval">
-                      Ethical Approval (Optional)
-                    </Label>
-                    <Input
-                      id="ethicalApproval"
-                      value={formData.ethicalApproval}
-                      onChange={(e) =>
-                        handleInputChange("ethicalApproval", e.target.value)
-                      }
-                      placeholder="Ethics committee approval reference"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="acknowledgments">
-                      Acknowledgments (Optional)
-                    </Label>
-                    <Textarea
-                      id="acknowledgments"
-                      value={formData.acknowledgments}
-                      onChange={(e) =>
-                        handleInputChange("acknowledgments", e.target.value)
-                      }
-                      placeholder="Acknowledge contributors, reviewers, and supporters"
-                      rows={3}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Collaborators */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-purple-600" />
-                    Collaborators
-                  </CardTitle>
-                  <CardDescription>
-                    Add co-authors and collaborators
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input
-                      placeholder="Name"
-                      value={newCollaborator.name}
-                      onChange={(e) =>
-                        setNewCollaborator((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                    />
-                    <Input
-                      placeholder="Affiliation"
-                      value={newCollaborator.affiliation}
-                      onChange={(e) =>
-                        setNewCollaborator((prev) => ({
-                          ...prev,
-                          affiliation: e.target.value,
-                        }))
-                      }
-                    />
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Role (Optional)"
-                        value={newCollaborator.role}
-                        onChange={(e) =>
-                          setNewCollaborator((prev) => ({
-                            ...prev,
-                            role: e.target.value,
-                          }))
-                        }
-                      />
-                      <Button
-                        type="button"
-                        onClick={addCollaborator}
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {formData.collaborators.length > 0 && (
-                    <div className="space-y-2">
-                      {formData.collaborators.map((collaborator, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.keywords.map((keyword) => (
+                        <Badge
+                          key={keyword}
+                          variant="secondary"
+                          className="flex items-center gap-1 pr-1"
                         >
-                          <div>
-                            <p className="font-medium">{collaborator.name}</p>
-                            <p className="text-sm text-gray-600">
-                              {collaborator.affiliation}
-                              {collaborator.role && ` • ${collaborator.role}`}
-                            </p>
-                          </div>
+                          {keyword}
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeCollaborator(index)}
+                            onClick={() => removeKeyword(keyword)}
+                            className="h-5 w-5 p-0"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3" />
                           </Button>
-                        </div>
+                        </Badge>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
+
+              <div className="flex justify-end">
+                <Button onClick={() => setActiveTab("content")}>
+                  Next: Research Content <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </TabsContent>
+
+            {/* Research Content Tab */}
+            <TabsContent value="content" className="space-y-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Research Content</CardTitle>
+                  <CardDescription>
+                    Detail your research methodology, findings, and implications
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="methodology">Methodology</Label>
+                    <Textarea
+                      id="methodology"
+                      placeholder="Describe the methods used in your research"
+                      value={formData.methodology}
+                      onChange={(e) =>
+                        handleInputChange("methodology", e.target.value)
+                      }
+                      className="min-h-[150px] w-full"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="findings">Findings</Label>
+                    <Textarea
+                      id="findings"
+                      placeholder="Summarize your key findings and results"
+                      value={formData.findings}
+                      onChange={(e) =>
+                        handleInputChange("findings", e.target.value)
+                      }
+                      className="min-h-[150px] w-full"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="implications">Implications & Discussion</Label>
+                    <Textarea
+                      id="implications"
+                      placeholder="Discuss the implications of your findings and future research directions"
+                      value={formData.implications}
+                      onChange={(e) =>
+                        handleInputChange("implications", e.target.value)
+                      }
+                      className="min-h-[150px] w-full"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="acknowledgments">Acknowledgments</Label>
+                    <Textarea
+                      id="acknowledgments"
+                      placeholder="Acknowledge individuals, organizations, or funding sources"
+                      value={formData.acknowledgments}
+                      onChange={(e) =>
+                        handleInputChange("acknowledgments", e.target.value)
+                      }
+                      className="min-h-[100px] w-full"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="flex justify-between">
+                <Button onClick={() => setActiveTab("basic")} variant="outline">
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Previous: Basic
+                  Information
+                </Button>
+                <Button onClick={() => setActiveTab("files")}>
+                  Next: Data & Files <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </TabsContent>
 
             {/* Data & Files Tab */}
-            <TabsContent value="data" className="space-y-6">
+            <TabsContent value="files" className="space-y-6 mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Upload className="h-5 w-5 text-amber-600" />
-                    Supporting Data & Documents
-                  </CardTitle>
+                  <CardTitle>Data & Files</CardTitle>
                   <CardDescription>
-                    Upload datasets, supplementary materials, and publications
+                    Upload relevant datasets and publications related to your study
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Dataset Upload */}
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dataAvailability">Data Availability</Label>
+                    <Select
+                      value={formData.dataAvailability}
+                      onValueChange={(value) =>
+                        handleInputChange("dataAvailability", value)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select data availability" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">Open Access</SelectItem>
+                        <SelectItem value="restricted">Restricted Access</SelectItem>
+                        <SelectItem value="upon_request">Upon Request</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="license">License</Label>
+                    <Select
+                      value={formData.license}
+                      onValueChange={(value) => handleInputChange("license", value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select license type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {licenseTypes.map((license) => (
+                          <SelectItem key={license.value} value={license.value}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {license.label}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {license.description}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="space-y-4">
-                    <Label>Research Datasets</Label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <Database className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 mb-2">
-                        Upload CSV, Excel, or other data files
-                      </p>
-                      <input
+                    <h3 className="text-lg font-semibold">Datasets</h3>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Input
+                        id="datasetUpload"
                         type="file"
                         multiple
-                        accept=".csv,.xlsx,.xls,.json,.txt"
                         onChange={(e) =>
                           e.target.files &&
                           handleFileUpload("dataset", e.target.files)
                         }
-                        className="hidden"
-                        id="dataset-upload"
+                        className="flex-1"
                       />
-                      <label htmlFor="dataset-upload">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="cursor-pointer"
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          Choose Dataset Files
-                        </Button>
-                      </label>
                     </div>
-
-                    {datasets.length > 0 && (
-                      <div className="space-y-2">
-                        {datasets.map((file) => (
-                          <div
-                            key={file.id}
-                            className="flex items-center justify-between p-3 bg-blue-50 rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              <Database className="h-5 w-5 text-blue-600" />
-                              <div>
-                                <p className="font-medium text-sm">
-                                  {file.name}
-                                </p>
-                                <p className="text-xs text-gray-600">
-                                  {formatFileSize(file.size)}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeFile("dataset", file.id)}
+                    <div className="space-y-2">
+                      {datasets.length === 0 ? (
+                        <p className="text-gray-500 text-sm">
+                          No datasets uploaded yet.
+                        </p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {datasets.map((file) => (
+                            <li
+                              key={file.id}
+                              className="flex items-center justify-between p-2 border rounded-md"
                             >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                              <span>
+                                {file.name} ({formatFileSize(file.size)})
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile("dataset", file.id)}
+                              >
+                                <X className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Publication Upload */}
                   <div className="space-y-4">
-                    <Label>Publications & Documents</Label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 mb-2">
-                        Upload PDF documents, papers, or reports
-                      </p>
-                      <input
+                    <h3 className="text-lg font-semibold">Publications (PDFs)</h3>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Input
+                        id="publicationUpload"
                         type="file"
+                        accept=".pdf"
                         multiple
-                        accept=".pdf,.doc,.docx"
                         onChange={(e) =>
                           e.target.files &&
                           handleFileUpload("publication", e.target.files)
                         }
-                        className="hidden"
-                        id="publication-upload"
+                        className="flex-1"
                       />
-                      <label htmlFor="publication-upload">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="cursor-pointer"
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          Choose Documents
-                        </Button>
-                      </label>
                     </div>
-
-                    {publications.length > 0 && (
-                      <div className="space-y-2">
-                        {publications.map((file) => (
-                          <div
-                            key={file.id}
-                            className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              <FileText className="h-5 w-5 text-emerald-600" />
-                              <div>
-                                <p className="font-medium text-sm">
-                                  {file.name}
-                                </p>
-                                <p className="text-xs text-gray-600">
-                                  {formatFileSize(file.size)}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeFile("publication", file.id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Data Availability */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label>Data Availability</Label>
-                      <Select
-                        value={formData.dataAvailability}
-                        onValueChange={(value) =>
-                          handleInputChange("dataAvailability", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="open">Openly Available</SelectItem>
-                          <SelectItem value="restricted">
-                            Restricted Access
-                          </SelectItem>
-                          <SelectItem value="upon_request">
-                            Available Upon Request
-                          </SelectItem>
-                          <SelectItem value="confidential">
-                            Confidential
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>License</Label>
-                      <Select
-                        value={formData.license}
-                        onValueChange={(value) =>
-                          handleInputChange("license", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {licenseTypes.map((license) => (
-                            <SelectItem
-                              key={license.value}
-                              value={license.value}
+                      {publications.length === 0 ? (
+                        <p className="text-gray-500 text-sm">
+                          No publications uploaded yet.
+                        </p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {publications.map((file) => (
+                            <li
+                              key={file.id}
+                              className="flex items-center justify-between p-2 border rounded-md"
                             >
-                              <div>
-                                <div className="font-medium">
-                                  {license.label}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {license.description}
-                                </div>
-                              </div>
-                            </SelectItem>
+                              <span>
+                                {file.name} ({formatFileSize(file.size)})
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile("publication", file.id)}
+                              >
+                                <X className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </li>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </ul>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
+              <div className="flex justify-between">
+                <Button onClick={() => setActiveTab("content")}
+                  variant="outline">
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Previous: Research Content
+                </Button>
+                <Button onClick={() => setActiveTab("review")}>
+                  Next: Review & Submit <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </TabsContent>
 
             {/* Review & Submit Tab */}
-            <TabsContent value="review" className="space-y-6">
+            <TabsContent value="review" className="space-y-6 mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-purple-600" />
-                    Review & Submit
-                  </CardTitle>
+                  <CardTitle>Review & Submit</CardTitle>
                   <CardDescription>
-                    Review your submission before publishing
+                    Please review all the details before submitting your findings
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">
-                        {formData.title || "Untitled Research"}
-                      </h4>
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div>
-                          <span className="font-medium">Category:</span>{" "}
-                          {formData.category || "Not specified"}
-                        </div>
-                        <div>
-                          <span className="font-medium">Location:</span>{" "}
-                          {formData.location || "Not specified"}
-                        </div>
-                        <div>
-                          <span className="font-medium">Study Period:</span>
-                          {formData.studyPeriod.start &&
-                          formData.studyPeriod.end
-                            ? ` ${formData.studyPeriod.start} to ${formData.studyPeriod.end}`
-                            : " Not specified"}
-                        </div>
-                        <div>
-                          <span className="font-medium">Keywords:</span>{" "}
-                          {formData.keywords.length} keywords
-                        </div>
-                      </div>
-                      {formData.abstract && (
-                        <div className="mt-3">
-                          <span className="font-medium text-sm">Abstract:</span>
-                          <p className="text-sm text-gray-700 mt-1 line-clamp-3">
-                            {formData.abstract}
-                          </p>
-                        </div>
+                <CardContent className="space-y-4">
+                  <h3 className="text-lg font-semibold">Basic Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="font-medium">Title:</p>
+                      <p>{formData.title}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Category:</p>
+                      <p>{researchCategories.find(cat => cat.value === formData.category)?.label || formData.category}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Location:</p>
+                      <p>{formData.location}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Study Period:</p>
+                      <p>{formData.studyPeriod.start} to {formData.studyPeriod.end}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="font-medium">Abstract:</p>
+                      <p className="whitespace-pre-wrap">{formData.abstract}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="font-medium">Keywords:</p>
+                      <p>{formData.keywords.join(", ") || "N/A"}</p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-lg font-semibold">Research Content</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="font-medium">Methodology:</p>
+                      <p className="whitespace-pre-wrap">{formData.methodology || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Findings:</p>
+                      <p className="whitespace-pre-wrap">{formData.findings || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Implications & Discussion:</p>
+                      <p className="whitespace-pre-wrap">{formData.implications || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Acknowledgments:</p>
+                      <p className="whitespace-pre-wrap">{formData.acknowledgments || "N/A"}</p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-lg font-semibold">Collaborators & Funding</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="font-medium">Collaborators:</p>
+                      {formData.collaborators.length === 0 ? (
+                        <p>N/A</p>
+                      ) : (
+                        <ul className="list-disc pl-5">
+                          {formData.collaborators.map((collab, index) => (
+                            <li key={index}>{collab.name} ({collab.affiliation}) - {collab.role}</li>
+                          ))}
+                        </ul>
                       )}
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="p-4 bg-blue-50 rounded-lg text-center">
-                        <Database className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                        <p className="font-medium text-blue-900">
-                          {datasets.length}
-                        </p>
-                        <p className="text-sm text-blue-700">Datasets</p>
-                      </div>
-                      <div className="p-4 bg-emerald-50 rounded-lg text-center">
-                        <FileText className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
-                        <p className="font-medium text-emerald-900">
-                          {publications.length}
-                        </p>
-                        <p className="text-sm text-emerald-700">Documents</p>
-                      </div>
-                      <div className="p-4 bg-purple-50 rounded-lg text-center">
-                        <Users className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                        <p className="font-medium text-purple-900">
-                          {formData.collaborators.length + 1}
-                        </p>
-                        <p className="text-sm text-purple-700">Authors</p>
-                      </div>
+                    <div>
+                      <p className="font-medium">Funding Source:</p>
+                      <p>{formData.fundingSource || "N/A"}</p>
                     </div>
+                    <div>
+                      <p className="font-medium">Ethical Approval:</p>
+                      <p>{formData.ethicalApproval || "N/A"}</p>
+                    </div>
+                  </div>
 
-                    <Alert>
-                      <Globe className="h-4 w-4" />
+                  <h3 className="text-lg font-semibold">Data & Licensing</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="font-medium">Data Availability:</p>
+                      <p>{formData.dataAvailability.replace("_", " ")}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">License:</p>
+                      <p>{licenseTypes.find(lic => lic.value === formData.license)?.label || formData.license}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="font-medium">Uploaded Datasets:</p>
+                      {datasets.length === 0 ? (
+                        <p>No datasets uploaded.</p>
+                      ) : (
+                        <ul className="list-disc pl-5">
+                          {datasets.map(file => <li key={file.id}>{file.name} ({formatFileSize(file.size)})</li>)}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="font-medium">Uploaded Publications:</p>
+                      {publications.length === 0 ? (
+                        <p>No publications uploaded.</p>
+                      ) : (
+                        <ul className="list-disc pl-5">
+                          {publications.map(file => <li key={file.id}>{file.name} ({formatFileSize(file.size)})</li>)}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
+                  {success && (
+                    <Alert className="mt-4" variant="success">
+                      <CheckCircle className="h-4 w-4" />
                       <AlertDescription>
-                        Your research will undergo peer review before
-                        publication. You'll receive notifications about the
-                        review status and any required revisions.
+                        Research findings submitted successfully!
                       </AlertDescription>
                     </Alert>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => navigate("/dashboard/researcher")}
-                      disabled={isSubmitting}
-                    >
-                      Save as Draft
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
-                      disabled={
-                        isSubmitting ||
-                        !formData.title ||
-                        !formData.abstract ||
-                        !formData.methodology ||
-                        !formData.findings
-                      }
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Submitting for Review...
-                        </>
-                      ) : (
-                        <>
-                          <BookOpen className="h-4 w-4 mr-2" />
-                          Submit for Review
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
+
+              <div className="flex justify-end">
+                <Button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+                  ) : (
+                    <>Submit Findings <Upload className="ml-2 h-4 w-4" /></>
+                  )}
+                </Button>
+              </div>
             </TabsContent>
           </Tabs>
         </form>

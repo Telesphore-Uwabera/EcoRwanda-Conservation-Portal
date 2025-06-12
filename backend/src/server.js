@@ -45,6 +45,9 @@ const researcherDashboardRoutes = require('./routes/researcherDashboard');
 const rangerDashboardRoutes = require('./routes/rangerDashboard');
 const adminDashboardRoutes = require('./routes/adminDashboard');
 const userManagementRoutes = require('./routes/userManagement');
+const patrolRoutes = require('./routes/patrols');
+const threatRoutes = require('./routes/threats');
+const dataHubRoutes = require('./routes/dataHub');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -53,6 +56,9 @@ app.use('/api/researcher-dashboard', researcherDashboardRoutes);
 app.use('/api/ranger-dashboard', rangerDashboardRoutes);
 app.use('/api/admin-dashboard', adminDashboardRoutes);
 app.use('/api/users', userManagementRoutes);
+app.use('/api/patrols', patrolRoutes);
+app.use('/api/threats', threatRoutes);
+app.use('/api/data-hub', dataHubRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {

@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const sendEmail = require('../utils/sendEmail'); // Import the sendEmail utility
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -10,6 +11,25 @@ exports.getUsers = async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Get user by ID
+// @route   GET /api/users/:id
+// @access  Private/Admin
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password'); // Exclude password
+
+    if (!user) {
+      console.log(`User with ID ${req.params.id} not found.`);
+      return res.status(404).json({ message: 'User not found' });
+    }
+    console.log(`User data fetched for ID ${req.params.id}:`, user);
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching user by ID:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -111,6 +131,44 @@ exports.registerUserByAdmin = async (req, res) => {
     res.status(201).json({ message: 'User registered successfully', user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role } });
   } catch (error) {
     console.error('Error registering user by admin:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Toggle user verification status
+// @route   PUT /api/users/:id/verify
+// @access  Private/Admin
+exports.toggleUserVerification = async (req, res) => {
+  const { id } = req.params;
+  const { verified } = req.body; // Expecting the new verified status from frontend
+
+  try {
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update the verified status
+    user.verified = verified;
+    await user.save();
+    console.log(`User ${user.email} verification status updated to ${user.verified} and saved to DB.`);
+
+    // Send email notification
+    const subject = user.verified ? 'Account Verified!' : 'Account Unverified';
+    const message = user.verified
+      ? `Dear ${user.firstName},\n\nYour EcoRwanda Conservation Portal account has been successfully verified. You now have full access to all features.\n\nThank you for your dedication!\nEcoRwanda Conservation Portal Team.`
+      : `Dear ${user.firstName},\n\nYour EcoRwanda Conservation Portal account verification status has been changed to unverified. Please contact an administrator for more details if this was unexpected.\n\nEcoRwanda Conservation Portal Team.`;
+
+    await sendEmail({
+      email: user.email,
+      subject: subject,
+      message: message,
+    });
+
+    res.status(200).json({ message: 'User verification status updated successfully', user: { _id: user._id, verified: user.verified } });
+  } catch (error) {
+    console.error('Error toggling user verification:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 }; 

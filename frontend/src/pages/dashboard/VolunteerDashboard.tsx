@@ -74,8 +74,7 @@ export default function VolunteerDashboard() {
       try {
         setLoading(true);
         setError(null);
-        // TODO: Replace with actual API endpoint for volunteer dashboard
-        const response = await api.get('/volunteer/dashboard-data'); 
+        const response = await api.get('/volunteer-dashboard'); 
         const data = response.data;
 
         setStats(data.stats);

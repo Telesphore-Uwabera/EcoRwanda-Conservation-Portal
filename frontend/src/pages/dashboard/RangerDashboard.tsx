@@ -91,8 +91,17 @@ export default function RangerDashboard() {
       try {
         setLoading(true);
         setError(null);
-        // TODO: Replace with actual API endpoint for ranger dashboard
-        const response = await api.get('/ranger/dashboard-data'); 
+        const storedUser = localStorage.getItem('eco-user');
+        let token = null;
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          token = user.token;
+        }
+        const response = await api.get('/ranger-dashboard', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = response.data;
 
         setStats(data.stats);
@@ -107,10 +116,10 @@ export default function RangerDashboard() {
       }
     };
 
-    if (user) { // Fetch data only if user is logged in
+    if (user) { 
       fetchDashboardData();
     }
-  }, [user]); // Re-run when user changes
+  }, [user]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

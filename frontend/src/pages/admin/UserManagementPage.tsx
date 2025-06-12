@@ -451,6 +451,17 @@ const UserManagementPage: React.FC = () => {
                         Edit
                       </Button>
                       <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="mr-2 px-3 py-1 text-sm"
+                      >
+                        <Link to={`/admin/users/${user._id}`}>
+                          <UserIcon className="h-4 w-4 mr-1" />
+                          View Profile
+                        </Link>
+                      </Button>
+                      <Button
                         variant="destructive"
                         size="sm"
                         className="px-3 py-1 text-sm"
