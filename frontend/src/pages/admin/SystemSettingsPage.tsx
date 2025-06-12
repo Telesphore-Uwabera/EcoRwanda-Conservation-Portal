@@ -33,7 +33,6 @@ export default function SystemSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [theme, setTheme] = useState('system');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -73,11 +72,6 @@ export default function SystemSettingsPage() {
 
   const handleSettingChange = (key: keyof SystemSettings, value: any) => {
     setSettings((prev) => (prev ? { ...prev, [key]: value } : null));
-  };
-
-  const handleThemeChange = (event) => {
-    setTheme(event.target.value);
-    // Apply theme logic here
   };
 
   return (
@@ -209,15 +203,6 @@ export default function SystemSettingsPage() {
                   disabled={isSaving}
                 />
               </div>
-
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Theme</InputLabel>
-                <Select value={theme} onChange={handleThemeChange}>
-                  <MenuItem value="system">System Theme</MenuItem>
-                  <MenuItem value="dark">Dark</MenuItem>
-                  <MenuItem value="light">Light</MenuItem>
-                </Select>
-              </FormControl>
 
               <Button onClick={handleSaveSettings} disabled={isSaving}>
                 {isSaving ? (

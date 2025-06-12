@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,6 +39,13 @@ import {
   Calendar,
   FileText,
 } from "lucide-react";
+import api from "@/config/api";
+
+interface AnalyticsStats {
+  activityStats: {
+    verifiedReportsThisMonth: number;
+  };
+}
 
 export default function VerifyReports() {
   const { user } = useAuth();
@@ -49,9 +56,35 @@ export default function VerifyReports() {
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedReport, setSelectedReport] = useState(null);
   const [verificationNotes, setVerificationNotes] = useState("");
+  const [verifiedReportsCount, setVerifiedReportsCount] = useState(0);
+  const [reports, setReports] = useState([]);
 
-  // TODO: Fetch reports from MongoDB backend
-  const reports = [];
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const response = await api.get('/analytics');
+        setVerifiedReportsCount(response.data.data.activityStats.verifiedReportsThisMonth);
+      } catch (error) {
+        console.error("Failed to fetch analytics counts:", error);
+      }
+    };
+
+    const fetchReports = async () => {
+      try {
+        // TODO: Implement API endpoint for fetching reports to verify
+        // For now, returning an empty array or mock data if needed for testing
+        const response = await api.get('/reports/pending-verification'); // Placeholder
+        setReports(response.data.data); // Assuming the API returns an array of reports
+      } catch (error) {
+        console.error("Failed to fetch reports for verification:", error);
+      }
+    };
+
+    if (user && isOnline) {
+      fetchCounts();
+      fetchReports();
+    }
+  }, [user, isOnline]);
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -200,7 +233,9 @@ export default function VerifyReports() {
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-8 w-8 text-emerald-600" />
                 <div>
-                  <p className="text-2xl font-bold text-emerald-900">156</p>
+                  <p className="text-2xl font-bold text-emerald-900">
+                    {verifiedReportsCount.toLocaleString()}
+                  </p>
                   <p className="text-sm text-emerald-700">
                     Verified This Month
                   </p>

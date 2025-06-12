@@ -16,7 +16,7 @@ const getSystemSettings = async (req, res) => {
 
 const updateSystemSettings = async (req, res) => {
   try {
-    const { registrationOpen, emailNotificationsEnabled, dataRetentionDays, enableTwoFactorAuth, maxFileUploadSizeMB, allowedFileTypes, maintenanceMode, contactEmail, welcomeBannerMessage, mapProviderApiKey } = req.body;
+    const { registrationOpen, emailNotificationsEnabled, dataRetentionDays, enableTwoFactorAuth, maxFileUploadSizeMB, allowedFileTypes, maintenanceMode, contactEmail, welcomeBannerMessage } = req.body;
 
     const updatedSettings = await Setting.findOneAndUpdate(
       {},
@@ -30,7 +30,6 @@ const updateSystemSettings = async (req, res) => {
         maintenanceMode,
         contactEmail,
         welcomeBannerMessage,
-        mapProviderApiKey,
       },
       { new: true, upsert: true } // Return the updated document, create if it doesn't exist
     );

@@ -17,6 +17,7 @@ const getAnalytics = async (req, res) => {
 
     const totalReports = await WildlifeReport.countDocuments();
     const verifiedReports = await WildlifeReport.countDocuments({ status: 'verified' });
+    const verifiedReportsThisMonth = await WildlifeReport.countDocuments({ status: 'verified', createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } });
     const pendingReports = await WildlifeReport.countDocuments({ status: 'pending' });
 
     const totalPatrols = await Patrol.countDocuments();
@@ -46,6 +47,7 @@ const getAnalytics = async (req, res) => {
       activityStats: {
         totalReports: totalReports,
         verifiedReports: verifiedReports,
+        verifiedReportsThisMonth: verifiedReportsThisMonth,
         pendingReports: pendingReports,
         totalPatrols: totalPatrols,
         completedPatrols: completedPatrols,

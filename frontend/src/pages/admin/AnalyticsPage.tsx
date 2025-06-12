@@ -22,6 +22,7 @@ interface AnalyticsStats {
   activityStats: {
     totalReports: number;
     verifiedReports: number;
+    verifiedReportsThisMonth: number;
     pendingReports: number;
     totalPatrols: number;
     completedPatrols: number;
@@ -93,7 +94,16 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.userStats.totalUsers.toLocaleString()}</div>
-                <p className="text-xs text-gray-500">+20.1% from last month</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Verified Reports This Month</CardTitle>
+                <FolderOpen className="h-4 w-4 text-gray-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.activityStats.verifiedReportsThisMonth.toLocaleString()}</div>
               </CardContent>
             </Card>
 
@@ -104,7 +114,6 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.projectStats.activeProjects.toLocaleString()}</div>
-                <p className="text-xs text-gray-500">+15% from last month</p>
               </CardContent>
             </Card>
 
@@ -115,7 +124,6 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.activityStats.pendingReports.toLocaleString()}</div>
-                <p className="text-xs text-gray-500">-5% from last month</p>
               </CardContent>
             </Card>
 
@@ -126,7 +134,6 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.activityStats.completedPatrols.toLocaleString()}</div>
-                <p className="text-xs text-gray-500">+10% from last month</p>
               </CardContent>
             </Card>
           </div>

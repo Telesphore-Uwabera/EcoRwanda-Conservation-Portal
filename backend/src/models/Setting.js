@@ -22,8 +22,14 @@ const settingSchema = new mongoose.Schema({
     default: 10,
   },
   allowedFileTypes: {
-    type: String,
-    default: '.jpg, .jpeg, .png, .pdf',
+    type: [String],
+    default: [
+      "image/jpeg",
+      "image/png",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ],
   },
   maintenanceMode: {
     type: Boolean,
@@ -36,10 +42,6 @@ const settingSchema = new mongoose.Schema({
   welcomeBannerMessage: {
     type: String,
     default: 'Welcome to EcoRwanda Conservation Portal!',
-  },
-  mapProviderApiKey: {
-    type: String,
-    default: 'YOUR_MAP_API_KEY',
   },
 }, { timestamps: true });
 
