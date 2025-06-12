@@ -139,10 +139,10 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 
 ### Prerequisites
 
-- Node.js (v14 or higher recommended)
+- Node.js v14
 - npm (Node Package Manager)
 - MongoDB Atlas Account
-- MongoDB Compass (Optional)
+- MongoDB Compass
 
 ### Backend Setup
 
