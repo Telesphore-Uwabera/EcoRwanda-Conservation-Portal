@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema({
     trim: true,
     required: false, // Optional field
   },
+  verified: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now

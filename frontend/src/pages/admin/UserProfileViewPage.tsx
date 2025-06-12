@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Loader2, UserCheck, UserX, ArrowLeft } from "lucide-react";
 import api from "@/config/api";
 import { toast } from "sonner";
@@ -55,31 +57,23 @@ const UserProfileViewPage: React.FC = () => {
     fetchUser();
   }, [id, currentUser?.token]);
 
-  const handleToggleVerification = async () => {
+  const handleToggleVerification = async (newVerifiedStatus: boolean) => {
     if (!user) return;
     setTogglingVerification(true);
     try {
-      const newVerifiedStatus = !user.verified;
-      const response = await api.put(
-        `/users/${user._id}/verify`,
-        { verified: newVerifiedStatus },
-        { headers: { Authorization: `Bearer ${currentUser?.token}` } }
-      );
-      setUser((prevUser) =>
-        prevUser ? { ...prevUser, verified: newVerifiedStatus } : null
-      );
-      if (currentUser && currentUser._id === user._id) {
-        updateUser({ ...currentUser, verified: newVerifiedStatus });
+      const response = await api.put(`/users/${user._id}/verify`, { verified: newVerifiedStatus }, {
+        headers: {
+          Authorization: `Bearer ${currentUser?.token}`,
+        },
+      });
+      setUser(prev => prev ? { ...prev, verified: response.data.user.verified } : null);
+      if (currentUser?._id === user._id) {
+        updateUser({ ...currentUser, verified: response.data.user.verified });
       }
-
-      toast.success(
-        `User ${user.firstName} ${user.lastName} ${newVerifiedStatus ? "verified" : "unverified"} successfully!`
-      );
+      toast.success(`User account ${newVerifiedStatus ? 'verified' : 'unverified'} successfully!`);
     } catch (err: any) {
       console.error("Error toggling verification:", err);
-      toast.error(
-        err.response?.data?.message || "Failed to toggle verification."
-      );
+      toast.error(err.response?.data?.message || "Failed to update verification status.");
     } finally {
       setTogglingVerification(false);
     }
@@ -186,37 +180,18 @@ const UserProfileViewPage: React.FC = () => {
 
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm">
             <div className="flex items-center gap-3">
-              {user.verified ? (
-                <UserCheck className="h-6 w-6 text-emerald-600" />
-              ) : (
-                <UserX className="h-6 w-6 text-red-600" />
-              )}
-              <span className="text-lg font-semibold text-gray-800">
-                Verification Status:
-              </span>
-              <Badge
-                className={`px-3 py-1 rounded-full text-base font-semibold ${user.verified ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
-              >
-                {user.verified ? "Verified" : "Pending Verification"}
-              </Badge>
+              <Label htmlFor="verification-status" className="text-base">Verification Status:</Label>
+              <Switch
+                id="verification-status"
+                checked={user.verified}
+                onCheckedChange={handleToggleVerification}
+                disabled={togglingVerification}
+              />
+              {togglingVerification && <Loader2 className="h-5 w-5 animate-spin text-blue-500" />}
             </div>
-            <Button
-              onClick={handleToggleVerification}
-              disabled={togglingVerification}
-              className={`px-4 py-2 text-white font-semibold rounded-md ${user.verified ? "bg-red-600 hover:bg-red-700" : "bg-emerald-600 hover:bg-emerald-700"}`}
-            >
-              {togglingVerification ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : user.verified ? (
-                <> 
-                  <UserX className="h-5 w-5 mr-2" /> Unverify
-                </>
-              ) : (
-                <> 
-                  <UserCheck className="h-5 w-5 mr-2" /> Verify
-                </>
-              )}
-            </Button>
+            <p className="text-sm text-gray-600">
+              {user.verified ? "This user's account is verified." : "This user's account is currently pending verification."}
+            </p>
           </div>
         </CardContent>
       </Card>

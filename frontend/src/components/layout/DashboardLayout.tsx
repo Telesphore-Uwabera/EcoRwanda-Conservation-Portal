@@ -212,19 +212,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {isMobile && (
         <div className="fixed top-0 left-0 right-0 bg-white shadow-md p-4 flex items-center justify-between z-50">
           <Link to="/" className="flex items-center gap-3">
-            <div className="relative">
-              <Mountain className="h-8 w-8 text-emerald-600" />
-              <Leaf className="h-4 w-4 text-amber-600 absolute -bottom-1 -right-1" />
-            </div>
-            <div>
+              <div className="relative">
+                <Mountain className="h-8 w-8 text-emerald-600" />
+                <Leaf className="h-4 w-4 text-amber-600 absolute -bottom-1 -right-1" />
+              </div>
+              <div>
               <h1 className="text-xl font-bold text-emerald-800">EcoRwanda</h1>
-              <p className="text-xs text-emerald-600">Conservation Portal</p>
+                <p className="text-xs text-emerald-600">Conservation Portal</p>
             </div>
           </Link>
           <button onClick={toggleSidebar} className="p-2 focus:outline-none">
             {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
-        </div>
+          </div>
       )}
 
       {/* Sidebar */}
@@ -240,7 +240,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <div className="relative">
               <Mountain className="h-10 w-10 text-emerald-600" />
               <Leaf className="h-5 w-5 text-amber-600 absolute -bottom-1 -right-1" />
-            </div>
+              </div>
             <div>
               <h1 className="text-xl font-bold text-emerald-800">EcoRwanda</h1>
               <p className="text-xs text-emerald-600">Conservation Portal</p>
@@ -270,11 +270,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             )}
             {user?.role === 'volunteer' && !user.verified && (
               <Badge variant="outline" className="mt-1 bg-amber-100 text-amber-800 border-amber-300">
-                Pending Verification
-              </Badge>
-            )}
+                  Pending Verification
+                </Badge>
+              )}
+            </div>
           </div>
-        </div>
 
         <nav className="flex-1">
           <ul className="space-y-2">
@@ -292,18 +292,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </li>
             ))}
           </ul>
-        </nav>
+          </nav>
 
         <div className="mt-auto border-t pt-4">
-          <Button
+            <Button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 text-red-600 hover:bg-red-100"
-            variant="ghost"
-          >
-            <LogOut className="h-5 w-5" />
-            Sign Out
-          </Button>
-        </div>
+              variant="ghost"
+            >
+              <LogOut className="h-5 w-5" />
+              Sign Out
+            </Button>
+          </div>
         <div className="text-center text-xs text-gray-500 mt-4">
           © 2023 EcoRwanda. All rights reserved.
         </div>
@@ -319,8 +319,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content */}
       <main className={`flex-1 overflow-y-auto p-6 ${isMobile ? 'mt-20' : 'ml-64'}`}>
-        {children}
-      </main>
+            {children}
+        </main>
     </div>
   );
 };
