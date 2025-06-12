@@ -309,43 +309,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Administration Tools / Quick Actions */}
-      <Card className="border-purple-200 bg-purple-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-purple-600" />
-            Administration Tools
-          </CardTitle>
-          <CardDescription>
-            Manage users, system settings, and analytics.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button asChild className="h-16 bg-blue-600 hover:bg-blue-700">
-              <Link to="/admin/users" className="flex flex-col gap-1 items-center justify-center">
-                <Users className="h-6 w-6" />
-                <span>User Management</span>
-              </Link>
-            </Button>
-            {/* You can add more admin actions here, e.g., Analytics, System Settings */}
-             <Button asChild variant="outline" className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
-              <Link to="/admin/analytics" className="flex flex-col gap-1 items-center justify-center">
-                <BarChart3 className="h-6 w-6" />
-                <span>Analytics</span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-16 border-amber-300 text-amber-700 hover:bg-amber-50">
-              <Link to="/admin/settings" className="flex flex-col gap-1 items-center justify-center">
-                <Settings className="h-6 w-6" />
-                <span>System Settings</span>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* User Distribution */}
+      {/* User Distribution & Recent Activities */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -425,7 +389,7 @@ export default function AdminDashboard() {
                     </Badge>
                   </div>
                 ))}
-                <Button variant="outline" className="w-full" asChild>
+                <Button asChild variant="ghost" className="w-full justify-center mt-4">
                   <Link to="/admin/activity-log">View All Activities</Link>
                 </Button>
               </div>
