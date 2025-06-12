@@ -1,15 +1,20 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ConnectionStatus } from "@/components/common/OfflineIndicator";
-import { useAuth } from "@/hooks/useAuth";
-import { getRoleDisplayName, getRoleColor } from "@/lib/auth";
-import { useOfflineStatus } from "@/lib/offline";
-import { cn } from "@/lib/utils";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Home,
+  Menu,
+  X,
+  Signal,
+  WifiOff,
   Mountain,
   Leaf,
   LayoutDashboard,
@@ -28,8 +33,16 @@ import {
   UserCheck,
   AlertTriangle,
   Map,
-  Bell,
 } from "lucide-react";
+import { useMediaQuery } from '@mui/material';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ConnectionStatus } from "@/components/common/OfflineIndicator";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleDisplayName, getRoleColor } from "@/lib/auth";
+import { useOfflineStatus } from "@/lib/offline";
+import { cn } from "@/lib/utils";
 
 interface NavigationItem {
   label: string;
@@ -151,13 +164,32 @@ interface DashboardLayoutProps {
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
 }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isOnline = useOfflineStatus();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width:768px)');
+
+  useEffect(() => {
+    if (!user && !authLoading) {
+      navigate("/auth/login");
+    }
+  }, [user, authLoading, navigate]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
 
   if (!user) {
-    navigate("/auth/login");
     return null;
   }
 
@@ -175,104 +207,119 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-100">
+      {/* Mobile Header with Toggle Button */}
+      {isMobile && (
+        <div className="fixed top-0 left-0 right-0 bg-white shadow-md p-4 flex items-center justify-between z-50">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="relative">
+              <Mountain className="h-8 w-8 text-emerald-600" />
+              <Leaf className="h-4 w-4 text-amber-600 absolute -bottom-1 -right-1" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-emerald-800">EcoRwanda</h1>
+              <p className="text-xs text-emerald-600">Conservation Portal</p>
+            </div>
+          </Link>
+          <button onClick={toggleSidebar} className="p-2 focus:outline-none">
+            {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+      )}
+
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg border-r border-gray-200">
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Mountain className="h-8 w-8 text-emerald-600" />
-                <Leaf className="h-4 w-4 text-amber-600 absolute -bottom-1 -right-1" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-emerald-800">
-                  EcoRwanda
-                </h1>
-                <p className="text-xs text-emerald-600">Conservation Portal</p>
-              </div>
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 bg-white w-64 p-4 transform transition-transform duration-300 ease-in-out
+          ${isMobile ? (isSidebarOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0 shadow-lg'}
+          ${isMobile && !isSidebarOpen ? 'hidden' : 'block'}
+        `}
+      >
+        {/* Sidebar Content (same as before) */}
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="relative">
+              <Mountain className="h-10 w-10 text-emerald-600" />
+              <Leaf className="h-5 w-5 text-amber-600 absolute -bottom-1 -right-1" />
             </div>
+            <div>
+              <h1 className="text-xl font-bold text-emerald-800">EcoRwanda</h1>
+              <p className="text-xs text-emerald-600">Conservation Portal</p>
+            </div>
+          </Link>
+          {isMobile && (
+            <button onClick={toggleSidebar} className="p-2 focus:outline-none">
+              <X className="h-6 w-6" />
+            </button>
+          )}
+        </div>
+        <div className="mb-6 text-center">
+          <div className="w-16 h-16 bg-green-200 rounded-full flex items-center justify-center text-lg font-bold text-green-800 mx-auto mb-2">
+            {user?.firstName.charAt(0).toUpperCase()}{user?.lastName.charAt(0).toUpperCase()}
           </div>
-
-          {/* User Info */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
-                <AvatarFallback className="bg-emerald-100 text-emerald-800">
-                  {`${user.firstName[0]}${user.lastName[0]}`}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">
-                  Welcome back, {user.firstName}!
-                </p>
-                <p className="text-sm text-gray-900 truncate">
-                  {user.firstName} {user.lastName}
-                </p>
-                <Badge className={cn("text-xs", getRoleColor(user.role))}>
-                  {getRoleDisplayName(user.role)}
-                </Badge>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center justify-between">
-              <ConnectionStatus isOnline={isOnline} />
-              {!user.verified && user.role !== 'administrator' && (
-                <Badge
-                  variant="outline"
-                  className="text-xs text-amber-600 border-amber-300"
-                >
-                  Pending Verification
-                </Badge>
-              )}
-            </div>
+          <p className="text-lg font-semibold text-gray-900">Welcome back, {user?.firstName}!</p>
+          <p className="text-sm text-gray-600">{user?.role === 'administrator' ? 'Admin' : user?.role} </p>
+          <div className="mt-2">
+            {isOnline ? (
+              <span className="text-emerald-600 text-sm flex items-center justify-center">
+                <Signal className="h-4 w-4 mr-1" /> Online
+              </span>
+            ) : (
+              <span className="text-amber-600 text-sm flex items-center justify-center">
+                <WifiOff className="h-4 w-4 mr-1" /> Offline
+              </span>
+            )}
+            {user?.role === 'volunteer' && !user.verified && (
+              <Badge variant="outline" className="mt-1 bg-amber-100 text-amber-800 border-amber-300">
+                Pending Verification
+              </Badge>
+            )}
           </div>
+        </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {userNavItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
+        <nav className="flex-1">
+          <ul className="space-y-2">
+            {userNavItems.map((item) => (
+              <li key={item.label}>
                 <Link
-                  key={item.href}
                   to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-                  )}
+                  className={`flex items-center gap-3 p-3 rounded-md text-gray-700 hover:bg-gray-200 transition-colors duration-200
+                    ${location.pathname === item.href ? 'bg-green-100 text-green-700 font-semibold' : ''}
+                  `}
                 >
                   <item.icon className="h-5 w-5" />
                   {item.label}
                 </Link>
-              );
-            })}
-          </nav>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-200">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-gray-600 hover:text-gray-900"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-              Sign Out
-            </Button>
-            <div className="text-center text-xs text-gray-500 mt-2">
-              © {new Date().getFullYear()} EcoRwanda. All rights reserved.
-            </div>
-          </div>
+        <div className="mt-auto border-t pt-4">
+          <Button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 text-red-600 hover:bg-red-100"
+            variant="ghost"
+          >
+            <LogOut className="h-5 w-5" />
+            Sign Out
+          </Button>
         </div>
-      </div>
+        <div className="text-center text-xs text-gray-500 mt-4">
+          © 2023 EcoRwanda. All rights reserved.
+        </div>
+      </aside>
 
-      {/* Main content */}
-      <main className="ml-64 flex-1 overflow-y-auto">
-        <div className="p-6">
-          {children}
-        </div>
+      {/* Overlay for mobile when sidebar is open */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+
+      {/* Main Content */}
+      <main className={`flex-1 overflow-y-auto p-6 ${isMobile ? 'mt-20' : 'ml-64'}`}>
+        {children}
       </main>
     </div>
   );
