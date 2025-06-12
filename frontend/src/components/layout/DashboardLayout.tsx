@@ -218,7 +218,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
             <div className="mt-3 flex items-center justify-between">
               <ConnectionStatus isOnline={isOnline} />
-              {!user.verified && (
+              {!user.verified && user.role !== 'administrator' && (
                 <Badge
                   variant="outline"
                   className="text-xs text-amber-600 border-amber-300"
@@ -269,8 +269,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       </div>
 
       {/* Main content */}
-      <main className="flex-1 p-8 overflow-y-auto pl-64">
-        {children}
+      <main className="ml-64 flex-1 overflow-y-auto">
+        <div className="p-6">
+          {children}
+        </div>
       </main>
     </div>
   );

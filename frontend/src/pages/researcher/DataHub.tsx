@@ -242,33 +242,34 @@ export default function DataHub() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Database className="h-8 w-8 text-blue-600" />
+            <Database className="h-8 w-8 text-purple-600" />
             Research Data Hub
           </h1>
           <p className="text-gray-600">
-            Access centralized research data, publications, and datasets from
-            Rwanda's conservation community
+            Access and manage shared research datasets and publications
           </p>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Database className="h-8 w-8 text-blue-600" />
-                <div>
-                  <p className="text-2xl font-bold text-blue-900">
-                    {stats.datasetsAvailable.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-blue-700">Datasets Available</p>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="border-purple-200 bg-purple-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-purple-800">
+                Datasets Available
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Database className="h-5 w-5 text-purple-600" />
+                <span className="text-2xl font-bold text-purple-900">
+                  {stats.datasetsAvailable.toLocaleString()}
+                </span>
               </div>
             </CardContent>
           </Card>

@@ -142,7 +142,7 @@ export default function MyReports() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}

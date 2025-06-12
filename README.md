@@ -200,21 +200,11 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
      1. Create account on render.com
      2. Connect GitHub repository
      3. Create new Web Service
-     4. Select backend repository
+     4. Select backend repository (ensure Root Directory is set to `backend/`)
      5. Configure:
         - Build Command: `npm install`
         - Start Command: `npm start`
-        - Add environment variables
-
-2. **Railway.app** (Free Tier)
-   - $5 credit monthly
-   - 500 hours/month free
-   - Automatic deployments
-   - Steps:
-     1. Create account on railway.app
-     2. Connect GitHub repository
-     3. Deploy backend service
-     4. Configure environment variables
+        - Add environment variables (e.g., `MONGODB_URI`, `PORT`, `JWT_SECRET`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`, `FRONTEND_URL`) in Render's "Environment Variables" section.
 
 #### Frontend Deployment (React)
 
@@ -228,7 +218,10 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
      3. Configure build settings:
         - Build command: `npm run build`
         - Publish directory: `dist`
-     4. Set environment variables
+        - Ensure "Base directory" is set to `frontend/`
+     4. Set environment variables:
+        - **Crucially, set `VITE_API_URL` to the full Render backend URL, appending `/api`.**
+          *   Example: If Render URL is `https://ecorwanda-conservation-portal.onrender.com`, set `VITE_API_URL` to `https://ecorwanda-conservation-portal.onrender.com/api`
 
 2. **Vercel** (Free Tier)
    - Unlimited static sites

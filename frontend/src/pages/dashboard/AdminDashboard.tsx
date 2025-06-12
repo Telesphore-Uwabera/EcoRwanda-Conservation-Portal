@@ -34,6 +34,7 @@ import {
   FlaskConical,
 } from "lucide-react";
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert"; // Renamed to avoid conflict
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 interface PendingVerification {
   id: string;
@@ -212,195 +213,196 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      <OfflineIndicator isOnline={isOnline} />
+    <DashboardLayout>
+      <div>
+        <div className="space-y-6">
+          <OfflineIndicator isOnline={isOnline} />
 
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Administrator Dashboard 📊
-        </h1>
-        <p className="text-gray-600">
-          Overview of system activities and user metrics.
-        </p>
-      </div>
+          {/* Header */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Administrator Dashboard 📊
+            </h1>
+            <p className="text-gray-600">
+              Overview of system activities and user metrics.
+            </p>
+          </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-blue-800">
-              Total Users
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              <span className="text-2xl font-bold text-blue-900">
-                {stats.totalUsers.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-blue-800">
+                  Total Users
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  <span className="text-2xl font-bold text-blue-900">
+                    {stats.totalUsers.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="border-emerald-200 bg-emerald-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-emerald-800">
-              Total Projects
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <FolderOpen className="h-5 w-5 text-emerald-600" />
-              <span className="text-2xl font-bold text-emerald-900">
-                {stats.totalProjects.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="border-emerald-200 bg-emerald-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-emerald-800">
+                  Total Projects
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <FolderOpen className="h-5 w-5 text-emerald-600" />
+                  <span className="text-2xl font-bold text-emerald-900">
+                    {stats.totalProjects.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="border-purple-200 bg-purple-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-purple-800">
-              Research Studies
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <FlaskConical className="h-5 w-5 text-purple-600" />
-              <span className="text-2xl font-bold text-purple-900">
-                {stats.researchStudies.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="border-purple-200 bg-purple-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-purple-800">
+                  Research Studies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <FlaskConical className="h-5 w-5 text-purple-600" />
+                  <span className="text-2xl font-bold text-purple-900">
+                    {stats.researchStudies.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-orange-800">
-              Conservation Areas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-orange-600" />
-              <span className="text-2xl font-bold text-orange-900">
-                {stats.conservationAreas.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="border-orange-200 bg-orange-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-orange-800">
+                  Conservation Areas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-orange-600" />
+                  <span className="text-2xl font-bold text-orange-900">
+                    {stats.conservationAreas.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* New Card for Total Rangers */}
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-yellow-800">
-              Total Park Rangers
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-yellow-600" />
-              <span className="text-2xl font-bold text-yellow-900">
-                {stats.totalParkRangers.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            {/* New Card for Total Rangers */}
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-yellow-800">
+                  Total Park Rangers
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-yellow-600" />
+                  <span className="text-2xl font-bold text-yellow-900">
+                    {stats.totalParkRangers.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* User Distribution & Recent Activities */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              User Distribution
-            </CardTitle>
-            <CardDescription>
-              Breakdown of users by role
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">Volunteers</span>
-                <Badge className={getRoleColor("volunteer")}>
-                  {stats.userDistribution.volunteers.toLocaleString()} users
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">Researchers</span>
-                <Badge className={getRoleColor("researcher")}>
-                  {stats.userDistribution.researchers.toLocaleString()} users
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">Rangers</span>
-                <Badge className={getRoleColor("ranger")}>
-                  {stats.userDistribution.rangers.toLocaleString()} users
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">Administrators</span>
-                <Badge className={getRoleColor("administrator")}>
-                  {stats.userDistribution.administrators.toLocaleString()} users
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activities */}
-        <Card className="p-6 shadow-sm border rounded-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-gray-900 flex items-center">
-              <Activity className="h-6 w-6 mr-2 text-orange-600" />
-              Recent Activities
-            </CardTitle>
-            <CardDescription className="text-gray-600 mt-2">
-              Latest project, research, and conservation updates
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.recentActivities && stats.recentActivities.length > 0 ? (
-              <div className="space-y-4">
-                {stats.recentActivities.map((activity, index) => (
-                  <div
-                    key={activity.id || activity.title + activity.createdAt + index} // Use ID if available, else a composite key
-                    className="flex items-center space-x-3"
-                  >
-                    <div className="flex-shrink-0">
-                      {getActivityIcon(activity.type)}
-                    </div>
-                    <div className="flex-grow">
-                      <p className="font-medium text-gray-900">
-                        {activity.title}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {activity.description}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(activity.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Badge className={getStatusColor(activity.status)}>
-                      {activity.status.replace("_", " ")}
+          {/* User Distribution & Recent Activities */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  User Distribution
+                </CardTitle>
+                <CardDescription>
+                  Breakdown of users by role
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <span className="text-sm font-medium text-gray-700">Volunteers</span>
+                    <Badge className={getRoleColor("volunteer")}>
+                      {stats.userDistribution.volunteers.toLocaleString()} users
                     </Badge>
                   </div>
-                ))}
-                <Button asChild variant="ghost" className="w-full justify-center mt-4">
-                  <Link to="/admin/activity-log">View All Activities</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-10">
-                <p>No recent activities found.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <span className="text-sm font-medium text-gray-700">Researchers</span>
+                    <Badge className={getRoleColor("researcher")}>
+                      {stats.userDistribution.researchers.toLocaleString()} users
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <span className="text-sm font-medium text-gray-700">Rangers</span>
+                    <Badge className={getRoleColor("ranger")}>
+                      {stats.userDistribution.rangers.toLocaleString()} users
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <span className="text-sm font-medium text-gray-700">Administrators</span>
+                    <Badge className={getRoleColor("administrator")}>
+                      {stats.userDistribution.administrators.toLocaleString()} users
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activities */}
+            <Card className="p-6 shadow-sm border rounded-lg">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-gray-900 flex items-center">
+                  <Activity className="h-6 w-6 mr-2 text-orange-600" />
+                  Recent Activities
+                </CardTitle>
+                <CardDescription className="text-gray-600 mt-2">
+                  Latest project, research, and conservation updates
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {stats.recentActivities && stats.recentActivities.length > 0 ? (
+                  <div className="space-y-4">
+                    {stats.recentActivities.map((activity, index) => (
+                      <div
+                        key={activity.id || activity.title + activity.createdAt + index} // Use ID if available, else a composite key
+                        className="flex items-center space-x-3"
+                      >
+                        <div className="flex-shrink-0">
+                          {getActivityIcon(activity.type)}
+                        </div>
+                        <div className="flex-grow">
+                          <p className="font-medium text-gray-900">
+                            {activity.title}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {activity.description}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(activity.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Badge className={getStatusColor(activity.status)}>
+                          {activity.status.replace("_", " ")}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-10">
+                    <p>No recent activities found.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

@@ -173,7 +173,7 @@ export default function RequestVolunteers() {
       const requestData = {
         ...formData,
         requesterId: user?.id,
-        requesterName: user?.name,
+        requesterName: user?.firstName + ' ' + user?.lastName,
         organization: user?.organization,
         status: "active",
         postedDate: new Date().toISOString(),
@@ -246,33 +246,31 @@ export default function RequestVolunteers() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+      <div className="">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-3">
-            <Users className="h-8 w-8 text-amber-600" />
-            Request Volunteer Assistance
-          </h1>
-          <p className="text-gray-600">
-            Get help from Rwanda's volunteer conservation community for your
-            research projects
-          </p>
-        </div>
-
-        {success && (
-          <Alert className="border-emerald-200 bg-emerald-50">
-            <CheckCircle className="h-4 w-4 text-emerald-600" />
-            <AlertDescription className="text-emerald-800">
-              Your volunteer request has been posted successfully! Volunteers
-              will be notified and can start applying.
+        {success ? (
+          <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800">
+            <CheckCircle className="h-4 w-4 mr-2" />
+            <AlertDescription>
+              Request submitted successfully! You'll be notified of applications.
             </AlertDescription>
           </Alert>
+        ) : (
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Users className="h-8 w-8 text-indigo-600" />
+              Request Volunteers
+            </h1>
+            <p className="text-gray-600">
+              Post requests for volunteers to assist with your research projects
+            </p>
+          </div>
         )}
 
-        {/* Tabs for sections */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Form Steps */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="create">Create New Request</TabsTrigger>
             <TabsTrigger value="existing">My Requests ({existingRequests.length})</TabsTrigger>
