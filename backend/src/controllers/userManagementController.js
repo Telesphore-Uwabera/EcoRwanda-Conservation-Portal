@@ -149,6 +149,11 @@ exports.toggleUserVerification = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Prevent un-verification if the user is already verified
+    if (user.verified === true && verified === false) {
+      return res.status(400).json({ message: 'Verified accounts cannot be unverified through this action.' });
+    }
+
     // Update the verified status
     user.verified = verified;
     await user.save();
