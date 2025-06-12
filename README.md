@@ -9,258 +9,272 @@ This project is an Eco-Volunteer and Research Collaboration Portal, designed to 
 - `backend/`: Contains the Node.js Express server, API endpoints, and database models.
 - `frontend/`: Contains the React application for the user interface.
 
-## Features
+## User Guides
 
-- **User Authentication:** Secure login and registration for various roles (Administrator, Volunteer, Researcher, Ranger).
-- **Role-Based Access Control:** Different dashboards and functionalities based on user roles.
-- **Admin Dashboard:** Overview of system statistics, user management, and user registration by admin.
-- **Volunteer Dashboard:** Personalized greetings and data relevant to volunteers.
-- **Researcher Dashboard:** Personalized greetings and data relevant to researchers.
-- **Ranger Dashboard:** Personalized greetings and data relevant to rangers.
-- **User Management (Admin):** Ability to view, update roles, and delete user accounts.
-- **API Integration:** Secure communication between frontend and backend.
+### Administrator Guide
 
-## Screenshots
+#### User Management
+1. **Viewing Users**
+   - Navigate to the Admin Dashboard
+   - Click on "User Management" in the sidebar
+   - View all registered users in a table format
+   - Use filters to sort by role, verification status, or search by name/email
 
-### Authentication & Registration
-![Login Page](screenshots/login.png)
-*Login page with fields for user credentials and role-based authentication.*
+2. **Creating New Users**
+   - Click "Register New User" button
+   - Fill in required fields:
+     - First Name
+     - Last Name
+     - Email
+     - Role (Administrator, Ranger, Researcher, Volunteer)
+     - Organization
+     - Location
+   - Click "Register" to create the account
 
-![Registration Page](screenshots/registration.png)
-*User registration form for volunteers and researchers, allowing new users to sign up.*
+3. **Verifying Users**
+   - Click "View Profile" on any user
+   - Review user details
+   - Use the verification toggle to approve/reject user accounts
+   - Verification status is updated immediately
 
-![Post Registration](screenshots/postregister.png)
-*Confirmation or success page shown after successful registration.*
+4. **Managing User Roles**
+   - Access user profile
+   - Use the role selector to change user roles
+   - Changes take effect immediately
 
-### Dashboards
-![Admin Dashboard](screenshots/admin-dashboard.png)
-*Administrator dashboard showing system overview, statistics, and management tools.*
+### Volunteer Guide
 
-![Volunteer Dashboard](screenshots/volunteer-dashboard.png)
-*Volunteer dashboard with personalized activities, tasks, and project updates.*
+#### Dashboard
+1. **Overview**
+   - View total reports submitted
+   - Track active projects
+   - Monitor recent activities
 
-![Researcher Dashboard](screenshots/researcher-dashboard.png)
-*Researcher dashboard displaying research projects, data, and collaboration tools.*
+2. **Submitting Reports**
+   - Click "Submit Report" in the sidebar
+   - Fill in report details:
+     - Title
+     - Category (Poaching, Habitat Destruction, etc.)
+     - Urgency Level
+     - Location (Select from predefined list or use GPS)
+     - Detailed Description
+     - Upload photos (up to 5, max 10MB each)
+   - Click "Submit Report" to save
 
-### User Management & Admin
-![User Management](screenshots/user-management.png)
-*Admin interface for managing user accounts, roles, and permissions.*
+3. **Viewing Reports**
+   - Access "My Reports" from sidebar
+   - View all submitted reports
+   - Filter by status or date
+   - Click on any report to view details
 
-![Admin Register](screenshots/adminRegister.png)
-*Admin registration or creation form, used for adding new administrators.*
+4. **Project Participation**
+   - Browse available projects
+   - View project details and requirements
+   - Apply to participate in projects
+   - Track project progress
 
-### Volunteer Features
-![Volunteer Main](screenshots/volunteer.png)
-*General volunteer interface, showing volunteer profile or main menu.*
+### Researcher Guide
 
-![Volunteer Projects](screenshots/volunteerProjects.png)
-*List or overview of projects available to volunteers.*
+#### Dashboard
+1. **Overview**
+   - View active research projects
+   - Track data submissions
+   - Monitor collaboration requests
 
-![Volunteer Reports](screenshots/volunteerReports.png)
-*Section where volunteers can view or manage their submitted reports.*
+2. **Research Data Hub**
+   - Access research papers
+   - View available datasets
+   - Download research materials
+   - Track download statistics
 
-![Volunteer Submit Report](screenshots/volunteerSubmitreport.png)
-*Form or page for volunteers to submit new reports.*
+3. **Publishing Findings**
+   - Click "Publish Findings"
+   - Fill in research details:
+     - Title
+     - Abstract
+     - Methodology
+     - Results
+     - Upload supporting documents
+   - Submit for review
 
-### Researcher Features
-![Researcher Main](screenshots/researcher.png)
-*General researcher interface, showing researcher profile or main menu.*
+4. **Requesting Volunteers**
+   - Access "Request Volunteers"
+   - Create new volunteer requests:
+     - Project description
+     - Required skills
+     - Duration
+     - Location
+   - Track volunteer applications
 
-![Researcher Requests](screenshots/researcherRequests.png)
-*Page for researchers to view or manage their requests (e.g., data, collaboration).*
+### Ranger Guide
 
-![Researcher Datahub](screenshots/researcherDatahub.png)
-*Central hub for researchers to access and manage research data.*
+#### Dashboard
+1. **Overview**
+   - View total patrols conducted
+   - Track wildlife reports
+   - Monitor threat levels
 
-![Researcher Publish](screenshots/researcherPublish.png)
-*Interface for researchers to publish new findings or reports.*
+2. **Patrol Management**
+   - Schedule new patrols
+   - Record patrol data:
+     - Date and time
+     - Location
+     - Team members
+     - Observations
+   - Export patrol reports
 
-### Other Screenshots
-![Frontend Overview](screenshots/frontend.png)
-*Overview of the frontend application, the landing or home page.*
+3. **Threat Map**
+   - View real-time threat locations
+   - Track wildlife incidents
+   - Monitor conservation areas
+   - Update threat status
 
-![Backend Overview](screenshots/backend.png)
-*Overview of the backend admin panel or API dashboard.*
+4. **Report Management**
+   - Review volunteer submissions
+   - Verify incident reports
+   - Update report status
+   - Assign response teams
 
-![MongoDB](screenshots/mongodb.png)
-*Screenshot of the MongoDB database interface, showing collections or data.*
-
-![MongoDB 1](screenshots/mongodb1.png)
-*Another view of the MongoDB database, a different collection or data set.*
-
-## Technologies Used
-
-### Frontend
-- **React:** A JavaScript library for building user interfaces.
-- **Vite:** A fast frontend build tool.
-- **TypeScript:** A superset of JavaScript that adds static typing.
-- **Tailwind CSS:** A utility-first CSS framework for rapid UI development.
-- **Material-UI (MUI):** A comprehensive suite of UI tools for React.
-- **React Router DOM:** For declarative routing in React applications.
-- **Axios:** For making HTTP requests.
-
-### Backend
-- **Node.js:** A JavaScript runtime.
-- **Express.js:** A fast, unopinionated, minimalist web framework for Node.js.
-- **MongoDB:** A NoSQL database.
-- **Mongoose:** An ODM (Object Data Modeling) library for MongoDB and Node.js.
-- **bcryptjs:** For hashing passwords.
-- **jsonwebtoken:** For implementing JSON Web Tokens for authentication.
-- **dotenv:** For loading environment variables from a `.env` file.
-- **Nodemon:** A tool that helps develop Node.js based applications by automatically restarting the node application when file changes in the directory are detected.
-
-## Getting Started
-
-Follow these instructions to set up and run the project on your local machine.
+## Technical Setup Guide
 
 ### Prerequisites
 
 - Node.js (v14 or higher recommended)
 - npm (Node Package Manager)
-- **MongoDB Atlas Account:** (For cloud-hosted database. A free M0 Sandbox tier is sufficient for development.)
-- MongoDB Compass (Optional, for database inspection and initial admin setup)
+- MongoDB Atlas Account
+- MongoDB Compass (Optional)
 
-### 1. Backend Setup
+### Backend Setup
 
-Navigate to the `backend` directory, install dependencies, and start the server.
+1. **Installation**
+   ```bash
+   cd backend
+   npm install
+   ```
 
-```bash
-# Navigate to the backend directory
-cd backend
+2. **Environment Configuration**
+   Create `.env` file with:
+   ```
+   MONGODB_URI=mongodb_uri
+   PORT=5000
+   JWT_SECRET=jwt_secret
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
+   EMAIL_USER=email
+   EMAIL_PASS=app_password
+   ```
 
-# Install backend dependencies
-npm install
+3. **Start Server**
+   ```bash
+   npm run dev
+   ```
 
-# Create a .env file in the backend directory with your MongoDB Atlas URI and PORT
-# Example .env content:
-# MONGODB_URI=mongodb+srv://<username>:<password>@yourcluster.mongodb.net/eco_volunteer_portal?retryWrites=true&w=majority
-# PORT=5000
-# JWT_SECRET=your_strong_jwt_secret_key (important for authentication)
+### Frontend Setup
 
-# Start the backend server (development mode with nodemon)
-npm run dev
-```
-The backend server should now be running on `http://localhost:5000`.
+1. **Installation**
+   ```bash
+   cd frontend
+   npm install
+   ```
 
-### 2. Frontend Setup
+2. **Configuration**
+   Ensure `frontend/src/config/api.ts` has:
+   ```typescript
+   export const API_BASE_URL = '/api';
+   ```
 
-In a new terminal, navigate to the `frontend` directory, install dependencies, and start the development server.
+3. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
 
-```bash
-# Navigate to the frontend directory 
-cd frontend
+### Initial Administrator Setup
 
-# Install frontend dependencies
-npm install
+1. **Generate Password Hash**
+   ```bash
+   cd backend
+   node -e "require('bcryptjs').hash('password', 10).then(hash => console.log(hash));"
+   ```
 
-# Start the frontend development server
-npm run dev
-```
-The frontend application should now be accessible at `http://localhost:3000` (or another port if configured differently by Vite).
+2. **Create Admin User**
+   - Use MongoDB Compass or Atlas UI
+   - Insert document into `users` collection:
+   ```json
+   {
+     "firstName": "Admin",
+     "lastName": "User",
+     "email": "admin@ecorwanda.org",
+     "password": "generated_hash",
+     "role": "administrator",
+     "organization": "RWANDA DEVELOPMENT BOARD",
+     "location": "KIGALI",
+     "verified": true,
+     "createdAt": {"$date": "2024-03-14T00:00:00.000Z"}
+   }
+   ```
 
-**Important Note on API Configuration:**
-Ensure that `frontend/src/config/api.ts` has `API_BASE_URL` set to `/api`. This allows the Vite development server to proxy API requests to the backend, preventing `ERR_CONNECTION_REFUSED` errors.
-```typescript
-// frontend/src/config/api.ts
-const API_BASE_URL = '/api';
-```
+## Technologies Used
 
-### 3. Database Connection and Initial Administrator Setup (MongoDB Atlas)
+### Frontend
+- React
+- Vite
+- TypeScript
+- Tailwind CSS
+- Material-UI
+- React Router DOM
+- Axios
 
-The backend connects to MongoDB Atlas using the `MONGODB_URI` specified in your `backend/.env` file. Ensure you have configured a user and allowed network access in your MongoDB Atlas project. The default database name used in the backend is `eco_volunteer_portal`.
+### Backend
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- bcryptjs
+- jsonwebtoken
+- dotenv
+- Nodemon
 
-**Creating the Initial Administrator (Superuser) via MongoDB Compass or Atlas UI:**
+## Troubleshooting
 
-The public registration portal is designed for 'volunteer' and 'researcher' roles. To create the first 'administrator' account, you need to insert it directly into your MongoDB Atlas database.
+1. **Login Issues**
+   - Verify email and password
+   - Check user verification status
+   - Ensure correct role assignment
 
-1.  **Generate a Hashed Password:**
-    Open a terminal, navigate to the `backend` directory, and run the following command to generate a bcrypt hash for your desired administrator password:
-    ```bash
-    cd backend
-    node -e "require('bcryptjs').hash('strong_password', 10).then(hash => console.log(hash));"
-    ```
-    Replace `'strong_password'` with the actual password. Copy the output (the long hash string).
+2. **API Connection Errors**
+   - Verify backend server is running
+   - Check API_BASE_URL configuration
+   - Ensure proper proxy settings
 
-2.  **Insert Administrator Document via MongoDB Compass or Atlas UI:**
-    *   Open MongoDB Compass and connect to your MongoDB Atlas cluster using the URI (e.g., `mongodb+srv://<username>:<password>@yourcluster.mongodb.net/`).
-    *   Navigate to the `eco_volunteer_portal` database (or your chosen database name).
-    *   Select or create the `users` collection.
-    *   Click "ADD DATA" -> "Insert Document".
-    *   Switch to "JSON View" (the `{}` icon) and paste the following JSON, replacing `GENERATED_HASH_HERE` with the **hashed password** you just generated:
-        ```json
-        {
-          "firstName": "Admin",
-          "lastName": "User",
-          "email": "admin@ecorwanda.org",
-          "password": "GENERATED_HASH_HERE",
-          "role": "administrator",
-          "organization": "Admin Org",
-          "location": "Admin Location",
-          "verified": true,
-          "createdAt": { "$date": "ISO_DATE_STRING" }
-        }
-        ```
-        Ensure the `createdAt` field uses `{"$date": "ISO_DATE_STRING"}` format for proper BSON date type (e.g., `"2025-06-10T00:00:00.000Z"`).
-    *   Click "INSERT".
+3. **Database Connection**
+   - Verify MongoDB URI
+   - Check network connectivity
+   - Ensure proper database permissions
 
-### 4. Registering Volunteers and Researchers via Portal
+4. **File Upload Issues**
+   - Check file size limits
+   - Verify supported file types
+   - Ensure proper storage configuration
 
-Once your backend is running and connected, you can register new 'volunteer' and 'researcher' accounts directly through the frontend's signup page (`http://localhost:3000/auth/signup`).
+## Security Best Practices
 
-### 5. Login through the Portal
+1. **Password Management**
+   - Use strong, unique passwords
+   - Enable two-factor authentication
+   - Regular password updates
 
-All users (administrators, researchers, volunteers, and park rangers if created by an admin) can log in through the main login portal at `http://localhost:3000/auth/login` using their registered email and password.
+2. **Data Protection**
+   - Regular backups
+   - Secure file storage
+   - Access control implementation
 
----
-**Note on Password Hashing:** If you encounter "Invalid email or password" errors after manually inserting users, it's often due to discrepancies in bcrypt hashing. The recommended approach for an initial admin is direct DB insertion via the methods above, and for other roles (and subsequent admins), use the application's own registration/admin tools to ensure correct hashing.
+3. **API Security**
+   - JWT token validation
+   - Rate limiting
+   - Input validation
 
-**Troubleshooting `&&` in PowerShell:**
-If you're using PowerShell and encounter errors with commands like `cd backend && npm start`, you need to run them separately:
-```powershell
-cd backend
-npm start
-```
+## Support
 
-### Backend Environment Variables (`backend/.env`)
-
-Create a `.env` file in the `backend` directory with the following variables:
-
-```
-MONGODB_URI=mongodb+srv://<username>:<password>@yourcluster.mongodb.net/eco_volunteer_portal?retryWrites=true&w=majority
-PORT=5000
-JWT_SECRET=your_strong_jwt_secret_key
-
-# Email Configuration for Password Reset (Example for Gmail)
-# If using Gmail, you might need an App Password if 2FA is enabled.
-# Generate one here: https://myaccount.google.com/apppasswords
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587 # or 465 for SSL
-EMAIL_USER=email@gmail.com
-EMAIL_PASS=gmail_app_password
-```
-
-**Note:** Replace `<username>`, `<password>`, `yourcluster.mongodb.net`, `eco_volunteer_portal`, `your_strong_jwt_secret_key`, `email@gmail.com`, and `gmail_app_password` with actual secure values. For `JWT_SECRET`, ensure it's a strong, random string.
-
-### Frontend Configuration (`frontend/src/config/api.ts`)
-
-Ensure `API_BASE_URL` is set correctly to `/api` to utilize the Vite proxy for development.
-
-```typescript
-// frontend/src/config/api.ts
-export const API_BASE_URL = '/api'; // This uses Vite's proxy in development
-```
-
-### Troubleshooting
-
-*   **`&&` operator in PowerShell:** If you are using PowerShell on Windows and encounter errors when trying to run `cd backend && npm start`, you may need to run the commands separately:
-    ```bash
-    cd backend
-    npm start
-    ```
-
-*   **`npm ERR! code ENOENT`:** This means `npm` can't find a `package.json` file. Ensure you are in the correct directory (`backend` or `frontend`) before running `npm install` or `npm start`/`npm run dev`.
-*   **`querySrv ENOTFOUND` error:** This usually means your machine cannot resolve the MongoDB Atlas cluster's hostname. Ensure:
-    *   Your MongoDB Atlas Network Access is configured to allow your current IP address (or temporarily, "Allow Access from Anywhere" 0.0.0.0/0).
-    *   Your local DNS settings are working correctly (e.g., try flushing your DNS cache `ipconfig /flushdns` or setting public DNS servers like Google DNS 8.8.8.8/8.8.4.4).
-*   **Database connection string:** Double-check that your `MONGODB_URI` in `backend/.env` exactly matches the connection string provided by MongoDB Atlas, including the correct username, password, cluster name, and database name.
-``` 
+For technical support or questions, please contact:
+- Email: support@ecorwanda.org
+- GitHub Issues: [Create an issue](https://github.com/Telesphore-Uwabera/EcoRwanda-Conservation-Portal/issues) 

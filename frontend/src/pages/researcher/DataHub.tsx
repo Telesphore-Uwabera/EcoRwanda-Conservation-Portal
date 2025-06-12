@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
+import api from "@/config/api";
 import {
   Database,
   Search,
@@ -40,7 +41,40 @@ import {
   Activity,
   Camera,
   Microscope,
+  AlertTriangle,
 } from "lucide-react";
+import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert";
+
+interface DataHubStats {
+  datasetsAvailable: number;
+  researchPapers: number;
+  totalDownloads: number;
+  contributingResearchers: number;
+}
+
+interface Dataset {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  location: { lat: number; lng: number; name: string };
+  accessLevel: string;
+  tags: string[];
+  createdAt: string;
+  downloads: number;
+  featured?: boolean;
+}
+
+interface ResearchPaper {
+  _id: string;
+  title: string;
+  abstract: string;
+  authors: string[];
+  publicationDate: string;
+  category: string;
+  accessLevel: string;
+  downloads: number;
+}
 
 export default function DataHub() {
   const { user } = useAuth();
@@ -51,9 +85,54 @@ export default function DataHub() {
   const [accessFilter, setAccessFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("datasets");
 
-  // TODO: Fetch datasets and papers from MongoDB backend
-  const datasets = [];
-  const papers = [];
+  const [stats, setStats] = useState<DataHubStats>({
+    datasetsAvailable: 0,
+    researchPapers: 0,
+    totalDownloads: 0,
+    contributingResearchers: 0,
+  });
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
+  const [papers, setPapers] = useState<ResearchPaper[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDataHubData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const storedUser = localStorage.getItem('eco-user');
+        let token = null;
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          token = user.token;
+        }
+
+        const response = await api.get('/data-hub', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = response.data;
+
+        setStats(data);
+        // We don't have separate dataset/paper fetching yet, so leave these as empty for now
+        // setDatasets(data.datasets);
+        // setPapers(data.papers);
+      } catch (err) {
+        console.error('Error fetching data hub data:', err);
+        setError('Failed to load data hub data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchDataHubData();
+    }
+  }, [user]);
+
 
   const categories = [
     { value: "wildlife_monitoring", label: "Wildlife Monitoring", icon: "🦁" },
@@ -99,6 +178,8 @@ export default function DataHub() {
     });
   };
 
+  // Currently, these filters are based on mock data. Will need to be updated
+  // when actual dataset/paper fetching is implemented.
   const filteredDatasets = datasets.filter((dataset) => {
     const matchesSearch =
       dataset.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,7 +191,7 @@ export default function DataHub() {
       categoryFilter === "all" || dataset.category === categoryFilter;
     const matchesLocation =
       locationFilter === "all" ||
-      dataset.location.toLowerCase().includes(locationFilter.toLowerCase());
+      dataset.location.name.toLowerCase().includes(locationFilter.toLowerCase());
     const matchesAccess =
       accessFilter === "all" || dataset.accessLevel === accessFilter;
 
@@ -132,7 +213,32 @@ export default function DataHub() {
     return matchesSearch && matchesCategory && matchesAccess;
   });
 
+  // Currently based on mock data. Will need to be updated with real data.
   const featuredDatasets = datasets.filter((d) => d.featured);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <p>Loading data hub...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="p-4">
+          <AlertDialog variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </AlertDialog>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -159,7 +265,7 @@ export default function DataHub() {
                 <Database className="h-8 w-8 text-blue-600" />
                 <div>
                   <p className="text-2xl font-bold text-blue-900">
-                    {datasets.length}
+                    {stats.datasetsAvailable.toLocaleString()}
                   </p>
                   <p className="text-sm text-blue-700">Datasets Available</p>
                 </div>
@@ -173,7 +279,7 @@ export default function DataHub() {
                 <FileText className="h-8 w-8 text-emerald-600" />
                 <div>
                   <p className="text-2xl font-bold text-emerald-900">
-                    {papers.length}
+                    {stats.researchPapers.toLocaleString()}
                   </p>
                   <p className="text-sm text-emerald-700">Research Papers</p>
                 </div>
@@ -186,7 +292,9 @@ export default function DataHub() {
               <div className="flex items-center gap-3">
                 <Download className="h-8 w-8 text-amber-600" />
                 <div>
-                  <p className="text-2xl font-bold text-amber-900">2.1K</p>
+                  <p className="text-2xl font-bold text-amber-900">
+                    {stats.totalDownloads.toLocaleString()}
+                  </p>
                   <p className="text-sm text-amber-700">Total Downloads</p>
                 </div>
               </div>
@@ -198,7 +306,9 @@ export default function DataHub() {
               <div className="flex items-center gap-3">
                 <Users className="h-8 w-8 text-purple-600" />
                 <div>
-                  <p className="text-2xl font-bold text-purple-900">45</p>
+                  <p className="text-2xl font-bold text-purple-900">
+                    {stats.contributingResearchers.toLocaleString()}
+                  </p>
                   <p className="text-sm text-purple-700">
                     Contributing Researchers
                   </p>
@@ -208,360 +318,189 @@ export default function DataHub() {
           </Card>
         </div>
 
-        {/* Featured Datasets */}
-        {featuredDatasets.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-500" />
-              Featured Datasets
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {featuredDatasets.slice(0, 2).map((dataset) => (
-                <Card
-                  key={dataset.id}
-                  className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50"
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">
-                          {dataset.title}
-                        </CardTitle>
-                        <CardDescription>
-                          by {dataset.researcher}
-                        </CardDescription>
-                      </div>
-                      <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-                        <Star className="h-3 w-3 mr-1" />
-                        Featured
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-700 line-clamp-2">
-                      {dataset.description}
-                    </p>
-
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {dataset.location}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(dataset.lastUpdated)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Database className="h-3 w-3" />
-                        {dataset.fileSize}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {getAccessIcon(dataset.accessLevel)}
-                        <Badge className={getAccessColor(dataset.accessLevel)}>
-                          {dataset.accessLevel.replace("_", " ")}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Download className="h-3 w-3" />
-                          {dataset.downloads}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Star className="h-3 w-3 text-amber-500" />
-                          {dataset.rating}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1">
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                      <Button className="flex-1 bg-amber-600 hover:bg-amber-700">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Search and Filters */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search datasets, papers, authors, or keywords..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full lg:w-48">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      <div className="flex items-center gap-2">
-                        <span>{category.icon}</span>
-                        <span>{category.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="w-full lg:w-40">
-                  <SelectValue placeholder="Location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  <SelectItem value="volcanoes">Volcanoes NP</SelectItem>
-                  <SelectItem value="nyungwe">Nyungwe NP</SelectItem>
-                  <SelectItem value="akagera">Akagera NP</SelectItem>
-                  <SelectItem value="kivu">Lake Kivu</SelectItem>
-                  <SelectItem value="multiple">Multiple Sites</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={accessFilter} onValueChange={setAccessFilter}>
-                <SelectTrigger className="w-full lg:w-32">
-                  <SelectValue placeholder="Access" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Access</SelectItem>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="restricted">Restricted</SelectItem>
-                  <SelectItem value="upon_request">On Request</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search datasets, papers, authors, or keywords..."
+              className="pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="h-4 w-4 mr-2 text-gray-500" />
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.value} value={category.value}>
+                  {category.icon} {category.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={locationFilter} onValueChange={setLocationFilter}>
+            <SelectTrigger className="w-[180px]">
+              <MapPin className="h-4 w-4 mr-2 text-gray-500" />
+              <SelectValue placeholder="All Locations" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              <SelectItem value="kigali">Kigali</SelectItem>
+              <SelectItem value="musanze">Musanze</SelectItem>
+              <SelectItem value="nyungwe">Nyungwe</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={accessFilter} onValueChange={setAccessFilter}>
+            <SelectTrigger className="w-[180px]">
+              <Lock className="h-4 w-4 mr-2 text-gray-500" />
+              <SelectValue placeholder="All Access" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Access</SelectItem>
+              <SelectItem value="open">Open Access</SelectItem>
+              <SelectItem value="restricted">Restricted Access</SelectItem>
+              <SelectItem value="upon_request">Upon Request</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* Data Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="datasets">
-              Datasets ({filteredDatasets.length})
-            </TabsTrigger>
-            <TabsTrigger value="papers">
-              Research Papers ({filteredPapers.length})
-            </TabsTrigger>
+            <TabsTrigger value="datasets">Datasets ({datasets.length})</TabsTrigger>
+            <TabsTrigger value="papers">Research Papers ({papers.length})</TabsTrigger>
           </TabsList>
-
-          {/* Datasets Tab */}
-          <TabsContent value="datasets" className="space-y-4">
-            {filteredDatasets.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Database className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No datasets found
-                  </h3>
-                  <p className="text-gray-600">
-                    Try adjusting your search filters to find relevant datasets.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {filteredDatasets.map((dataset) => (
-                  <Card
-                    key={dataset.id}
-                    className="hover:shadow-md transition-shadow"
-                  >
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {dataset.title}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              by {dataset.researcher} • {dataset.organization}
-                            </p>
-                            <p className="text-sm text-gray-700 line-clamp-2">
-                              {dataset.description}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
+          <TabsContent value="datasets">
+            <Card>
+              <CardHeader>
+                <CardTitle>Datasets</CardTitle>
+                <CardDescription>Browse available datasets.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {filteredDatasets.length === 0 ? (
+                  <div className="text-center text-gray-500 py-10">
+                    <Database className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                    <p>No datasets found</p>
+                    <p className="text-sm">
+                      Try adjusting your search filters to find relevant datasets.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {filteredDatasets.map((dataset) => (
+                      <Card key={dataset._id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-lg font-medium">
+                            {dataset.title}
+                          </CardTitle>
+                          <Badge className={getAccessColor(dataset.accessLevel)}>
                             {getAccessIcon(dataset.accessLevel)}
-                            <Badge
-                              className={getAccessColor(dataset.accessLevel)}
-                            >
-                              {dataset.accessLevel.replace("_", " ")}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1">
-                          {dataset.tags.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {dataset.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Updated {formatDate(dataset.lastUpdated)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Database className="h-3 w-3" />
-                            {dataset.fileSize} ({dataset.fileFormat})
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Download className="h-3 w-3" />
-                            {dataset.downloads} downloads
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
-                            <span className="flex items-center gap-1">
-                              <Star className="h-3 w-3 text-amber-500" />
-                              {dataset.rating}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <FileText className="h-3 w-3" />
-                              {dataset.citations} citations
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Research Papers Tab */}
-          <TabsContent value="papers" className="space-y-4">
-            {filteredPapers.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No research papers found
-                  </h3>
-                  <p className="text-gray-600">
-                    Try adjusting your search filters to find relevant
-                    publications.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {filteredPapers.map((paper) => (
-                  <Card
-                    key={paper.id}
-                    className="hover:shadow-md transition-shadow"
-                  >
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {paper.title}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {paper.authors.join(", ")} • {paper.journal}
-                            </p>
-                            <p className="text-sm text-gray-700 line-clamp-2">
-                              {paper.abstract}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {getAccessIcon(paper.accessLevel)}
-                            <Badge
-                              className={getAccessColor(paper.accessLevel)}
-                            >
-                              {paper.accessLevel.replace("_", " ")}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Published {formatDate(paper.publishedDate)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <FileText className="h-3 w-3" />
-                            {paper.citations} citations
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Download className="h-3 w-3" />
-                            {paper.downloads} downloads
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Database className="h-3 w-3" />
-                            PDF ({paper.pdfSize})
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <Badge variant="outline">
-                            {categories.find((c) => c.value === paper.category)
-                              ?.label || paper.category}
+                            {dataset.accessLevel.replace("_", " ")}
                           </Badge>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Abstract
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="bg-emerald-600 hover:bg-emerald-700"
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Download PDF
-                            </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <p className="text-sm text-gray-700 line-clamp-2">
+                            {dataset.description}
+                          </p>
+                          <div className="flex flex-wrap gap-2 text-sm text-gray-600 mt-2">
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {dataset.location.name}
+                            </Badge>
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              Published: {formatDate(dataset.createdAt)}
+                            </Badge>
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Download className="h-3 w-3" />
+                              {dataset.downloads.toLocaleString()} Downloads
+                            </Badge>
                           </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {dataset.tags.map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                          {dataset.featured && (
+                            <Badge variant="default" className="bg-yellow-500 text-white flex items-center gap-1 mt-2">
+                              <Star className="h-3 w-3 fill-current" /> Featured
+                            </Badge>
+                          )}
+                          <Button size="sm" className="mt-3">
+                            View Details
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="papers">
+            <Card>
+              <CardHeader>
+                <CardTitle>Research Papers</CardTitle>
+                <CardDescription>Explore published research papers.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {filteredPapers.length === 0 ? (
+                  <div className="text-center text-gray-500 py-10">
+                    <FileText className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                    <p>No research papers found</p>
+                    <p className="text-sm">
+                      Try adjusting your search filters to find relevant papers.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {filteredPapers.map((paper) => (
+                      <Card key={paper._id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-lg font-medium">
+                            {paper.title}
+                          </CardTitle>
+                          <Badge className={getAccessColor(paper.accessLevel)}>
+                            {getAccessIcon(paper.accessLevel)}
+                            {paper.accessLevel.replace("_", " ")}
+                          </Badge>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <p className="text-sm text-gray-700 line-clamp-2">
+                            {paper.abstract}
+                          </p>
+                          <div className="flex flex-wrap gap-2 text-sm text-gray-600 mt-2">
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              Authors: {paper.authors.join(", ")}
+                            </Badge>
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              Published: {formatDate(paper.publicationDate)}
+                            </Badge>
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Download className="h-3 w-3" />
+                              {paper.downloads.toLocaleString()} Downloads
+                            </Badge>
+                          </div>
+                          <Button size="sm" className="mt-3">
+                            View Details
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

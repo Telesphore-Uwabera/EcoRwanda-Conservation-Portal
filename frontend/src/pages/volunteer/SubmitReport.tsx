@@ -211,7 +211,7 @@ export default function SubmitReport() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl space-y-6">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
@@ -238,7 +238,7 @@ export default function SubmitReport() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
-          <Card>
+          <Card className="shadow-lg border border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-amber-600" />
@@ -330,7 +330,7 @@ export default function SubmitReport() {
           </Card>
 
           {/* Location Information */}
-          <Card>
+          <Card className="shadow-lg border border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-blue-600" />
@@ -350,7 +350,7 @@ export default function SubmitReport() {
                       handleInputChange("location.name", value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select or specify location" />
                     </SelectTrigger>
                     <SelectContent>
@@ -365,13 +365,13 @@ export default function SubmitReport() {
 
                 <div className="space-y-2">
                   <Label>GPS Coordinates</Label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 w-full">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={getCurrentLocation}
                       disabled={gettingLocation}
-                      className="flex-1"
+                      className="flex-1 w-full"
                     >
                       {gettingLocation ? (
                         <>
@@ -398,7 +398,7 @@ export default function SubmitReport() {
           </Card>
 
           {/* Photo Evidence */}
-          <Card>
+          <Card className="shadow-lg border border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Image className="h-5 w-5 text-purple-600" />
@@ -467,7 +467,7 @@ export default function SubmitReport() {
           </Card>
 
           {/* Submit */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <Button
               type="button"
               variant="outline"

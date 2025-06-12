@@ -1,6 +1,7 @@
 export type UserRole = "volunteer" | "researcher" | "ranger" | "administrator";
 
 export interface User {
+  _id: string;
   id: string;
   email: string;
   firstName: string;
@@ -10,7 +11,8 @@ export interface User {
   location?: string;
   organization?: string;
   verified: boolean;
-  joinedAt: string;
+  createdAt: string;
+  token?: string;
 }
 
 export interface AuthState {

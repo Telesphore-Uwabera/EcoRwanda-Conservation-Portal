@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,6 +20,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
+import api from "@/config/api"; // Import your API instance
 import {
   Map,
   AlertTriangle,
@@ -35,7 +36,23 @@ import {
   Target,
   Activity,
   Radio,
+  Users,
 } from "lucide-react";
+import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert";
+
+interface Threat {
+  id: string;
+  type: string; // Maps to WildlifeReport.category (e.g., 'poaching', 'human_wildlife_conflict')
+  severity: string; // Maps to WildlifeReport.urgency (e.g., 'critical', 'high', 'medium', 'low')
+  title: string;
+  description: string;
+  location: { lat: number; lng: number; name: string };
+  coordinates: { lat: number; lng: number }; // Redundant if location has lat/lng but kept for compatibility
+  reportedAt: string;
+  reportedBy: string;
+  status: string;
+  lastUpdate: string;
+}
 
 export default function ThreatMap() {
   const { user } = useAuth();
@@ -43,129 +60,46 @@ export default function ThreatMap() {
   const [threatFilter, setThreatFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("24h");
   const [activeTab, setActiveTab] = useState("live");
+  const [threats, setThreats] = useState<Threat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data for threat locations
-  const threats = [
-    {
-      id: "1",
-      type: "poaching_activity",
-      severity: "critical",
-      title: "Active Poaching Site",
-      description: "Multiple snares discovered, fresh human activity signs",
-      location: "Sector A-7, Volcanoes NP",
-      coordinates: { lat: -1.4617, lng: 29.5264 },
-      reportedAt: "2024-01-15T14:30:00Z",
-      reportedBy: "Emmanuel Habimana",
-      status: "active",
-      responseTeam: "Team Alpha",
-      estimatedThreatLevel: 95,
-      evidence: ["Photos", "GPS coordinates", "Physical evidence"],
-      lastUpdate: "2024-01-15T16:00:00Z",
-    },
-    {
-      id: "2",
-      type: "human_wildlife_conflict",
-      severity: "high",
-      title: "Elephant Crop Damage",
-      description:
-        "Elephants breaking into agricultural areas near park boundary",
-      location: "Nyabihu District Border",
-      coordinates: { lat: -1.3833, lng: 29.4167 },
-      reportedAt: "2024-01-15T09:15:00Z",
-      reportedBy: "Local Farmer via Community Leader",
-      status: "responding",
-      responseTeam: "Team Beta",
-      estimatedThreatLevel: 75,
-      evidence: ["Damage photos", "Community reports"],
-      lastUpdate: "2024-01-15T12:30:00Z",
-    },
-    {
-      id: "3",
-      type: "illegal_logging",
-      severity: "high",
-      title: "Unauthorized Tree Cutting",
-      description: "Chainsaw activity detected in protected forest area",
-      location: "Nyungwe Forest, Remote Sector",
-      coordinates: { lat: -2.4817, lng: 29.2073 },
-      reportedAt: "2024-01-14T16:45:00Z",
-      reportedBy: "Acoustic Monitoring System",
-      status: "investigating",
-      responseTeam: "Team Gamma",
-      estimatedThreatLevel: 80,
-      evidence: ["Audio recordings", "Satellite imagery"],
-      lastUpdate: "2024-01-15T08:00:00Z",
-    },
-    {
-      id: "4",
-      type: "suspicious_vehicle",
-      severity: "medium",
-      title: "Unidentified Vehicle",
-      description:
-        "Vehicle observed multiple times near park perimeter during night hours",
-      location: "Akagera NP Eastern Gate",
-      coordinates: { lat: -1.8833, lng: 30.7333 },
-      reportedAt: "2024-01-13T22:30:00Z",
-      reportedBy: "Gate Security",
-      status: "monitoring",
-      responseTeam: null,
-      estimatedThreatLevel: 45,
-      evidence: ["Vehicle photos", "License plate (partial)"],
-      lastUpdate: "2024-01-14T06:00:00Z",
-    },
-    {
-      id: "5",
-      type: "fire_risk",
-      severity: "medium",
-      title: "Illegal Campfire",
-      description: "Unauthorized campfire in high-risk fire zone",
-      location: "Gishwati Forest",
-      coordinates: { lat: -1.7, lng: 29.5 },
-      reportedAt: "2024-01-13T18:20:00Z",
-      reportedBy: "Patrol Team",
-      status: "resolved",
-      responseTeam: "Local Rangers",
-      estimatedThreatLevel: 30,
-      evidence: ["Site photos", "Fire remains analysis"],
-      lastUpdate: "2024-01-13T20:00:00Z",
-    },
-  ];
+  useEffect(() => {
+    const fetchThreats = async () => {
+      setLoading(true);
+      try {
+        const storedUser = localStorage.getItem('eco-user');
+        let token = null;
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          token = user.token;
+        }
 
-  // Mock data for patrol teams
-  const patrolTeams = [
-    {
-      id: "alpha",
-      name: "Team Alpha",
-      leader: "Jean Baptiste Nsengimana",
-      members: ["Emmanuel Habimana", "Samuel Nkurunziza"],
-      status: "active",
-      currentLocation: { lat: -1.4617, lng: 29.5264 },
-      assignedThreat: "1",
-      equipment: ["Radio", "GPS", "Camera", "Evidence kit"],
-      lastUpdate: "2024-01-15T16:00:00Z",
-    },
-    {
-      id: "beta",
-      name: "Team Beta",
-      leader: "Marie Claire Uwimana",
-      members: ["Vincent Mukamana", "Grace Mukashema"],
-      status: "responding",
-      currentLocation: { lat: -1.3833, lng: 29.4167 },
-      assignedThreat: "2",
-      equipment: ["Radio", "GPS", "Tranquilizer equipment", "Barriers"],
-      lastUpdate: "2024-01-15T12:30:00Z",
-    },
-    {
-      id: "gamma",
-      name: "Team Gamma",
-      leader: "Eric Habimana",
-      members: ["Samuel Mucyo"],
-      status: "investigating",
-      currentLocation: { lat: -2.4817, lng: 29.2073 },
-      assignedThreat: "3",
-      equipment: ["Radio", "GPS", "Camera", "Chainsaw evidence kit"],
-      lastUpdate: "2024-01-15T08:00:00Z",
-    },
-  ];
+        const response = await api.get('/threats', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Sort threats by reportedAt (most recent first)
+        const sortedThreats = response.data.threats.sort((a: Threat, b: Threat) => {
+          return new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime();
+        });
+        setThreats(sortedThreats);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch threat data.');
+        console.error('Error fetching threat data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchThreats();
+  }, []);
+
+  // Patrol teams are not directly fetched here, keeping as placeholder for now
+  const patrolTeams: any[] = []; 
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -186,11 +120,11 @@ export default function ThreatMap() {
     switch (status) {
       case "active":
         return "bg-red-100 text-red-800";
-      case "responding":
+      case "pending":
+        return "bg-amber-100 text-amber-800";
+      case "verified":
         return "bg-blue-100 text-blue-800";
       case "investigating":
-        return "bg-amber-100 text-amber-800";
-      case "monitoring":
         return "bg-purple-100 text-purple-800";
       case "resolved":
         return "bg-emerald-100 text-emerald-800";
@@ -216,16 +150,16 @@ export default function ThreatMap() {
 
   const getThreatIcon = (type: string) => {
     switch (type) {
-      case "poaching_activity":
+      case "poaching":
         return "🎯";
+      case "habitat_destruction":
+        return "🪓";
+      case "wildlife_sighting":
+        return "🐾";
       case "human_wildlife_conflict":
         return "⚡";
-      case "illegal_logging":
-        return "🪓";
-      case "suspicious_vehicle":
-        return "🚗";
-      case "fire_risk":
-        return "🔥";
+      case "other":
+        return "❓";
       default:
         return "⚠️";
     }
@@ -241,33 +175,53 @@ export default function ThreatMap() {
   };
 
   const filteredThreats = threats.filter((threat) => {
-    const matchesThreat =
-      threatFilter === "all" || threat.type === threatFilter;
+    const matchesThreat = threatFilter === "all" || threat.type === threatFilter;
     const now = new Date();
     const threatTime = new Date(threat.reportedAt);
-    const timeDiff = now.getTime() - threatTime.getTime();
-
     let matchesTime = true;
+
     if (timeFilter === "24h") {
-      matchesTime = timeDiff <= 24 * 60 * 60 * 1000;
-    } else if (timeFilter === "48h") {
-      matchesTime = timeDiff <= 48 * 60 * 60 * 1000;
+      matchesTime = (now.getTime() - threatTime.getTime()) < (24 * 60 * 60 * 1000);
     } else if (timeFilter === "7d") {
-      matchesTime = timeDiff <= 7 * 24 * 60 * 60 * 1000;
+      matchesTime = (now.getTime() - threatTime.getTime()) < (7 * 24 * 60 * 60 * 1000);
+    } else if (timeFilter === "30d") {
+      matchesTime = (now.getTime() - threatTime.getTime()) < (30 * 24 * 60 * 60 * 1000);
+    } else if (timeFilter === "all") {
+      matchesTime = true; // No time filter applied
     }
 
     return matchesThreat && matchesTime;
   });
 
-  const stats = {
-    activeThreatCount: threats.filter((t) => t.status === "active").length,
-    criticalThreatCount: threats.filter((t) => t.severity === "critical")
-      .length,
-    activeTeamCount: patrolTeams.filter(
-      (t) => t.status === "active" || t.status === "responding",
-    ).length,
-    responseTime: "15 min",
-  };
+  // Calculate stats based on fetched threats
+  const activeThreatsCount = filteredThreats.filter(t => t.status !== 'resolved' && t.status !== 'pending').length; 
+  const criticalThreatsCount = filteredThreats.filter(t => t.severity === 'critical' && t.status !== 'resolved' && t.status !== 'pending').length;
+  const teamsDeployedCount = 0; // Placeholder for now, as we don't have real team data yet
+  const avgResponseTime = "N/A"; // Placeholder for now
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <p>Loading threat map data...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="p-4">
+          <AlertDialog variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </AlertDialog>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -277,7 +231,7 @@ export default function ThreatMap() {
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Map className="h-8 w-8 text-red-600" />
+            <Map className="h-8 w-8 text-green-600" />
             Unified Threat Map
           </h1>
           <p className="text-gray-600">
@@ -286,28 +240,24 @@ export default function ThreatMap() {
           </p>
         </div>
 
-        {/* Critical Alert Banner */}
-        {stats.criticalThreatCount > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        {/* Critical Threat Alert */}
+        {criticalThreatsCount > 0 && (
+          <Card className="border-l-4 border-red-500 bg-red-50 text-red-800 p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <Zap className="h-6 w-6 text-red-600" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-red-900">
-                  {stats.criticalThreatCount} Critical Threat
-                  {stats.criticalThreatCount > 1 ? "s" : ""} Require Immediate
-                  Response
-                </h3>
-                <p className="text-red-700">
-                  Emergency response teams have been notified and are
-                  coordinating response actions.
-                </p>
-              </div>
-              <Button className="bg-red-600 hover:bg-red-700">
-                <Radio className="h-4 w-4 mr-2" />
-                Coordinate Response
-              </Button>
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <p className="font-semibold">
+                {criticalThreatsCount} Critical Threat{criticalThreatsCount > 1 ? "s" : ""} Require Immediate Response
+              </p>
             </div>
-          </div>
+            <p className="text-sm mt-2">
+              Emergency response teams have been notified and are coordinating
+              response actions.
+            </p>
+            <Button className="mt-4 bg-red-600 hover:bg-red-700">
+              <Target className="h-4 w-4 mr-2" />
+              Coordinate Response
+            </Button>
+          </Card>
         )}
 
         {/* Quick Stats */}
@@ -318,7 +268,7 @@ export default function ThreatMap() {
                 <AlertTriangle className="h-8 w-8 text-red-600" />
                 <div>
                   <p className="text-2xl font-bold text-red-900">
-                    {stats.activeThreatCount}
+                    {activeThreatsCount}
                   </p>
                   <p className="text-sm text-red-700">Active Threats</p>
                 </div>
@@ -332,7 +282,7 @@ export default function ThreatMap() {
                 <Zap className="h-8 w-8 text-orange-600" />
                 <div>
                   <p className="text-2xl font-bold text-orange-900">
-                    {stats.criticalThreatCount}
+                    {criticalThreatsCount}
                   </p>
                   <p className="text-sm text-orange-700">Critical Priority</p>
                 </div>
@@ -346,7 +296,7 @@ export default function ThreatMap() {
                 <Shield className="h-8 w-8 text-blue-600" />
                 <div>
                   <p className="text-2xl font-bold text-blue-900">
-                    {stats.activeTeamCount}
+                    {teamsDeployedCount}
                   </p>
                   <p className="text-sm text-blue-700">Teams Deployed</p>
                 </div>
@@ -360,7 +310,7 @@ export default function ThreatMap() {
                 <Clock className="h-8 w-8 text-emerald-600" />
                 <div>
                   <p className="text-2xl font-bold text-emerald-900">
-                    {stats.responseTime}
+                    {avgResponseTime}
                   </p>
                   <p className="text-sm text-emerald-700">Avg Response Time</p>
                 </div>
@@ -369,366 +319,190 @@ export default function ThreatMap() {
           </Card>
         </div>
 
-        {/* Map Controls */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-blue-600" />
-              Map Controls & Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-4">
-              <Select value={threatFilter} onValueChange={setThreatFilter}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Threat Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Threat Types</SelectItem>
-                  <SelectItem value="poaching_activity">
-                    Poaching Activity
-                  </SelectItem>
-                  <SelectItem value="human_wildlife_conflict">
-                    Human-Wildlife Conflict
-                  </SelectItem>
-                  <SelectItem value="illegal_logging">
-                    Illegal Logging
-                  </SelectItem>
-                  <SelectItem value="suspicious_vehicle">
-                    Suspicious Vehicle
-                  </SelectItem>
-                  <SelectItem value="fire_risk">Fire Risk</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Map Controls & Filters */}
+        <div className="flex flex-wrap items-center gap-4">
+          <input
+            type="text"
+            placeholder="Search threats..."
+            className="flex-1 min-w-[200px] md:min-w-[250px] p-2 border rounded-md"
+          />
+          <Select onValueChange={setThreatFilter} value={threatFilter}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="All Threat Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Threat Types</SelectItem>
+              <SelectItem value="poaching">Poaching Activity</SelectItem>
+              <SelectItem value="human_wildlife_conflict">
+                Human-Wildlife Conflict
+              </SelectItem>
+              <SelectItem value="habitat_destruction">Habitat Destruction</SelectItem>
+              <SelectItem value="wildlife_sighting">Wildlife Sighting</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select onValueChange={setTimeFilter} value={timeFilter}>
+            <SelectTrigger className="w-[160px]">
+              <Clock className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Last 24h" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="24h">Last 24h</SelectItem>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="all">All Time</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex-1"></div>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="satellite">Satellite View</TabsTrigger>
+              <TabsTrigger value="center">Center Map</TabsTrigger>
+              <TabsTrigger value="live">Live Mode</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
-              <Select value={timeFilter} onValueChange={setTimeFilter}>
-                <SelectTrigger className="w-full md:w-32">
-                  <SelectValue placeholder="Time Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="24h">Last 24h</SelectItem>
-                  <SelectItem value="48h">Last 48h</SelectItem>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="all">All Time</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="flex gap-2 ml-auto">
-                <Button variant="outline">
-                  <Navigation className="h-4 w-4 mr-2" />
-                  Satellite View
-                </Button>
-                <Button variant="outline">
-                  <Target className="h-4 w-4 mr-2" />
-                  Center Map
-                </Button>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Activity className="h-4 w-4 mr-2" />
-                  Live Mode
-                </Button>
+        {/* Interactive Map Placeholder */}
+        <Card className="h-[400px] flex items-center justify-center bg-gray-50 border-dashed border-gray-300">
+          <CardContent className="text-center text-gray-500 py-10">
+            <MapPin className="h-16 w-16 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Interactive Threat Map</h3>
+            <p className="max-w-md mx-auto">
+              Real-time visualization of threats, patrol teams, and response
+              activities across Rwanda's protected areas. In a production
+              environment, this would integrate with mapping services like
+              Mapbox or Google Maps.
+            </p>
+            <div className="flex justify-center gap-4 mt-6">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 bg-red-500 rounded-full"></span>
+                <span className="text-sm text-gray-700">Critical Threats</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 bg-blue-500 rounded-full"></span>
+                <span className="text-sm text-gray-700">Response Teams</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Map Placeholder */}
-        <Card className="h-96">
-          <CardContent className="p-0 h-full">
-            <div className="w-full h-full bg-gradient-to-br from-emerald-100 via-blue-100 to-amber-100 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <Map className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                  Interactive Threat Map
-                </h3>
-                <p className="text-gray-600 max-w-md">
-                  Real-time visualization of threats, patrol teams, and response
-                  activities across Rwanda's protected areas. In a production
-                  environment, this would integrate with mapping services like
-                  Mapbox or Google Maps.
-                </p>
-                <div className="mt-4 grid grid-cols-2 gap-4 max-w-sm mx-auto">
-                  <div className="p-3 bg-white rounded-lg shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-                      <span className="text-sm font-medium">
-                        Critical Threats
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      High priority incidents
-                    </p>
-                  </div>
-                  <div className="p-3 bg-white rounded-lg shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-                      <span className="text-sm font-medium">
-                        Response Teams
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600">Active patrol units</p>
-                  </div>
+        {/* Threat List & Team Status */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Threat List */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                Threat Incidents
+              </CardTitle>
+              <CardDescription>
+                Reported threats and their current status.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {filteredThreats.length === 0 ? (
+                <div className="text-center text-gray-500 py-10">
+                  <p>No threats found for the selected filters.</p>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Threat Details */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="live">
-              Live Threats ({filteredThreats.length})
-            </TabsTrigger>
-            <TabsTrigger value="teams">
-              Response Teams ({patrolTeams.length})
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Live Threats Tab */}
-          <TabsContent value="live" className="space-y-4">
-            {filteredThreats.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Map className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No active threats
-                  </h3>
-                  <p className="text-gray-600">
-                    All clear in the selected time range and threat categories.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {filteredThreats.map((threat) => (
-                  <Card
-                    key={threat.id}
-                    className={`border-l-4 ${
-                      threat.severity === "critical"
-                        ? "border-l-red-500"
-                        : threat.severity === "high"
-                          ? "border-l-orange-500"
-                          : threat.severity === "medium"
-                            ? "border-l-amber-500"
-                            : "border-l-emerald-500"
-                    }`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        {/* Header */}
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <span className="text-2xl">
-                              {getThreatIcon(threat.type)}
-                            </span>
-                            <div className="space-y-1">
-                              <h3 className="font-semibold text-gray-900">
-                                {threat.title}
-                              </h3>
-                              <p className="text-sm text-gray-600">
-                                Reported by {threat.reportedBy}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              className={`border ${getSeverityColor(threat.severity)}`}
-                            >
-                              {threat.severity}
-                            </Badge>
-                            <Badge className={getStatusColor(threat.status)}>
-                              {threat.status}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-sm text-gray-700">
+              ) : (
+                <div className="grid gap-4">
+                  {filteredThreats.map((threat) => (
+                    <Card key={threat.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-lg font-medium flex items-center gap-2">
+                          {getThreatIcon(threat.type)} {threat.title}
+                        </CardTitle>
+                        <Badge className={getSeverityColor(threat.severity)}>
+                          {threat.severity.replace("_", " ")}
+                        </Badge>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-sm text-gray-600 flex items-center gap-1">
+                          <MapPin className="h-4 w-4" /> {threat.location.name}
+                        </p>
+                        <p className="text-sm text-gray-600 flex items-center gap-1">
+                          <Clock className="h-4 w-4" /> Reported:
+                          {formatDate(threat.reportedAt)} by {threat.reportedBy}
+                        </p>
+                        <p className="text-sm text-gray-700 mt-2">
                           {threat.description}
                         </p>
-
-                        {/* Details */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {threat.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {formatDate(threat.reportedAt)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <TrendingUp className="h-3 w-3" />
-                            {threat.estimatedThreatLevel}% threat level
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Shield className="h-3 w-3" />
-                            {threat.responseTeam || "No team assigned"}
-                          </span>
+                        <div className="mt-3 flex items-center gap-2">
+                          <Badge className={getStatusColor(threat.status)}>
+                            {threat.status.replace("_", " ")}
+                          </Badge>
                         </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-                        {/* Evidence */}
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-gray-900">
-                            Available Evidence:
-                          </h4>
-                          <div className="flex flex-wrap gap-1">
-                            {threat.evidence.map((evidence, index) => (
-                              <Badge
-                                key={index}
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                {evidence}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Last Update */}
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-700">
-                            <span className="font-medium">Last Update:</span>{" "}
-                            {formatDate(threat.lastUpdate)}
-                          </p>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <Button className="flex-1 bg-red-600 hover:bg-red-700">
-                            <Radio className="h-4 w-4 mr-2" />
-                            Dispatch Team
-                          </Button>
-                          <Button variant="outline" className="flex-1">
-                            <Navigation className="h-4 w-4 mr-2" />
-                            View on Map
-                          </Button>
-                          <Button variant="outline" className="flex-1">
-                            <Camera className="h-4 w-4 mr-2" />
-                            View Evidence
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Response Teams Tab */}
-          <TabsContent value="teams" className="space-y-4">
-            <div className="space-y-4">
-              {patrolTeams.map((team) => (
-                <Card
-                  key={team.id}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {/* Header */}
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-gray-900">
-                            {team.name}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Led by {team.leader}
-                          </p>
-                        </div>
+          {/* Patrol Team Status (Placeholder for now) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-600" />
+                Patrol Team Status
+              </CardTitle>
+              <CardDescription>
+                Current status and assignments of active patrol teams.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {patrolTeams.length === 0 ? (
+                <div className="text-center text-gray-500 py-10">
+                  <p>No active patrol teams found.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {patrolTeams.map((team) => (
+                    <Card key={team.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-lg font-medium flex items-center gap-2">
+                          {team.name}
+                        </CardTitle>
                         <Badge className={getTeamStatusColor(team.status)}>
                           {team.status}
                         </Badge>
-                      </div>
-
-                      {/* Team Members */}
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-gray-900">
-                          Team Members:
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {team.members.map((member, index) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {member}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Current Assignment */}
-                      {team.assignedThreat && (
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <h4 className="font-medium text-blue-900 mb-1">
-                            Current Assignment:
-                          </h4>
-                          <p className="text-sm text-blue-700">
-                            Threat ID: {team.assignedThreat} -{" "}
-                            {
-                              threats.find((t) => t.id === team.assignedThreat)
-                                ?.title
-                            }
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-sm text-gray-600 flex items-center gap-1">
+                          <Users className="h-4 w-4" /> Leader: {team.leader}
+                        </p>
+                        <p className="text-sm text-gray-600 flex items-center gap-1">
+                          <MapPin className="h-4 w-4" /> Location: {team.currentLocation.lat.toFixed(4)}, {team.currentLocation.lng.toFixed(4)}
+                        </p>
+                        {team.assignedThreat && (
+                          <p className="text-sm text-gray-600 flex items-center gap-1">
+                            <AlertTriangle className="h-4 w-4" /> Assigned Threat: {threats.find(t => t.id === team.assignedThreat)?.title || 'N/A'}
                           </p>
-                        </div>
-                      )}
-
-                      {/* Equipment */}
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-gray-900">
-                          Equipment:
-                        </h4>
-                        <div className="flex flex-wrap gap-1">
-                          {team.equipment.map((item, index) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className="text-xs"
-                            >
+                        )}
+                        <p className="text-sm text-gray-700 mt-2">
+                          Members: {team.members.join(", ")}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {team.equipment.map((item: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
                               {item}
                             </Badge>
                           ))}
                         </div>
-                      </div>
-
-                      {/* Location & Last Update */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Navigation className="h-3 w-3" />
-                          Coordinates: {team.currentLocation.lat.toFixed(
-                            4,
-                          )}, {team.currentLocation.lng.toFixed(4)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          Last Update: {formatDate(team.lastUpdate)}
-                        </span>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
-                          <Radio className="h-4 w-4 mr-2" />
-                          Contact Team
-                        </Button>
-                        <Button variant="outline" className="flex-1">
-                          <Navigation className="h-4 w-4 mr-2" />
-                          Track Location
-                        </Button>
-                        <Button variant="outline" className="flex-1">
-                          <Target className="h-4 w-4 mr-2" />
-                          Assign Threat
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Last Updated: {formatDate(team.lastUpdate)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );

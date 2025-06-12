@@ -1,13 +1,17 @@
 const ResearchProject = require('../models/ResearchProject');
 const WildlifeReport = require('../models/WildlifeReport'); // Potentially used for collaboration requests related to reports
 const User = require('../models/User');
+const VolunteerRequest = require('../models/VolunteerRequest'); // Import the new model
 
 const getResearcherDashboardData = async (req, res) => {
   try {
     const userId = req.user.userId; // Assuming userId is available from authentication middleware
 
-    // TODO: Fetch count of published findings by this researcher
-    const publishedFindingsCount = 0; // Replace with actual database query
+    // Fetch count of published findings by this researcher (assuming published means completed projects)
+    const publishedFindingsCount = await ResearchProject.countDocuments({
+      leadResearcher: userId,
+      status: { $in: ['completed', 'published'] },
+    });
 
     // Fetch count of active research projects led by this researcher
     const activeProjectsCount = await ResearchProject.countDocuments({
@@ -15,11 +19,24 @@ const getResearcherDashboardData = async (req, res) => {
       status: { $in: ['active', 'data_collection', 'analysis'] },
     });
 
-    // TODO: Count unique volunteer collaborators (e.g., from projects)
-    const volunteerCollaboratorsCount = 0; // Replace with actual database query
+    // Count unique volunteer collaborators (e.g., from projects)
+    // This will count the number of applicants across all active volunteer requests by this researcher
+    const volunteerRequests = await VolunteerRequest.find({
+      requestedBy: userId,
+      status: { $in: ['open', 'in-progress'] },
+    }).populate('applicants', 'firstName lastName');
 
-    // TODO: Count dataset downloads (requires a Dataset model or tracking in ResearchProject)
-    const datasetDownloadsCount = 0; // Replace with actual database query
+    let volunteerCollaboratorsCount = 0;
+    const uniqueVolunteerIds = new Set();
+    volunteerRequests.forEach(request => {
+      request.applicants.forEach(applicant => {
+        uniqueVolunteerIds.add(applicant._id.toString());
+      });
+    });
+    volunteerCollaboratorsCount = uniqueVolunteerIds.size;
+
+    // Count dataset downloads (placeholder for now, requires a Dataset model or tracking in ResearchProject)
+    const datasetDownloadsCount = 0; 
 
     const stats = {
       publishedFindings: publishedFindingsCount,
@@ -32,13 +49,19 @@ const getResearcherDashboardData = async (req, res) => {
     const activeProjects = await ResearchProject.find({
       leadResearcher: userId,
       status: { $in: ['active', 'data_collection', 'analysis'] },
-    }).limit(5); // Limit to 5 active projects
+    }).populate('leadResearcher', 'firstName lastName').limit(5);
 
-    // TODO: Fetch recent publications by this researcher (requires a Publication model)
-    const recentPublications = []; // Replace with actual database query
+    // Fetch recent publications by this researcher (assuming publications are completed projects)
+    const recentPublications = await ResearchProject.find({
+      leadResearcher: userId,
+      status: { $in: ['completed', 'published'] },
+    }).populate('leadResearcher', 'firstName lastName').sort({ updatedAt: -1 }).limit(5);
 
-    // TODO: Fetch collaboration requests (might need a dedicated model or link to reports)
-    const collaborationRequests = []; // Replace with actual database query
+    // Fetch collaboration requests made by this researcher
+    const collaborationRequests = await VolunteerRequest.find({
+      requestedBy: userId,
+      status: { $in: ['open', 'in-progress'] },
+    }).populate('researchProject', 'title').populate('applicants', 'firstName lastName').sort({ createdAt: -1 }).limit(5);
 
     res.json({
       stats,
