@@ -161,9 +161,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     return null;
   }
 
+  console.log('Current user role:', user.role);
+
   const userNavItems = navigationItems.filter((item) =>
     item.roles.includes(user.role),
   );
+
+  console.log('Filtered navigation items:', userNavItems);
 
   const handleLogout = () => {
     logout();
