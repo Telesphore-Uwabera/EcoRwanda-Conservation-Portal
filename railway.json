@@ -5,7 +5,7 @@
     "nodeVersion": "20"
   },
   "deploy": {
-    "startCommand": "npm start",
+    "startCommand": "sh -c \"echo RAILWAY_ENV_DEBUG: && printenv && npm start\"",
     "rootDirectory": "backend"
   }
 } 
