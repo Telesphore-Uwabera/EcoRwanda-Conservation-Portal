@@ -195,7 +195,7 @@ export default function ResearcherDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div>
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}

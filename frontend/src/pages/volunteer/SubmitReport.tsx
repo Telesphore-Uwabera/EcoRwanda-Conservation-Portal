@@ -211,7 +211,7 @@ export default function SubmitReport() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
@@ -219,7 +219,7 @@ export default function PublishFindings() {
         ...formData,
         datasets,
         publications,
-        author: user?.name,
+        author: user?.firstName + ' ' + user?.lastName,
         authorId: user?.id,
         submittedAt: new Date().toISOString(),
         status: "under_review",
@@ -229,12 +229,12 @@ export default function PublishFindings() {
         // Simulate API submission
         await new Promise((resolve) => setTimeout(resolve, 3000));
         console.log("Research findings submitted:", findingsData);
+        setSuccess(true);
       } else {
         // Store offline
         console.log("Research findings stored offline:", findingsData);
+        setSuccess(true);
       }
-
-      setSuccess(true);
 
       setTimeout(() => {
         navigate("/dashboard/researcher");
@@ -255,33 +255,32 @@ export default function PublishFindings() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+      {success && (
+        <Alert variant="default" className="mb-4">
+          <CheckCircle className="h-4 w-4" />
+          <AlertTitle>Success!</AlertTitle>
+          <AlertDescription>
+            Research findings submitted successfully.
+          </AlertDescription>
+        </Alert>
+      )}
+      <div className="">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-3">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <BookOpen className="h-8 w-8 text-blue-600" />
-            Publish Research Findings
+            Publish New Research Findings
           </h1>
           <p className="text-gray-600">
-            Share your research findings with the conservation community and
-            contribute to Rwanda's scientific knowledge base
+            Submit new research papers, datasets, and publications for review and
+            dissemination
           </p>
         </div>
 
-        {success && (
-          <Alert className="border-emerald-200 bg-emerald-50">
-            <CheckCircle className="h-4 w-4 text-emerald-600" />
-            <AlertDescription className="text-emerald-800">
-              Your research findings have been submitted for review! You'll be
-              notified once the peer review process is complete.
-            </AlertDescription>
-          </Alert>
-        )}
-
         <form onSubmit={handleSubmit}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic">Basic Information</TabsTrigger>
               <TabsTrigger value="content">Research Content</TabsTrigger>
@@ -782,15 +781,6 @@ export default function PublishFindings() {
                       )}
                     </div>
                   </div>
-
-                  {success && (
-                    <Alert className="mt-4" variant="success">
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Research findings submitted successfully!
-                      </AlertDescription>
-                    </Alert>
-                  )}
                 </CardContent>
               </Card>
 

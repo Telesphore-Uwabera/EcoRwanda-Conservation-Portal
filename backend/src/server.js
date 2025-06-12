@@ -26,6 +26,8 @@ const userManagementRoutes = require('./routes/userManagement');
 const patrolRoutes = require('./routes/patrols');
 const threatRoutes = require('./routes/threats');
 const dataHubRoutes = require('./routes/dataHub');
+const analyticsRoutes = require('./routes/analytics');
+const systemSettingsRoutes = require('./routes/systemSettings');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -37,6 +39,8 @@ app.use('/api/users', userManagementRoutes);
 app.use('/api/patrols', patrolRoutes);
 app.use('/api/threats', threatRoutes);
 app.use('/api/data-hub', dataHubRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/settings', systemSettingsRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
