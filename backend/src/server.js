@@ -1,30 +1,8 @@
-console.log('RAILWAY STARTUP DEBUG: Application process started, initial environment:', process.env);
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-
-// Debug: Check if .env file exists
-const envPath = path.resolve(process.cwd(), '.env');
-console.log('Checking .env file...');
-if (fs.existsSync(envPath)) {
-  console.log('.env file exists at:', envPath);
-  console.log('Contents of .env file:');
-  console.log(fs.readFileSync(envPath, 'utf8'));
-} else {
-  console.log('.env file does not exist at:', envPath);
-}
-
-// Debug: Log environment variables and file paths
-console.log('Current directory:', process.cwd());
-console.log('Environment variables:', {
-  MONGODB_URI: process.env.MONGODB_URI,
-  PORT: process.env.PORT,
-  JWT_SECRET: process.env.JWT_SECRET ? 'Set' : 'Not Set'
-});
-console.log('Looking for .env file in:', envPath);
 
 const app = express();
 
