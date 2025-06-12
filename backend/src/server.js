@@ -1,9 +1,7 @@
-console.log('RAILWAY DEBUG: process.env at startup:', process.env);
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
 
 const app = express();
 
@@ -48,12 +46,12 @@ app.get('/', (req, res) => {
 // Connect to MongoDB with detailed error handling
 if (!process.env.MONGODB_URI) {
   console.error('MONGODB_URI is not defined in environment variables');
-  // process.exit(1); // COMMENTED OUT FOR DEBUGGING
+  process.exit(1);
 }
 
 if (!process.env.JWT_SECRET) {
   console.error('JWT_SECRET is not defined in environment variables');
-  // process.exit(1); // COMMENTED OUT FOR DEBUGGING
+  process.exit(1);
 }
 
 mongoose.connect(process.env.MONGODB_URI, {
@@ -67,7 +65,7 @@ mongoose.connect(process.env.MONGODB_URI, {
       message: err.message,
       code: err.code
     });
-    // process.exit(1); // COMMENTED OUT FOR DEBUGGING
+    process.exit(1);
   });
 
 // Start server
