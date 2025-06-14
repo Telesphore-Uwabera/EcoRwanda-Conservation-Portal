@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert"; // Renamed to avoid conflict
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface PendingVerification {
   id: string;
@@ -153,6 +154,7 @@ export default function AdminDashboard() {
         setStats(response.data);
         setError(null);
         console.log('Admin dashboard stats fetched successfully:', response.data);
+        console.log('Unverified users count from backend:', response.data.unverifiedUsers);
       } catch (err) {
         setError('Failed to fetch dashboard statistics');
         console.error('Error fetching dashboard stats:', err);
@@ -351,7 +353,7 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* User Distribution Chart (Placeholder) */}
+          {/* User Distribution Chart */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -362,9 +364,31 @@ export default function AdminDashboard() {
                 <CardDescription>Overview of user roles in the system</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[250px] flex items-center justify-center text-gray-500">
-                  <p>Chart placeholder: Pie chart showing userDistribution</p>
-                </div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Volunteers', value: stats.userDistribution.volunteers },
+                        { name: 'Researchers', value: stats.userDistribution.researchers },
+                        { name: 'Rangers', value: stats.userDistribution.rangers },
+                        { name: 'Admins', value: stats.userDistribution.administrators },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      <Cell fill="#4299e1" /> {/* blue */}
+                      <Cell fill="#805ad5" /> {/* purple */}
+                      <Cell fill="#ef4444" /> {/* red */}
+                      <Cell fill="#a0aec0" /> {/* gray */}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
                 <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="h-3 w-3 rounded-full bg-indigo-600"></span>
@@ -423,7 +447,7 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Project Status Overview (Placeholder) */}
+          {/* Project Status Overview */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -433,9 +457,16 @@ export default function AdminDashboard() {
               <CardDescription>Distribution of project statuses across the portal</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[250px] flex items-center justify-center text-gray-500">
-                <p>Chart placeholder: Bar chart showing projectStatus</p>
-              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={stats.projectStatus}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="_id" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#f97316" /> {/* orange-500 */}
+                </BarChart>
+              </ResponsiveContainer>
               <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
                 {stats.projectStatus.map((statusItem) => (
                   <div key={statusItem._id} className="flex items-center gap-2">
@@ -447,7 +478,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* User Verification Status (Placeholder) */}
+          {/* User Verification Status */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -457,9 +488,19 @@ export default function AdminDashboard() {
               <CardDescription>Overview of user verification process</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[250px] flex items-center justify-center text-gray-500">
-                <p>Chart placeholder: Bar chart showing user verification status</p>
-              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={[
+                  { name: 'Verified', count: stats.totalUsers - stats.unverifiedUsers },
+                  { name: 'Pending', count: stats.unverifiedUsers },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#3b82f6" /> {/* blue-500 */}
+                </BarChart>
+              </ResponsiveContainer>
               <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-emerald-600"></span>

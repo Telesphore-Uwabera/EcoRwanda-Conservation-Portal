@@ -268,11 +268,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 <WifiOff className="h-4 w-4 mr-1" /> Offline
               </span>
             )}
-            {user?.role === 'volunteer' && !user.verified && (
-              <Badge variant="outline" className="mt-1 bg-amber-100 text-amber-800 border-amber-300">
-                  Pending Verification
-                </Badge>
-              )}
             </div>
           </div>
 
