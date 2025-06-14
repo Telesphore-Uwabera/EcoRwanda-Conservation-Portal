@@ -9,34 +9,19 @@ const ResearchProjectSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true,
-    trim: true,
   },
-  leadResearcher: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  organization: {
+  objectives: [{
     type: String,
     required: true,
-    trim: true,
-  },
-  status: {
-    type: String,
-    enum: ['planning', 'active', 'data_collection', 'analysis', 'completed'],
-    default: 'planning',
-  },
-  volunteers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
   }],
-  requiredSkills: [
-    { type: String, trim: true }
-  ],
-  location: {
+  methodology: {
     type: String,
-    trim: true,
     required: true,
+  },
+  location: {
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
+    name: { type: String, required: true },
   },
   startDate: {
     type: Date,
@@ -44,13 +29,90 @@ const ResearchProjectSchema = new mongoose.Schema({
   },
   endDate: {
     type: Date,
+    required: true,
   },
-  findings: {
+  status: {
     type: String,
-    trim: true,
+    enum: ['planning', 'in-progress', 'completed', 'on-hold'],
+    default: 'planning',
   },
-}, {
-  timestamps: true,
+  leadResearcher: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  teamMembers: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    role: {
+      type: String,
+      enum: ['researcher', 'volunteer', 'assistant'],
+      required: true,
+    },
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  documents: [{
+    title: String,
+    description: String,
+    fileUrl: String,
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    fileType: String,
+    fileSize: Number,
+  }],
+  findings: [{
+    title: String,
+    description: String,
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+    addedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    attachments: [{
+      fileUrl: String,
+      fileType: String,
+      fileSize: Number,
+    }],
+  }],
+  budget: {
+    total: Number,
+    spent: Number,
+    currency: {
+      type: String,
+      default: 'RWF',
+    },
+  },
+  tags: [{
+    type: String,
+  }],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Update timestamps on save
+ResearchProjectSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 module.exports = mongoose.model('ResearchProject', ResearchProjectSchema); 

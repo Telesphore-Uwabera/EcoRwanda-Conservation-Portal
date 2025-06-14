@@ -254,7 +254,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
         <div className="mb-6 text-center">
           <div className="w-16 h-16 bg-green-200 rounded-full flex items-center justify-center text-lg font-bold text-green-800 mx-auto mb-2">
-            {user?.firstName.charAt(0).toUpperCase()}{user?.lastName.charAt(0).toUpperCase()}
+            {(user?.firstName || '').charAt(0).toUpperCase()}{(user?.lastName || '').charAt(0).toUpperCase()}
           </div>
           <p className="text-lg font-semibold text-gray-900">Welcome back, {user?.firstName}!</p>
           <p className="text-sm text-gray-600">{user?.role === 'administrator' ? 'Admin' : user?.role} </p>

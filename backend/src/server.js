@@ -2,8 +2,17 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
+const WebSocketService = require('./services/websocketService');
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize WebSocket service
+const wsService = new WebSocketService(server);
+
+// Make WebSocket service available globally
+global.wsService = wsService;
 
 // Middleware
 app.use(cors());
@@ -28,6 +37,7 @@ const threatRoutes = require('./routes/threats');
 const dataHubRoutes = require('./routes/dataHub');
 const analyticsRoutes = require('./routes/analytics');
 const systemSettingsRoutes = require('./routes/systemSettings');
+const reportsRoutes = require('./routes/reports');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -41,6 +51,7 @@ app.use('/api/threats', threatRoutes);
 app.use('/api/data-hub', dataHubRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', systemSettingsRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
@@ -62,18 +73,14 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch((err) => {
-    console.error('MongoDB connection error details:', {
-      name: err.name,
-      message: err.message,
-      code: err.code
-    });
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((error) => {
+    console.error('MongoDB connection error:', error);
     process.exit(1);
   });
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 }); 
