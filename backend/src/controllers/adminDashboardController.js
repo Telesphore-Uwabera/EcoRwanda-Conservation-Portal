@@ -31,7 +31,7 @@ exports.getDashboardStats = async (req, res) => {
         console.log('totalParkRangers:', totalParkRangers);
 
         // User verification stats
-        const unverifiedUsers = await User.countDocuments({ isVerified: false });
+        const unverifiedUsers = await User.countDocuments({ verified: false });
         console.log('unverifiedUsers:', unverifiedUsers);
 
         const userDistribution = {
