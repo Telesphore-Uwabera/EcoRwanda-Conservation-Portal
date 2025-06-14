@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
+import api from "@/config/api"; // Import API client
 import {
   Camera,
   Search,
@@ -38,15 +39,54 @@ import {
   FileText,
 } from "lucide-react";
 
+interface Report {
+  _id: string;
+  title: string;
+  description: string;
+  location: { name: string; lat: number; lng: number };
+  category: string;
+  urgency: string;
+  status: string;
+  submittedBy: { _id: string; firstName: string; lastName: string; email: string };
+  submittedAt: string;
+  photos: string[];
+  updates: Array<{ note: string; timestamp: string; updatedBy?: { _id: string; firstName: string; lastName: string } }>;
+}
+
 export default function MyReports() {
   const { user } = useAuth();
   const isOnline = useOfflineStatus();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [urgencyFilter, setUrgencyFilter] = useState("all");
+  const [reports, setReports] = useState<Report[]>([]); // Initialize as empty array
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // TODO: Fetch user's reports from MongoDB backend
-  const reports = [];
+  useEffect(() => {
+    const fetchReports = async () => {
+      if (!user) return; // Don't fetch if user is not loaded
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await api.get(`/api/reports?submittedBy=${user._id}`);
+        setReports(response.data.data);
+      } catch (err) {
+        console.error("Failed to fetch reports:", err);
+        setError("Failed to load your reports. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isOnline) {
+      fetchReports();
+    } else {
+      // For offline: Implement fetching from IndexedDB if reports are stored there
+      // For now, it will just show no reports if offline and not in IndexedDB
+      setLoading(false);
+    }
+  }, [user, isOnline]); // Re-fetch when user or online status changes
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -124,7 +164,7 @@ export default function MyReports() {
     const matchesSearch =
       report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.location.toLowerCase().includes(searchTerm.toLowerCase());
+      report.location.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || report.status === statusFilter;
     const matchesUrgency =
@@ -301,7 +341,7 @@ export default function MyReports() {
           ) : (
             filteredReports.map((report) => (
               <Card
-                key={report.id}
+                key={report._id}
                 className="hover:shadow-md transition-shadow"
               >
                 <CardContent className="p-6">
@@ -333,7 +373,7 @@ export default function MyReports() {
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {report.location}
+                        {report.location.name}
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
@@ -347,7 +387,7 @@ export default function MyReports() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Camera className="h-3 w-3" />
-                        {report.photos} photos
+                        {report.photos.length} photos
                       </span>
                       {report.updates.length > 0 && (
                         <span className="flex items-center gap-1">
@@ -366,15 +406,15 @@ export default function MyReports() {
                             <p className="text-sm text-gray-900">
                               {
                                 report.updates[report.updates.length - 1]
-                                  .message
+                                  .note
                               }
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
                               by{" "}
-                              {report.updates[report.updates.length - 1].author}{" "}
+                              {report.updates[report.updates.length - 1].updatedBy ? `${report.updates[report.updates.length - 1].updatedBy.firstName} ${report.updates[report.updates.length - 1].updatedBy.lastName}` : ""}
                               •{" "}
                               {formatDate(
-                                report.updates[report.updates.length - 1].date,
+                                report.updates[report.updates.length - 1].timestamp,
                               )}
                             </p>
                           </div>

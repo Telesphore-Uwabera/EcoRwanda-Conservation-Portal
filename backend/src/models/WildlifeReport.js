@@ -51,6 +51,13 @@ const WildlifeReportSchema = new mongoose.Schema({
   verifiedAt: {
     type: Date,
   },
+  updates: [
+    {
+      note: { type: String, required: true },
+      timestamp: { type: Date, default: Date.now },
+      updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Optional: track who made the update
+    },
+  ],
 }, {
   timestamps: true, // Adds createdAt and updatedAt automatically
 });

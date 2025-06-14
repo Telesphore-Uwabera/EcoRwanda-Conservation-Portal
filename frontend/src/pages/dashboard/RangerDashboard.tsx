@@ -32,8 +32,23 @@ import {
   FileText,
   Edit,
   Trash2,
+  Eye,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+
+interface Report {
+  _id: string;
+  title: string;
+  description: string;
+  location: { name: string; lat: number; lng: number };
+  category: string;
+  urgency: string;
+  status: string;
+  submittedBy: { _id: string; firstName: string; lastName: string; email: string };
+  submittedAt: string;
+  photos: string[];
+  updates: Array<{ note: string; timestamp: string; updatedBy?: { _id: string; firstName: string; lastName: string } }>;
+}
 
 // Define interfaces for the data structures
 interface RangerStats {
@@ -56,6 +71,7 @@ interface UrgentAlert {
 interface PendingReport {
   id: string;
   title: string;
+  description: string;
   location: string;
   submittedBy: string;
   submittedAt: string;
@@ -239,16 +255,16 @@ export default function RangerDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-blue-200 bg-blue-50">
+          <Card className="border-purple-200 bg-purple-50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-800">
+              <CardTitle className="text-sm font-medium text-purple-800">
                 Avg Response Time
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-blue-600" />
-                <span className="text-2xl font-bold text-blue-900">
+                <Clock className="h-5 w-5 text-purple-600" />
+                <span className="text-lg font-bold text-purple-900">
                   {stats.responseTime}
                 </span>
               </div>
@@ -256,188 +272,143 @@ export default function RangerDashboard() {
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-purple-600" />
-              Ranger Tools
-            </CardTitle>
-            <CardDescription>
-              Access your ranger and patrol management tools
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Button asChild className="h-16 bg-purple-600 hover:bg-purple-700">
-                <Link
-                  to="/ranger/verify-reports"
-                  className="flex flex-col gap-1"
-                >
-                  <UserCheck className="h-6 w-6" />
-                  <span>Verify Reports</span>
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-              >
-                <Link to="/ranger/patrol-data" className="flex flex-col gap-1">
-                  <Binoculars className="h-6 w-6" />
-                  <span>Patrol Data</span>
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="h-16 border-blue-300 text-blue-700 hover:bg-blue-50"
-              >
-                <Link to="/ranger/threat-map" className="flex flex-col gap-1">
-                  <Map className="h-6 w-6" />
-                  <span>Threat Map</span>
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="h-16 border-amber-300 text-amber-700 hover:bg-amber-50"
-              >
-                <Link to="/ranger/communications" className="flex flex-col gap-1">
-                  <Radio className="h-6 w-6" />
-                  <span>Communications</span>
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Ranger Tools */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Activity className="h-6 w-6 text-indigo-600" />
+            Ranger Tools
+          </h2>
+          <p className="text-gray-600">Access your ranger and patrol management tools</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button asChild className="h-16 bg-indigo-600 hover:bg-indigo-700">
+              <Link to="/ranger/verify-reports" className="flex flex-col gap-1 items-center justify-center">
+                <UserCheck className="h-6 w-6" />
+                <span>Verify Reports</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+              <Link to="/ranger/patrol-data" className="flex flex-col gap-1 items-center justify-center">
+                <Binoculars className="h-6 w-6" />
+                <span>Patrol Data</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-blue-300 text-blue-700 hover:bg-blue-50">
+              <Link to="/ranger/threat-map" className="flex flex-col gap-1 items-center justify-center">
+                <Map className="h-6 w-6" />
+                <span>Threat Map</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-purple-300 text-purple-700 hover:bg-purple-50">
+              <Link to="/ranger/communications" className="flex flex-col gap-1 items-center justify-center">
+                <Radio className="h-6 w-6" />
+                <span>Communications</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Pending Reports */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-amber-600" />
-                Pending Reports for Verification
-              </CardTitle>
-              <CardDescription>
-                Reports submitted by volunteers requiring your review
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {loading ? (
-                <p>Loading reports...</p>
-              ) : error ? (
-                <p className="text-red-600">{error}</p>
-              ) : pendingReports.length === 0 ? (
-                <p className="text-gray-500">No pending reports found.</p>
-              ) : (
-                pendingReports.map((report) => (
-                  <div
-                    key={report.id}
-                    className="p-4 rounded-lg border border-gray-200"
-                  >
-                    <h4 className="font-medium text-gray-900">{report.title}</h4>
-                    <p className="text-sm text-gray-600">
-                      Submitted by {report.submittedBy} at {report.submittedAt}
-                    </p>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {report.location}
-                      </span>
-                      <span
-                        className={`flex items-center gap-1 ${getPriorityColor(report.urgency)}`}
-                      >
-                        <AlertTriangle className="h-3 w-3" />
+        {/* Pending Reports for Verification */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <FileText className="h-6 w-6 text-amber-600" />
+            Pending Reports for Verification
+          </h2>
+          <p className="text-gray-600">Reports submitted by volunteers requiring your review</p>
+          {loading ? (
+            <p>Loading pending reports...</p>
+          ) : error ? (
+            <p className="text-red-500">Error: {error}</p>
+          ) : pendingReports.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center text-gray-500">
+                <UserCheck className="h-12 w-12 mx-auto mb-4" />
+                <p>No pending reports found.</p>
+                <p className="text-sm">All clear! You've verified all current submissions.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pendingReports.map((report) => (
+                <Card key={report.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-gray-900 truncate">
+                        {report.title}
+                      </h3>
+                      <Badge className={getPriorityColor(report.urgency)}>
                         {report.urgency}
-                      </span>
+                      </Badge>
                     </div>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {report.evidence.map((item) => (
-                        <Badge key={item} variant="outline" className="text-xs">
-                          {item}
-                        </Badge>
-                      ))}
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                      {report.description}
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                      <MapPin className="h-4 w-4" /> {report.location}
                     </div>
-                    <div className="flex gap-2 mt-3">
-                      <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700">
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Verify
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Reject
+                    <div className="flex gap-2">
+                      <Button asChild size="sm" className="flex-1">
+                        <Link to={`/ranger/verify-reports?reportId=${report.id}`}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Verify Details
+                        </Link>
                       </Button>
                     </div>
-                  </div>
-                ))
-              )}
-              {pendingReports.length > 0 && (
-                <Button asChild variant="outline" className="w-full">
-                  <Link to="/ranger/verify-reports">View All Reports</Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
 
-          {/* Today's Patrols */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Binoculars className="h-5 w-5 text-blue-600" />
-                Today's Patrols
-              </CardTitle>
-              <CardDescription>
-                Overview of patrol activities for the current day
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {loading ? (
-                <p>Loading patrols...</p>
-              ) : error ? (
-                <p className="text-red-600">{error}</p>
-              ) : todayPatrols.length === 0 ? (
-                <p className="text-gray-500">No patrols scheduled for today.</p>
-              ) : (
-                todayPatrols.map((patrol) => (
-                  <div
-                    key={patrol.id}
-                    className="p-4 rounded-lg border border-gray-200"
-                  >
-                    <h4 className="font-medium text-gray-900">{patrol.route}</h4>
-                    <p className="text-sm text-gray-600">
-                      Ranger: {patrol.ranger}
+        {/* Today's Patrols */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Binoculars className="h-6 w-6 text-blue-600" />
+            Today's Patrols
+          </h2>
+          <p className="text-gray-600">Overview of patrol activities for the current day</p>
+          {loading ? (
+            <p>Loading today's patrols...</p>
+          ) : error ? (
+            <p className="text-red-500">Error: {error}</p>
+          ) : todayPatrols.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center text-gray-500">
+                <Binoculars className="h-12 w-12 mx-auto mb-4" />
+                <p>No patrols scheduled for today.</p>
+                <p className="text-sm">Time to plan your next conservation patrol!</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {todayPatrols.map((patrol) => (
+                <Card key={patrol.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-gray-900 truncate">
+                        {patrol.route}
+                      </h3>
+                      <Badge className={getStatusColor(patrol.status)}>{patrol.status}</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                      {patrol.findings || 'No specific findings yet.'}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      Duration: {patrol.duration}
-                    </p>
-                    <Badge className={getStatusColor(patrol.status)}>
-                      {patrol.status}
-                    </Badge>
-                    <p className="text-sm text-gray-700 mt-2">
-                      Findings: {patrol.findings}
-                    </p>
-                    <div className="flex gap-2 mt-3">
-                      <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                      <Clock className="h-4 w-4" /> {patrol.duration || 'N/A'}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button asChild size="sm" className="flex-1">
+                        <Link to={`/ranger/patrol-data?patrolId=${patrol.id}`}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Manage Patrol
+                        </Link>
                       </Button>
                     </div>
-                  </div>
-                ))
-              )}
-              {todayPatrols.length > 0 && (
-                <Button asChild variant="outline" className="w-full">
-                  <Link to="/ranger/patrol-data">View All Patrols</Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

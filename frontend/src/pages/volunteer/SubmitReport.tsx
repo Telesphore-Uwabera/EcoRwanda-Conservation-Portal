@@ -24,6 +24,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus, offlineManager } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
+import api from "@/config/api";
 import {
   Camera,
   MapPin,
@@ -178,8 +179,8 @@ export default function SubmitReport() {
       };
 
       if (isOnline) {
-        // Simulate API submission
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Actual API submission
+        await api.post('/api/reports', reportData);
         console.log("Report submitted online:", reportData);
       } else {
         // Store offline
@@ -204,6 +205,15 @@ export default function SubmitReport() {
       }, 3000);
     } catch (error) {
       console.error("Error submitting report:", error);
+      // Display error message to user
+      // setError("Failed to submit report. Please try again.");
+      // Basic error display for now
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(`Submission Error: ${error.response.data.error}`);
+      } else {
+        alert("Failed to submit report. Please try again.");
+      }
+
     } finally {
       setIsSubmitting(false);
     }

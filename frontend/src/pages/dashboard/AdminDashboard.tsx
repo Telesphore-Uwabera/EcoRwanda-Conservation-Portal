@@ -88,6 +88,10 @@ interface DashboardStats {
   researchStudies: number;
   conservationAreas: number;
   totalParkRangers: number;
+  totalReports: number;
+  pendingReports: number;
+  verifiedReports: number;
+  unverifiedUsers: number;
   userDistribution: {
     volunteers: number;
     researchers: number;
@@ -104,7 +108,27 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const isOnline = useOfflineStatus();
 
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalProjects: 0,
+    researchStudies: 0,
+    conservationAreas: 0,
+    totalParkRangers: 0,
+    totalReports: 0,
+    pendingReports: 0,
+    verifiedReports: 0,
+    unverifiedUsers: 0,
+    userDistribution: {
+      volunteers: 0,
+      researchers: 0,
+      rangers: 0,
+      administrators: 0,
+    },
+    projectStatus: [],
+    researchStatus: [],
+    conservationStatus: [],
+    recentActivities: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -215,193 +239,240 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout>
       <div>
-    <div className="space-y-6">
-      <OfflineIndicator isOnline={isOnline} />
+        <div className="space-y-6">
+          <OfflineIndicator isOnline={isOnline} />
 
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Administrator Dashboard 📊
-        </h1>
-        <p className="text-gray-600">
-          Overview of system activities and user metrics.
-        </p>
-      </div>
+          {/* Header */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Administrator Dashboard 📊
+            </h1>
+            <p className="text-gray-600">
+              Central hub for system overview, user management, and data trends.
+            </p>
+          </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-blue-800">
-              Total Users
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              <span className="text-2xl font-bold text-blue-900">
-                {stats.totalUsers.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <Card className="border-purple-200 bg-purple-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-purple-800">
+                  Total Users
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-purple-600" />
+                  <span className="text-2xl font-bold text-purple-900">
+                    {stats.totalUsers.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="border-emerald-200 bg-emerald-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-emerald-800">
-              Total Projects
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <FolderOpen className="h-5 w-5 text-emerald-600" />
-              <span className="text-2xl font-bold text-emerald-900">
-                {stats.totalProjects.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="border-emerald-200 bg-emerald-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-emerald-800">
+                  Total Reports
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-emerald-600" />
+                  <span className="text-2xl font-bold text-emerald-900">
+                    {stats.totalReports.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="border-purple-200 bg-purple-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-purple-800">
-              Research Studies
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <FlaskConical className="h-5 w-5 text-purple-600" />
-              <span className="text-2xl font-bold text-purple-900">
-                {stats.researchStudies.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="border-amber-200 bg-amber-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-amber-800">
+                  Reports Pending Verification
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-amber-600" />
+                  <span className="text-2xl font-bold text-amber-900">
+                    {stats.pendingReports.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-orange-800">
-              Conservation Areas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-orange-600" />
-              <span className="text-2xl font-bold text-orange-900">
-                {stats.conservationAreas.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-blue-800">
+                  Verified Reports
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-blue-600" />
+                  <span className="text-2xl font-bold text-blue-900">
+                    {stats.verifiedReports.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* New Card for Total Rangers */}
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-yellow-800">
-              Total Park Rangers
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-yellow-600" />
-              <span className="text-2xl font-bold text-yellow-900">
-                {stats.totalParkRangers.toLocaleString()}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-green-800">
+                  Total Research Studies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <FlaskConical className="h-5 w-5 text-green-600" />
+                  <span className="text-2xl font-bold text-green-900">
+                    {stats.researchStudies.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* User Distribution & Recent Activities */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              User Distribution
-            </CardTitle>
-            <CardDescription>
-              Breakdown of users by role
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">Volunteers</span>
-                <Badge className={getRoleColor("volunteer")}>
-                  {stats.userDistribution.volunteers.toLocaleString()} users
-                </Badge>
+            <Card className="border-orange-200 bg-orange-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-orange-800">
+                  Total Conservation Areas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-orange-600" />
+                  <span className="text-2xl font-bold text-orange-900">
+                    {stats.conservationAreas.toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* User Distribution Chart (Placeholder) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-blue-600" />
+                  User Distribution by Role
+                </CardTitle>
+                <CardDescription>Overview of user roles in the system</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[250px] flex items-center justify-center text-gray-500">
+                  <p>Chart placeholder: Pie chart showing userDistribution</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-indigo-600"></span>
+                    Volunteers: {stats.userDistribution.volunteers.toLocaleString()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-purple-600"></span>
+                    Researchers: {stats.userDistribution.researchers.toLocaleString()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-red-600"></span>
+                    Rangers: {stats.userDistribution.rangers.toLocaleString()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-gray-600"></span>
+                    Admins: {stats.userDistribution.administrators.toLocaleString()}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activities */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-green-600" />
+                  Recent System Activity
+                </CardTitle>
+                <CardDescription>Latest actions and updates across the platform</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {stats.recentActivities.length === 0 ? (
+                  <p className="text-gray-500 text-center">No recent activity.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {stats.recentActivities.map((activity, index) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <div className="pt-1">{getActivityIcon(activity.type)}</div>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {activity.title}
+                          </p>
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {activity.description}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {activity.user && `by ${activity.user} • `}
+                            {activity.timestamp && new Date(activity.timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Project Status Overview (Placeholder) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-orange-600" />
+                Project Status Overview
+              </CardTitle>
+              <CardDescription>Distribution of project statuses across the portal</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[250px] flex items-center justify-center text-gray-500">
+                <p>Chart placeholder: Bar chart showing projectStatus</p>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">Researchers</span>
-                <Badge className={getRoleColor("researcher")}>
-                  {stats.userDistribution.researchers.toLocaleString()} users
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">Rangers</span>
-                <Badge className={getRoleColor("ranger")}>
-                  {stats.userDistribution.rangers.toLocaleString()} users
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                <span className="text-sm font-medium text-gray-700">Administrators</span>
-                <Badge className={getRoleColor("administrator")}>
-                  {stats.userDistribution.administrators.toLocaleString()} users
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activities */}
-        <Card className="p-6 shadow-sm border rounded-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-gray-900 flex items-center">
-              <Activity className="h-6 w-6 mr-2 text-orange-600" />
-              Recent Activities
-            </CardTitle>
-            <CardDescription className="text-gray-600 mt-2">
-              Latest project, research, and conservation updates
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.recentActivities && stats.recentActivities.length > 0 ? (
-              <div className="space-y-4">
-                {stats.recentActivities.map((activity, index) => (
-                  <div
-                    key={activity.id || activity.title + activity.createdAt + index} // Use ID if available, else a composite key
-                    className="flex items-center space-x-3"
-                  >
-                    <div className="flex-shrink-0">
-                      {getActivityIcon(activity.type)}
-                    </div>
-                    <div className="flex-grow">
-                      <p className="font-medium text-gray-900">
-                        {activity.title}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {activity.description}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(activity.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Badge className={getStatusColor(activity.status)}>
-                      {activity.status.replace("_", " ")}
-                    </Badge>
+              <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                {stats.projectStatus.map((statusItem) => (
+                  <div key={statusItem._id} className="flex items-center gap-2">
+                    <span className={`h-3 w-3 rounded-full ${getStatusColor(statusItem._id)}`}></span>
+                    {statusItem._id}: {statusItem.count.toLocaleString()}
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center text-gray-500 py-10">
-                <p>No recent activities found.</p>
+            </CardContent>
+          </Card>
+
+          {/* User Verification Status (Placeholder) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCheck className="h-5 w-5 text-blue-600" />
+                User Verification Status
+              </CardTitle>
+              <CardDescription>Overview of user verification process</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[250px] flex items-center justify-center text-gray-500">
+                <p>Chart placeholder: Bar chart showing user verification status</p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+              <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-emerald-600"></span>
+                  Verified: {stats.totalUsers - stats.unverifiedUsers}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-amber-600"></span>
+                  Pending: {stats.unverifiedUsers}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );
