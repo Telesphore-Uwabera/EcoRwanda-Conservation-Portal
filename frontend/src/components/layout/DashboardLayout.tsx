@@ -305,7 +305,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </Button>
           </div>
         <div className="text-center text-xs text-gray-500 mt-4">
-          © 2023 EcoRwanda. All rights reserved.
+          © 2025 EcoRwanda. All rights reserved.
         </div>
       </aside>
 
