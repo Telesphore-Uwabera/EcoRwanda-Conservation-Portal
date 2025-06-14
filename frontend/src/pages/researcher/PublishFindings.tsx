@@ -268,24 +268,23 @@ export default function PublishFindings() {
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
-        <div className="space-y-2">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <BookOpen className="h-8 w-8 text-blue-600" />
             Publish New Research Findings
           </h1>
           <p className="text-gray-600">
-            Submit new research papers, datasets, and publications for review and
-            dissemination
+            Submit new research papers, datasets, and publications for review and dissemination
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="basic">Basic Information</TabsTrigger>
-              <TabsTrigger value="content">Research Content</TabsTrigger>
-              <TabsTrigger value="files">Data & Files</TabsTrigger>
-              <TabsTrigger value="review">Review & Submit</TabsTrigger>
+            <TabsList className="w-full flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-4 p-0 bg-transparent">
+              <TabsTrigger className="w-full border-2 border-green-500 rounded-lg hover:bg-green-50 hover:border-green-700 transition-colors" value="basic">Basic Information</TabsTrigger>
+              <TabsTrigger className="w-full border-2 border-green-500 rounded-lg hover:bg-green-50 hover:border-green-700 transition-colors" value="content">Research Content</TabsTrigger>
+              <TabsTrigger className="w-full border-2 border-green-500 rounded-lg hover:bg-green-50 hover:border-green-700 transition-colors" value="files">Data & Files</TabsTrigger>
+              <TabsTrigger className="w-full border-2 border-green-500 rounded-lg hover:bg-green-50 hover:border-green-700 transition-colors" value="review">Review & Submit</TabsTrigger>
             </TabsList>
 
             {/* Basic Information Tab */}
