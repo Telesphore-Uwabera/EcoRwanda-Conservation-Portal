@@ -51,17 +51,20 @@ exports.getDashboardStats = async (req, res) => {
         console.log('projectStatus:', projectStatus);
 
         res.status(200).json({
-            totalUsers,
+            userStats: {
+                totalUsers,
+                verifiedUsers: totalUsers - unverifiedUsers,
+                unverifiedUsers,
+                userDistribution,
+            },
             totalProjects,
             researchStudies,
             conservationAreas,
             totalParkRangers,
-            userDistribution,
             recentActivities,
             totalReports,
             pendingReports,
             verifiedReports,
-            unverifiedUsers,
             projectStatus,
         });
     } catch (error) {

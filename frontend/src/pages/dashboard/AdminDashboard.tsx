@@ -32,6 +32,7 @@ import {
   FolderOpen,
   ClipboardList,
   FlaskConical,
+  TreePine,
 } from "lucide-react";
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert"; // Renamed to avoid conflict
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -84,7 +85,6 @@ interface SystemAlert {
 }
 
 interface DashboardStats {
-  totalUsers: number;
   totalProjects: number;
   researchStudies: number;
   conservationAreas: number;
@@ -92,12 +92,17 @@ interface DashboardStats {
   totalReports: number;
   pendingReports: number;
   verifiedReports: number;
-  unverifiedUsers: number;
-  userDistribution: {
-    volunteers: number;
-    researchers: number;
-    rangers: number;
-    administrators: number;
+  userStats: {
+    totalUsers: number;
+    activeUsers: number;
+    newUsersThisMonth: number;
+    verifiedUsers: number;
+    userDistribution: {
+      volunteers: number;
+      researchers: number;
+      rangers: number;
+      administrators: number;
+    };
   };
   projectStatus: Array<{ _id: string; count: number }>;
   researchStatus: Array<{ _id: string; count: number }>;
@@ -118,12 +123,17 @@ export default function AdminDashboard() {
     totalReports: 0,
     pendingReports: 0,
     verifiedReports: 0,
-    unverifiedUsers: 0,
-    userDistribution: {
-      volunteers: 0,
-      researchers: 0,
-      rangers: 0,
-      administrators: 0,
+    userStats: {
+      totalUsers: 0,
+      activeUsers: 0,
+      newUsersThisMonth: 0,
+      verifiedUsers: 0,
+      userDistribution: {
+        volunteers: 0,
+        researchers: 0,
+        rangers: 0,
+        administrators: 0,
+      },
     },
     projectStatus: [],
     researchStatus: [],
@@ -154,7 +164,8 @@ export default function AdminDashboard() {
         setStats(response.data);
         setError(null);
         console.log('Admin dashboard stats fetched successfully:', response.data);
-        console.log('Unverified users count from backend:', response.data.unverifiedUsers);
+        console.log('Total users count from backend:', response.data.userStats.totalUsers);
+        console.log('Verified users count from backend:', response.data.userStats.verifiedUsers);
       } catch (err) {
         setError('Failed to fetch dashboard statistics');
         console.error('Error fetching dashboard stats:', err);
@@ -250,211 +261,189 @@ export default function AdminDashboard() {
               Administrator Dashboard 📊
             </h1>
             <p className="text-gray-600">
-              Central hub for system overview, user management, and data trends.
+              Overview of key metrics and recent activities across the EcoRwanda Conservation Portal.
             </p>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-            <Card className="border-purple-200 bg-purple-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-purple-800">
-                  Total Users
-                </CardTitle>
+          {/* Stats Cards */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Total Users</CardTitle>
+                <Users className="h-5 w-5 text-blue-500" />
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-purple-600" />
-                  <span className="text-2xl font-bold text-purple-900">
-                    {stats.totalUsers.toLocaleString()}
-                  </span>
-                </div>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.userStats.totalUsers}
+                <Users className="h-8 w-8 text-blue-600" />
               </CardContent>
             </Card>
 
-            <Card className="border-emerald-200 bg-emerald-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-emerald-800">
-                  Total Reports
-                </CardTitle>
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Verified Users</CardTitle>
+                <UserCheck className="h-5 w-5 text-green-500" />
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-emerald-600" />
-                  <span className="text-2xl font-bold text-emerald-900">
-                    {stats.totalReports.toLocaleString()}
-                  </span>
-                </div>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.userStats.verifiedUsers}
+                <CheckCircle className="h-8 w-8 text-green-600" />
               </CardContent>
             </Card>
 
-            <Card className="border-amber-200 bg-amber-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-amber-800">
-                  Reports Pending Verification
-                </CardTitle>
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Total Projects</CardTitle>
+                <FolderOpen className="h-5 w-5 text-amber-500" />
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-amber-600" />
-                  <span className="text-2xl font-bold text-amber-900">
-                    {stats.pendingReports.toLocaleString()}
-                  </span>
-                </div>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.totalProjects}
+                <FolderOpen className="h-8 w-8 text-amber-600" />
               </CardContent>
             </Card>
 
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-blue-800">
-                  Verified Reports
-                </CardTitle>
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Total Reports</CardTitle>
+                <FileText className="h-5 w-5 text-purple-500" />
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-blue-600" />
-                  <span className="text-2xl font-bold text-blue-900">
-                    {stats.verifiedReports.toLocaleString()}
-                  </span>
-                </div>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.totalReports}
+                <FileText className="h-8 w-8 text-purple-600" />
               </CardContent>
             </Card>
 
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-green-800">
-                  Total Research Studies
-                </CardTitle>
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Research Studies</CardTitle>
+                <FlaskConical className="h-5 w-5 text-cyan-500" />
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <FlaskConical className="h-5 w-5 text-green-600" />
-                  <span className="text-2xl font-bold text-green-900">
-                    {stats.researchStudies.toLocaleString()}
-                  </span>
-                </div>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.researchStudies}
+                <FlaskConical className="h-8 w-8 text-cyan-600" />
               </CardContent>
             </Card>
 
-            <Card className="border-orange-200 bg-orange-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-orange-800">
-                  Total Conservation Areas
-                </CardTitle>
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Conservation Areas</CardTitle>
+                <TreePine className="h-5 w-5 text-lime-500" />
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-orange-600" />
-                  <span className="text-2xl font-bold text-orange-900">
-                    {stats.conservationAreas.toLocaleString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* User Distribution Chart */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
-                  User Distribution by Role
-                </CardTitle>
-                <CardDescription>Overview of user roles in the system</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Volunteers', value: stats.userDistribution.volunteers },
-                        { name: 'Researchers', value: stats.userDistribution.researchers },
-                        { name: 'Rangers', value: stats.userDistribution.rangers },
-                        { name: 'Admins', value: stats.userDistribution.administrators },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      <Cell fill="#4299e1" /> {/* blue */}
-                      <Cell fill="#805ad5" /> {/* purple */}
-                      <Cell fill="#ef4444" /> {/* red */}
-                      <Cell fill="#a0aec0" /> {/* gray */}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-indigo-600"></span>
-                    Volunteers: {stats.userDistribution.volunteers.toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-purple-600"></span>
-                    Researchers: {stats.userDistribution.researchers.toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-red-600"></span>
-                    Rangers: {stats.userDistribution.rangers.toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-gray-600"></span>
-                    Admins: {stats.userDistribution.administrators.toLocaleString()}
-                  </div>
-                </div>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.conservationAreas}
+                <TreePine className="h-8 w-8 text-lime-600" />
               </CardContent>
             </Card>
 
-            {/* Recent Activities */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-green-600" />
-                  Recent System Activity
-                </CardTitle>
-                <CardDescription>Latest actions and updates across the platform</CardDescription>
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Park Rangers</CardTitle>
+                <Shield className="h-5 w-5 text-orange-500" />
               </CardHeader>
-              <CardContent>
-                {stats.recentActivities.length === 0 ? (
-                  <p className="text-gray-500 text-center">No recent activity.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {stats.recentActivities.map((activity, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="pt-1">{getActivityIcon(activity.type)}</div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {activity.title}
-                          </p>
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            {activity.description}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {activity.user && `by ${activity.user} • `}
-                            {activity.timestamp && new Date(activity.timestamp).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.totalParkRangers}
+                <Shield className="h-8 w-8 text-orange-600" />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Pending Reports</CardTitle>
+                <Clock className="h-5 w-5 text-amber-500" />
+              </CardHeader>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.pendingReports}
+                <Clock className="h-8 w-8 text-amber-600" />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Verified Reports</CardTitle>
+                <CheckCircle className="h-5 w-5 text-emerald-500" />
+              </CardHeader>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.verifiedReports}
+                <CheckCircle className="h-8 w-8 text-emerald-600" />
               </CardContent>
             </Card>
           </div>
 
-          {/* Project Status Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ClipboardList className="h-5 w-5 text-orange-600" />
-                Project Status Overview
-              </CardTitle>
-              <CardDescription>Distribution of project statuses across the portal</CardDescription>
+          {/* User Verification Status Chart */}
+          <Card className="bg-white rounded-xl shadow-md p-6">
+            <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
+              <CardTitle className="text-2xl font-bold text-gray-800">User Verification Status</CardTitle>
+              <CardDescription className="text-gray-600">Overview of user verification process</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={[
+                  { name: 'Verified', count: stats.userStats?.verifiedUsers || 0 },
+                  { name: 'Pending', count: (stats.userStats?.totalUsers || 0) - (stats.userStats?.verifiedUsers || 0) },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#10B981" />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="mt-4 flex justify-center gap-8">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-emerald-600"></span>
+                  Verified: {stats.userStats?.verifiedUsers || 0}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-amber-600"></span>
+                  Pending: {(stats.userStats?.totalUsers || 0) - (stats.userStats?.verifiedUsers || 0)}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* User Distribution Pie Chart */}
+          <Card className="bg-white rounded-xl shadow-md p-6">
+            <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
+              <CardTitle className="text-2xl font-bold text-gray-800">User Role Distribution</CardTitle>
+              <CardDescription className="text-gray-600">Breakdown of users by role across the portal</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Volunteers', value: stats.userStats.userDistribution.volunteers },
+                      { name: 'Researchers', value: stats.userStats.userDistribution.researchers },
+                      { name: 'Rangers', value: stats.userStats.userDistribution.rangers },
+                      { name: 'Administrators', value: stats.userStats.userDistribution.administrators },
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                  >
+                    <Cell fill="#00C49F" /> {/* Green for Volunteers */}
+                    <Cell fill="#0088FE" /> {/* Blue for Researchers */}
+                    <Cell fill="#FFBB28" /> {/* Yellow for Rangers */}
+                    <Cell fill="#FF8042" /> {/* Orange for Administrators */}
+                  </Pie>
+                  <Tooltip formatter={(value: number, name: string) => [`${value} users`, name]} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="mt-4 text-center text-gray-700">
+                <p className="text-lg font-semibold">Total Users: {stats.userStats.totalUsers}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Project Status Overview Chart */}
+          <Card className="bg-white rounded-xl shadow-md p-6">
+            <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
+              <CardTitle className="text-2xl font-bold text-gray-800">Project Status Overview</CardTitle>
+              <CardDescription className="text-gray-600">Distribution of project statuses across the portal</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -464,53 +453,50 @@ export default function AdminDashboard() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="count" fill="#f97316" /> {/* orange-500 */}
+                  <Bar dataKey="count" fill="#8884d8" />
                 </BarChart>
               </ResponsiveContainer>
-              <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
-                {stats.projectStatus.map((statusItem) => (
-                  <div key={statusItem._id} className="flex items-center gap-2">
-                    <span className={`h-3 w-3 rounded-full ${getStatusColor(statusItem._id)}`}></span>
-                    {statusItem._id}: {statusItem.count.toLocaleString()}
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
 
-          {/* User Verification Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-blue-600" />
-                User Verification Status
-              </CardTitle>
-              <CardDescription>Overview of user verification process</CardDescription>
+          {/* Recent Activity Feed */}
+          <Card className="bg-white rounded-xl shadow-md p-6">
+            <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
+              <CardTitle className="text-2xl font-bold text-gray-800">Recent Activity Feed</CardTitle>
+              <CardDescription className="text-gray-600">Latest events and actions within the portal</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={[
-                  { name: 'Verified', count: stats.totalUsers - stats.unverifiedUsers },
-                  { name: 'Pending', count: stats.unverifiedUsers },
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#3b82f6" /> {/* blue-500 */}
-                </BarChart>
-              </ResponsiveContainer>
-              <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-emerald-600"></span>
-                  Verified: {stats.totalUsers - stats.unverifiedUsers}
+              {stats.recentActivities.length > 0 ? (
+                <ul className="space-y-4">
+                  {stats.recentActivities
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .slice(0, 5) // Display only the 5 most recent activities
+                    .map((activity, index) => (
+                      <li key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg shadow-sm">
+                        <div className="flex-shrink-0 mt-1">
+                          {getActivityIcon(activity.type)}
+                        </div>
+                        <div className="flex-grow">
+                          <h3 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
+                            {activity.title}
+                            <Badge className={getStatusColor(activity.status)}>{activity.status}</Badge>
+                          </h3>
+                          <p className="text-gray-700 text-base">{activity.description}</p>
+                          <div className="flex items-center text-gray-500 text-sm mt-1">
+                            <Clock className="h-4 w-4 mr-1" />
+                            <span>{new Date(activity.createdAt).toLocaleString()}</span>
+                            {activity.user && <span className="ml-auto">By: {activity.user}</span>}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              ) : (
+                <div className="text-center py-10 text-gray-500 text-lg">
+                  <Activity className="h-8 w-8 mx-auto mb-4" />
+                  No recent activities.
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-amber-600"></span>
-                  Pending: {stats.unverifiedUsers}
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>

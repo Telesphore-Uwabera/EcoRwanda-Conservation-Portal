@@ -9,6 +9,7 @@ const getAnalytics = async (req, res) => {
     const totalUsers = await User.countDocuments();
     const activeUsers = await User.countDocuments({ lastLogin: { $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)) } }); // Active in last month
     const newUsersThisMonth = await User.countDocuments({ createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } });
+    const verifiedUsers = await User.countDocuments({ verified: true });
 
     const volunteerCount = await User.countDocuments({ role: 'volunteer' });
     const researcherCount = await User.countDocuments({ role: 'researcher' });
@@ -37,6 +38,7 @@ const getAnalytics = async (req, res) => {
         totalUsers: totalUsers,
         activeUsers: activeUsers,
         newUsersThisMonth: newUsersThisMonth,
+        verifiedUsers: verifiedUsers,
         userDistribution: {
           volunteers: volunteerCount,
           researchers: researcherCount,

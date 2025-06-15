@@ -313,7 +313,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       )}
 
       {/* Main Content */}
-      <main className={`flex-1 overflow-y-auto p-[5px] ${isMobile ? 'mt-20' : 'ml-64'}`}>
+      <main className={`flex-1 overflow-y-auto p-[5px] ${isMobile ? 'pt-20' : 'pl-64'}`}>
             {children}
         </main>
     </div>

@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Toaster, toast } from "sonner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface User {
   _id: string;
@@ -49,6 +50,7 @@ interface User {
   lastName: string;
   email: string;
   role: string;
+  verified: boolean;
   createdAt: string;
 }
 
@@ -385,6 +387,7 @@ const UserManagementPage: React.FC = () => {
                   <TableHead className="text-gray-600 font-medium text-base">Name</TableHead>
                   <TableHead className="text-gray-600 font-medium text-base">Email</TableHead>
                   <TableHead className="text-gray-600 font-medium text-base">Role</TableHead>
+                  <TableHead className="text-gray-600 font-medium text-base">Verified</TableHead>
                   <TableHead className="text-gray-600 font-medium text-base">Registered On</TableHead>
                   <TableHead className="text-right text-gray-600 font-medium text-base">Actions</TableHead>
                 </TableRow>
@@ -437,6 +440,13 @@ const UserManagementPage: React.FC = () => {
                         <Badge className={`px-3 py-1 rounded-full text-xs font-semibold ${getRoleColor(user.role)}`}>
                           {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                         </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {user.verified ? (
+                        <CheckCircle className="h-6 w-6 text-green-500" title="Verified" />
+                      ) : (
+                        <XCircle className="h-6 w-6 text-red-500" title="Not Verified" />
                       )}
                     </TableCell>
                     <TableCell className="text-gray-700">{new Date(user.createdAt).toLocaleDateString()}</TableCell>
