@@ -115,7 +115,6 @@ export default function AdminDashboard() {
   const isOnline = useOfflineStatus();
 
   const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
     totalProjects: 0,
     researchStudies: 0,
     conservationAreas: 0,

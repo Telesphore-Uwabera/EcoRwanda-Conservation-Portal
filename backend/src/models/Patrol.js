@@ -1,35 +1,50 @@
 const mongoose = require('mongoose');
 
-const PatrolSchema = new mongoose.Schema({
+const patrolSchema = new mongoose.Schema({
   route: {
     type: String,
-    required: true,
-    trim: true,
+    required: true
+  },
+  patrolDate: {
+    type: Date,
+    required: true
+  },
+  startTime: {
+    type: String,
+    required: true
+  },
+  estimatedDuration: {
+    type: Number,
+    required: true
+  },
+  priority: {
+    type: String,
+    enum: ['low', 'medium', 'high'],
+    required: true
+  },
+  objectives: [{
+    type: String
+  }],
+  equipment: [{
+    type: String
+  }],
+  notes: {
+    type: String
   },
   status: {
     type: String,
-    enum: ['in_progress', 'scheduled', 'completed', 'cancelled'],
-    default: 'scheduled',
-  },
-  duration: {
-    type: String, // e.g., "2 hours", "45 minutes"
-    trim: true,
-  },
-  findings: {
-    type: String,
-    trim: true,
+    enum: ['scheduled', 'in_progress', 'completed', 'cancelled'],
+    default: 'scheduled'
   },
   ranger: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: true
   },
-  patrolDate: {
+  createdAt: {
     type: Date,
-    default: Date.now,
-  },
-}, {
-  timestamps: true,
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model('Patrol', PatrolSchema); 
+module.exports = mongoose.model('Patrol', patrolSchema); 
