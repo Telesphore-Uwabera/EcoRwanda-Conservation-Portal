@@ -5,11 +5,12 @@ const { authenticateToken } = require('../middleware/auth');
 exports.getPatrols = async (req, res) => {
   try {
     const patrols = await Patrol.find({ ranger: req.user._id })
+      .populate('ranger', 'firstName lastName email')
       .sort({ patrolDate: -1 });
     
     res.status(200).json({
       success: true,
-      data: patrols
+      patrols
     });
   } catch (error) {
     res.status(500).json({
