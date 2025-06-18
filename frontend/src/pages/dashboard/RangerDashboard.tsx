@@ -35,6 +35,10 @@ import {
   Eye,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ChartContainer } from '@/components/ui/chart';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'react-hot-toast';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 interface Report {
   _id: string;
@@ -104,6 +108,8 @@ export default function RangerDashboard() {
   const [todayPatrols, setTodayPatrols] = useState<PatrolDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [patrolsByDay, setPatrolsByDay] = useState<{ _id: string; count: number }[]>([]);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -127,6 +133,7 @@ export default function RangerDashboard() {
         setUrgentAlerts(data.urgentAlerts);
         setPendingReports(data.pendingReports);
         setTodayPatrols(data.todayPatrols);
+        setPatrolsByDay(data.patrolsByDay || []);
       } catch (err) {
         console.error('Error fetching ranger dashboard data:', err);
         setError('Failed to load dashboard data. Please try again later.');
@@ -172,10 +179,59 @@ export default function RangerDashboard() {
     }
   };
 
+  // Download patrol data as JSON
+  const handleDownload = async () => {
+    try {
+      const res = await api.get('/patrols/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'patrols.json');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      toast.success('Patrol data downloaded!');
+    } catch (err) {
+      toast.error('Failed to download patrol data');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <OfflineIndicator isOnline={isOnline} />
+
+        {/* Download & Analytics Buttons */}
+        <div className="flex gap-4 justify-end">
+          <Button variant="outline" onClick={handleDownload}>
+            Download Patrol Data
+          </Button>
+          <Dialog open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">View Analytics</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Patrol Analytics (Last 30 Days)</DialogTitle>
+              </DialogHeader>
+              <div className="h-72">
+                <ChartContainer
+                  config={{ patrols: { label: 'Patrols', color: '#2563eb' } }}
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={patrolsByDay} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="_id" tick={{ fontSize: 12 }} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         {/* Urgent Alerts */}
         {urgentAlerts.length > 0 && (
