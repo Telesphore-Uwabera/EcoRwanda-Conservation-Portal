@@ -15,4 +15,10 @@ router.patch('/:id/status', authenticateToken, patrolController.updatePatrolStat
 // Add findings to a patrol
 router.patch('/:id/findings', authenticateToken, patrolController.addFindings);
 
+// Get patrol stats
+router.get('/stats', authenticateToken, patrolController.getPatrolStats);
+
+// Export patrols
+router.get('/export', authenticateToken, patrolController.exportPatrols);
+
 module.exports = router; 
