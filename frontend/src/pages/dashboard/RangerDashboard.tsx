@@ -33,6 +33,7 @@ import {
   Edit,
   Trash2,
   Eye,
+  RefreshCw,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartContainer } from '@/components/ui/chart';
@@ -110,42 +111,62 @@ export default function RangerDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [patrolsByDay, setPatrolsByDay] = useState<{ _id: string; count: number }[]>([]);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const storedUser = localStorage.getItem('eco-user');
-        let token = null;
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          token = user.token;
-        }
-        const response = await api.get('/ranger-dashboard', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = response.data;
-
-        setStats(data.stats);
-        setUrgentAlerts(data.urgentAlerts);
-        setPendingReports(data.pendingReports);
-        setTodayPatrols(data.todayPatrols);
-        setPatrolsByDay(data.patrolsByDay || []);
-      } catch (err) {
-        console.error('Error fetching ranger dashboard data:', err);
-        setError('Failed to load dashboard data. Please try again later.');
-      } finally {
-        setLoading(false);
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
       }
-    };
+      const response = await api.get('/ranger-dashboard', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = response.data;
 
-    if (user) { 
+      setStats(data.stats);
+      setUrgentAlerts(data.urgentAlerts);
+      setPendingReports(data.pendingReports);
+      setTodayPatrols(data.todayPatrols);
+      setPatrolsByDay(data.patrolsByDay || []);
+    } catch (err) {
+      console.error('Error fetching ranger dashboard data:', err);
+      setError('Failed to load dashboard data. Please try again later.');
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    if (user) {
       fetchDashboardData();
     }
   }, [user]);
+
+  // Set up polling every 30 seconds
+  useEffect(() => {
+    if (!user) return;
+
+    const pollInterval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [user]);
+
+  // Manual refresh handler
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchDashboardData();
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -203,34 +224,29 @@ export default function RangerDashboard() {
 
         {/* Download & Analytics Buttons */}
         <div className="flex gap-4 justify-end">
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Data
+              </>
+            )}
+          </Button>
           <Button variant="outline" onClick={handleDownload}>
             Download Patrol Data
           </Button>
-          <Dialog open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">View Analytics</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Patrol Analytics (Last 30 Days)</DialogTitle>
-              </DialogHeader>
-              <div className="h-72">
-                <ChartContainer
-                  config={{ patrols: { label: 'Patrols', color: '#2563eb' } }}
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={patrolsByDay} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="_id" tick={{ fontSize: 12 }} />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button asChild variant="outline">
+            <Link to="/ranger/analytics">View Analytics</Link>
+          </Button>
         </div>
 
         {/* Urgent Alerts */}
