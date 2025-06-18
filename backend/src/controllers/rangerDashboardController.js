@@ -4,7 +4,7 @@ const User = require('../models/User'); // Assuming User model is needed for pop
 
 const getRangerDashboardData = async (req, res) => {
   try {
-    const userId = req.user.userId; // Assuming userId is available from authentication middleware
+    const userId = req.user._id;
 
     // Fetch count of reports to verify (pending reports)
     const reportsToVerifyCount = await WildlifeReport.countDocuments({ status: 'pending' });
@@ -51,11 +51,25 @@ const getRangerDashboardData = async (req, res) => {
       patrolDate: { $gte: startOfToday, $lt: endOfToday },
     }).sort({ patrolDate: 1 }); // Sort by time
 
+    // Patrols by day for analytics (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+    const patrolsByDay = await Patrol.aggregate([
+      { $match: { ranger: userId, patrolDate: { $gte: thirtyDaysAgo } } },
+      { $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$patrolDate" } },
+        count: { $sum: 1 }
+      }},
+      { $sort: { _id: 1 } }
+    ]);
+
     res.json({
       stats,
       urgentAlerts,
       pendingReports,
       todayPatrols,
+      patrolsByDay,
     });
 
   } catch (error) {

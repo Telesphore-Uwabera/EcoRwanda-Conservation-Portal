@@ -38,6 +38,7 @@ const dataHubRoutes = require('./routes/dataHub');
 const analyticsRoutes = require('./routes/analytics');
 const systemSettingsRoutes = require('./routes/systemSettings');
 const reportsRoutes = require('./routes/reports');
+const researchProjectRoutes = require('./routes/researchProjectRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -52,6 +53,7 @@ app.use('/api/data-hub', dataHubRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', systemSettingsRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/researchprojects', researchProjectRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
