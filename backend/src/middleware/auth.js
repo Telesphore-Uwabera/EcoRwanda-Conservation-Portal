@@ -10,7 +10,9 @@ const authenticateToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach user payload to request
+    console.log('Decoded JWT:', decoded);
+    req.user = { ...decoded, _id: decoded._id || decoded.id };
+    console.log('req.user set by middleware:', req.user);
     next();
   } catch (error) {
     res.status(403).json({ message: 'Access Denied: Invalid token' });

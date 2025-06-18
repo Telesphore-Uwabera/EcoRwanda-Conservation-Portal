@@ -100,7 +100,7 @@ export default function PatrolData() {
             Authorization: `Bearer ${token}`,
           },
         });
-        setPatrols(response.data.patrols);
+        setPatrols(response.data.patrols || []);
         setError(null);
       } catch (err) {
         setError('Failed to fetch patrol data.');

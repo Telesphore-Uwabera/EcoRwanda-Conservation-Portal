@@ -4,62 +4,125 @@ const { authenticateToken } = require('../middleware/auth');
 // Get all patrols
 exports.getPatrols = async (req, res) => {
   try {
-    const patrols = await Patrol.find()
-      .populate('ranger', 'firstName lastName email')
+    const patrols = await Patrol.find({ ranger: req.user._id })
       .sort({ patrolDate: -1 });
-    res.json({ patrols });
+    
+    res.status(200).json({
+      success: true,
+      data: patrols
+    });
   } catch (error) {
-    console.error('Error fetching patrols:', error);
-    res.status(500).json({ message: 'Error fetching patrols' });
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 };
 
 // Create a new patrol
 exports.createPatrol = async (req, res) => {
   try {
-    const {
-      route,
-      patrolDate,
-      startTime,
-      estimatedDuration,
-      priority,
-      objectives,
-      equipment,
-      notes,
-      status
-    } = req.body;
-
-    // Validate required fields
-    if (!route || !patrolDate || !startTime || !estimatedDuration || !priority || !objectives || !equipment) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    // Create new patrol
-    const patrol = new Patrol({
-      route,
-      patrolDate,
-      startTime,
-      estimatedDuration,
-      priority,
-      objectives,
-      equipment,
-      notes,
-      status,
-      ranger: req.user._id // Set the ranger to the authenticated user
-    });
-
+    console.log('req.user in createPatrol:', req.user);
+    const patrolData = {
+      ...req.body,
+      ranger: req.user._id // Get ranger ID from authenticated user
+    };
+    
+    const patrol = new Patrol(patrolData);
     await patrol.save();
-
-    // Populate ranger info before sending response
-    await patrol.populate('ranger', 'firstName lastName email');
-
+    
     res.status(201).json({
-      message: 'Patrol created successfully',
-      patrol
+      success: true,
+      data: patrol
     });
   } catch (error) {
     console.error('Error creating patrol:', error);
-    res.status(500).json({ message: 'Error creating patrol' });
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Get single patrol
+exports.getPatrol = async (req, res) => {
+  try {
+    const patrol = await Patrol.findOne({
+      _id: req.params.id,
+      ranger: req.user._id
+    });
+
+    if (!patrol) {
+      return res.status(404).json({
+        success: false,
+        error: 'Patrol not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: patrol
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Update patrol
+exports.updatePatrol = async (req, res) => {
+  try {
+    const patrol = await Patrol.findOneAndUpdate(
+      { _id: req.params.id, ranger: req.user._id },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!patrol) {
+      return res.status(404).json({
+        success: false,
+        error: 'Patrol not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: patrol
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Delete patrol
+exports.deletePatrol = async (req, res) => {
+  try {
+    const patrol = await Patrol.findOneAndDelete({
+      _id: req.params.id,
+      ranger: req.user._id
+    });
+
+    if (!patrol) {
+      return res.status(404).json({
+        success: false,
+        error: 'Patrol not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {}
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 };
 

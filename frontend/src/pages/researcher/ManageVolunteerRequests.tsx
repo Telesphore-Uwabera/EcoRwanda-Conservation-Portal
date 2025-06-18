@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,6 @@ interface VolunteerRequest {
 }
 
 export default function ManageVolunteerRequests() {
-  const router = useRouter();
   const [requests, setRequests] = useState<VolunteerRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
@@ -117,9 +115,7 @@ export default function ManageVolunteerRequests() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Manage Volunteer Requests</h1>
-        <Button onClick={() => router.push('/researcher/create-request')}>
-          Create New Request
-        </Button>
+        <Button>Create New Request</Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

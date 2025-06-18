@@ -250,7 +250,7 @@ export default function VerifyReports() {
           ],
         };
       });
-      setVerificationNotes("");
+    setVerificationNotes("");
 
     } catch (err) {
       console.error("Error updating report status:", err);
@@ -388,40 +388,40 @@ export default function VerifyReports() {
 
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="border-amber-200 bg-amber-50">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-8 w-8 text-amber-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-amber-900">
-                        {reports.length}
-                      </p>
-                      <p className="text-sm text-amber-700">Pending Verification</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <Clock className="h-8 w-8 text-amber-600" />
+                <div>
+                  <p className="text-2xl font-bold text-amber-900">
+                    {reports.length}
+                  </p>
+                  <p className="text-sm text-amber-700">Pending Verification</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-              <Card className="border-red-200 bg-red-50">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-8 w-8 text-red-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-red-900">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+                <div>
+                  <p className="text-2xl font-bold text-red-900">
                         {reports.filter(r => r.urgency === 'critical').length}
                       </p>
                       <p className="text-sm text-red-700">Critical Urgency</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-              <Card className="border-emerald-200 bg-emerald-50">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-8 w-8 text-emerald-600" />
-                    <div>
+          <Card className="border-emerald-200 bg-emerald-50">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-8 w-8 text-emerald-600" />
+                <div>
                       <p className="text-2xl font-bold text-emerald-900">
                         {verifiedReportsCount}
                       </p>
@@ -440,145 +440,145 @@ export default function VerifyReports() {
                         {reports.filter(r => r.status === 'investigating').length}
                       </p>
                       <p className="text-sm text-blue-700">Investigating</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        placeholder="Search reports by title, description, or location..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                  <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-                    <SelectTrigger className="w-full md:w-40">
-                      <SelectValue placeholder="Urgency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Urgency</SelectItem>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search reports by title, description, or location..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Urgency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Urgency</SelectItem>
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-full md:w-40">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="poaching">Poaching</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="poaching">Poaching</SelectItem>
                       <SelectItem value="habitat_destruction">Habitat Destruction</SelectItem>
                       <SelectItem value="wildlife_sighting">Wildlife Sighting</SelectItem>
                       <SelectItem value="human_wildlife_conflict">Human-Wildlife Conflict</SelectItem>
                       <SelectItem value="pollution">Environmental Pollution</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-            <div className="space-y-4">
+        <div className="space-y-4">
               {loading ? (
                 <p>Loading reports...</p>
               ) : error ? (
                 <p className="text-red-500">Error: {error}</p>
               ) : filteredReports.length === 0 ? (
-                <Card>
-                  <CardContent className="p-12 text-center">
+            <Card>
+              <CardContent className="p-12 text-center">
                     <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                       No reports match your filters
-                    </h3>
-                    <p className="text-gray-600">
+                </h3>
+                <p className="text-gray-600">
                       Try adjusting your search terms or filters.
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredReports.map((report) => (
                     <Card key={report._id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="space-y-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3">
-                              <span className="text-2xl">
-                                {getCategoryIcon(report.category)}
-                              </span>
-                              <div className="space-y-1">
-                                <h3 className="font-semibold text-gray-900">
-                                  {report.title}
-                                </h3>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">
+                          {getCategoryIcon(report.category)}
+                        </span>
+                        <div className="space-y-1">
+                          <h3 className="font-semibold text-gray-900">
+                            {report.title}
+                          </h3>
                                 <p className="text-sm text-gray-600 line-clamp-2">
                                   {report.description}
-                                </p>
-                              </div>
-                            </div>
+                          </p>
+                        </div>
+                      </div>
                             <Badge className={getStatusColor(report.status)}>
                               {getStatusIcon(report.status)}
                               <span className="ml-1">{report.status}</span>
-                            </Badge>
-                          </div>
+                        </Badge>
+                    </div>
 
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
                               {report.location.name}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {formatDate(report.submittedAt)}
-                            </span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {formatDate(report.submittedAt)}
+                      </span>
                             <span
                               className={`flex items-center gap-1 ${getUrgencyColor(report.urgency)}`}
                             >
                               <AlertTriangle className="h-3 w-3" />
                               {report.urgency} priority
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Camera className="h-3 w-3" />
-                              {report.photos.length} photos
-                            </span>
+                      <span className="flex items-center gap-1">
+                        <Camera className="h-3 w-3" />
+                        {report.photos.length} photos
+                      </span>
                             {report.updates.length > 0 && (
-                              <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1">
                                 <MessageSquare className="h-3 w-3" />
                                 {report.updates.length} updates
-                              </span>
+                      </span>
                             )}
                           </div>
 
                           <div className="flex gap-2 mt-4">
-                            <Button
+                          <Button
                               asChild
                               size="sm"
-                              className="flex-1 bg-amber-600 hover:bg-amber-700"
-                            >
+                          className="flex-1 bg-amber-600 hover:bg-amber-700"
+                        >
                               <Link to={`/ranger/verify-reports?reportId=${report._id}`}>
-                                <Eye className="h-4 w-4 mr-2" />
+                          <Eye className="h-4 w-4 mr-2" />
                                 View & Verify
                               </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </Button>
+                      </div>
+                  </div>
+                </CardContent>
+              </Card>
                   ))}
                 </div>
-              )}
-            </div>
+          )}
+        </div>
           </>
         )}
       </div>
