@@ -83,6 +83,12 @@ export default function PatrolData() {
   const [error, setError] = useState<string | null>(null);
   const [showNewPatrolDialog, setShowNewPatrolDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [stats, setStats] = useState({
+    totalPatrols: 0,
+    completedToday: 0,
+    activePatrols: 0,
+    patrolsCompleted: 0,
+  });
 
   useEffect(() => {
     const fetchPatrols = async () => {
@@ -111,6 +117,18 @@ export default function PatrolData() {
     };
 
     fetchPatrols();
+  }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await api.get('/patrols/stats');
+        setStats(response.data);
+      } catch (err) {
+        console.error('Error fetching patrol stats:', err);
+      }
+    };
+    fetchStats();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -194,13 +212,19 @@ export default function PatrolData() {
     patrol.status === 'scheduled' && new Date(patrol.patrolDate) >= new Date()
   ).sort((a, b) => new Date(a.patrolDate).getTime() - new Date(b.patrolDate).getTime());
 
-  const stats = {
-    totalPatrols: patrols.length,
-    completedToday: patrols.filter(
-      (p) => new Date(p.patrolDate).toDateString() === new Date().toDateString() && p.status === "completed",
-    ).length,
-    activePatrols: patrols.filter((p) => p.status === "in_progress").length,
-    incidentsThisWeek: patrols.reduce((sum, p) => sum + (p.incidents ? p.incidents.length : 0), 0),
+  const handleExport = async () => {
+    try {
+      const response = await api.get('/patrols/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'patrols.json');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Error exporting patrols:', err);
+    }
   };
 
   if (loading) {
@@ -294,9 +318,9 @@ export default function PatrolData() {
                 <AlertTriangle className="h-8 w-8 text-red-600" />
                 <div>
                   <p className="text-2xl font-bold text-red-900">
-                    {stats.incidentsThisWeek}
+                    {stats.patrolsCompleted}
                   </p>
-                  <p className="text-sm text-red-700">Incidents This Week</p>
+                  <p className="text-sm text-red-700">Completed Patrols</p>
                 </div>
               </div>
             </CardContent>
@@ -331,7 +355,7 @@ export default function PatrolData() {
                 <Calendar className="h-5 w-5" />
                 Schedule Patrol
               </Button>
-              <Button variant="outline" className="h-16">
+              <Button variant="outline" className="h-16" onClick={handleExport}>
                 <Download className="h-5 w-5" />
                 Export Data
               </Button>

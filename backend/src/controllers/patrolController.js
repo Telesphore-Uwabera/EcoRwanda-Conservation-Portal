@@ -190,4 +190,50 @@ exports.addFindings = async (req, res) => {
     console.error('Error adding findings:', error);
     res.status(500).json({ message: 'Error adding findings' });
   }
+};
+
+// Get patrol stats for dashboard
+exports.getPatrolStats = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const totalPatrols = await Patrol.countDocuments({ ranger: userId });
+    const completedToday = await Patrol.countDocuments({
+      ranger: userId,
+      status: 'completed',
+      patrolDate: { $gte: today }
+    });
+    const activePatrols = await Patrol.countDocuments({
+      ranger: userId,
+      status: { $in: ['in_progress', 'scheduled'] }
+    });
+    const patrolsCompleted = await Patrol.countDocuments({
+      ranger: userId,
+      status: 'completed'
+    });
+
+    res.json({
+      totalPatrols,
+      completedToday,
+      activePatrols,
+      patrolsCompleted
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching patrol stats' });
+  }
+};
+
+// Export patrols as JSON
+exports.exportPatrols = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const patrols = await Patrol.find({ ranger: userId });
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename=patrols.json');
+    res.send(JSON.stringify(patrols, null, 2));
+  } catch (error) {
+    res.status(500).json({ message: 'Error exporting patrols' });
+  }
 }; 
