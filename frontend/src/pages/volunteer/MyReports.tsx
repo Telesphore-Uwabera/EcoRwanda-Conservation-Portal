@@ -65,7 +65,11 @@ export default function MyReports() {
 
   useEffect(() => {
     const fetchReports = async () => {
-      if (!user) return; // Don't fetch if user is not loaded
+      if (!user || !user._id) {
+        setError("User not loaded. Please log in again.");
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       setError(null);
       try {
@@ -179,6 +183,20 @@ export default function MyReports() {
     pending: reports.filter((r) => r.status === "pending").length,
     investigating: reports.filter((r) => r.status === "investigating").length,
   };
+
+  if (!user || !user._id) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-full py-20">
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">User not loaded</h2>
+          <p className="text-gray-500 mb-4">Please log in again to view your reports.</p>
+          <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+            <Link to="/auth/login">Go to Login</Link>
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
