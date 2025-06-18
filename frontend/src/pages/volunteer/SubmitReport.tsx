@@ -180,7 +180,7 @@ export default function SubmitReport() {
 
       if (isOnline) {
         // Actual API submission
-        await api.post('/api/reports', reportData);
+        await api.post('/reports', reportData);
         console.log("Report submitted online:", reportData);
       } else {
         // Store offline
