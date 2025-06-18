@@ -44,6 +44,13 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
+const tabTitles: Record<string, string> = {
+  basic: "Basic Information",
+  content: "Research Content",
+  files: "Data & Files",
+  review: "Review & Submit",
+};
+
 export default function PublishFindings() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -215,32 +222,45 @@ export default function PublishFindings() {
     setIsSubmitting(true);
 
     try {
-      const findingsData = {
-        ...formData,
-        datasets,
-        publications,
-        author: user?.firstName + ' ' + user?.lastName,
-        authorId: user?.id,
-        submittedAt: new Date().toISOString(),
-        status: "under_review",
-      };
-
-      if (isOnline) {
-        // Simulate API submission
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        console.log("Research findings submitted:", findingsData);
-        setSuccess(true);
-      } else {
-        // Store offline
-        console.log("Research findings stored offline:", findingsData);
-        setSuccess(true);
+      // Only allow one publication file for now
+      const file = publications[0]?.file;
+      if (!file) {
+        alert("Please upload a publication file (PDF, etc.)");
+        setIsSubmitting(false);
+        return;
       }
 
+      const form = new FormData();
+      form.append("title", formData.title);
+      form.append("description", formData.abstract);
+      // If you want to attach to an existing project, add: form.append("projectId", projectId);
+      form.append("file", file);
+
+      // Add auth token if needed
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
+      }
+
+      const response = await fetch("/api/researchprojects/publish", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to publish finding");
+      }
+
+      setSuccess(true);
       setTimeout(() => {
         navigate("/dashboard/researcher");
       }, 3000);
     } catch (error) {
       console.error("Error submitting findings:", error);
+      alert("Error submitting findings: " + (error as Error).message);
     } finally {
       setIsSubmitting(false);
     }
@@ -279,8 +299,12 @@ export default function PublishFindings() {
         </div>
 
         <form onSubmit={handleSubmit}>
+          {/* Responsive tab title for small screens */}
+          <h2 className="block sm:hidden text-xl font-bold mb-4 text-center">
+            {tabTitles[activeTab]}
+          </h2>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="w-full flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-4 p-0 bg-transparent">
+            <TabsList className="hidden sm:grid w-full sm:grid-cols-2 md:grid-cols-4 p-0 bg-transparent">
               <TabsTrigger className="w-full border-2 border-green-500 rounded-lg hover:bg-green-50 hover:border-green-700 transition-colors" value="basic">Basic Information</TabsTrigger>
               <TabsTrigger className="w-full border-2 border-green-500 rounded-lg hover:bg-green-50 hover:border-green-700 transition-colors" value="content">Research Content</TabsTrigger>
               <TabsTrigger className="w-full border-2 border-green-500 rounded-lg hover:bg-green-50 hover:border-green-700 transition-colors" value="files">Data & Files</TabsTrigger>

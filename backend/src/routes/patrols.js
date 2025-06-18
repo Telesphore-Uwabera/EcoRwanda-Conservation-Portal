@@ -3,6 +3,11 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const patrolController = require('../controllers/patrolController');
 
+// Export patrols (must be before any :id route)
+router.get('/export', authenticateToken, patrolController.exportPatrols);
+// Get patrol stats (must be before any :id route)
+router.get('/stats', authenticateToken, patrolController.getPatrolStats);
+
 // Get all patrols
 router.get('/', authenticateToken, patrolController.getPatrols);
 
@@ -14,11 +19,5 @@ router.patch('/:id/status', authenticateToken, patrolController.updatePatrolStat
 
 // Add findings to a patrol
 router.patch('/:id/findings', authenticateToken, patrolController.addFindings);
-
-// Get patrol stats
-router.get('/stats', authenticateToken, patrolController.getPatrolStats);
-
-// Export patrols
-router.get('/export', authenticateToken, patrolController.exportPatrols);
 
 module.exports = router; 
