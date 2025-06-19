@@ -4,9 +4,8 @@ const { authenticateToken } = require('../middleware/auth');
 // Get all patrols
 exports.getPatrols = async (req, res) => {
   try {
-    // Only return patrols for the logged-in user
-    const userId = req.user._id || req.user.id;
-    const patrolsRaw = await Patrol.find({ ranger: userId })
+    // Return all patrols regardless of user
+    const patrolsRaw = await Patrol.find({})
       .populate('ranger', 'firstName lastName email')
       .sort({ patrolDate: -1 });
     
@@ -226,14 +225,31 @@ exports.addFindings = async (req, res) => {
   }
 };
 
+// Utility: Update patrol statuses based on time
+async function autoUpdatePatrolStatuses() {
+  const now = new Date();
+  const patrols = await Patrol.find({ status: { $in: ["scheduled", "in_progress"] } });
+  for (const patrol of patrols) {
+    const patrolStart = new Date(patrol.patrolDate + 'T' + (patrol.startTime || '00:00'));
+    const durationHours = Number(patrol.estimatedDuration) || 0;
+    const patrolEnd = new Date(patrolStart.getTime() + durationHours * 60 * 60 * 1000);
+    if (patrol.status === "scheduled" && now >= patrolStart && now < patrolEnd) {
+      patrol.status = "in_progress";
+      await patrol.save();
+    } else if ((patrol.status === "scheduled" || patrol.status === "in_progress") && now >= patrolEnd) {
+      patrol.status = "completed";
+      await patrol.save();
+    }
+  }
+}
+
 // Get patrol stats for dashboard
 exports.getPatrolStats = async (req, res) => {
   try {
+    await autoUpdatePatrolStatuses();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    // Defensive: Only count patrols for this user
-    const allPatrols = await Patrol.find({ ranger: req.user._id || req.user.id });
+    const allPatrols = await Patrol.find({});
     const validPatrols = allPatrols.filter(p => {
       try {
         return p.patrolDate && !isNaN(new Date(p.patrolDate).getTime());
@@ -241,21 +257,15 @@ exports.getPatrolStats = async (req, res) => {
         return false;
       }
     });
-    const invalidPatrols = allPatrols.filter(p => !p.patrolDate || isNaN(new Date(p.patrolDate).getTime()));
-    if (invalidPatrols.length > 0) {
-      console.error('Invalid patrolDate found in patrols:', invalidPatrols.map(p => ({ id: p._id, patrolDate: p.patrolDate })));
-    }
-
-    const totalPatrols = validPatrols.length;
-    const completedToday = validPatrols.filter(p => p.status === 'completed' && new Date(p.patrolDate) >= today).length;
+    const totalCompleted = validPatrols.filter(p => p.status === 'completed').length;
     const activePatrols = validPatrols.filter(p => ['in_progress', 'scheduled'].includes(p.status)).length;
-    const patrolsCompleted = validPatrols.filter(p => p.status === 'completed').length;
-
+    const completedToday = validPatrols.filter(p => p.status === 'completed' && new Date(p.patrolDate).toDateString() === today.toDateString()).length;
+    const totalPatrols = totalCompleted + activePatrols;
     res.json({
       totalPatrols,
       completedToday,
       activePatrols,
-      patrolsCompleted
+      patrolsCompleted: totalCompleted
     });
   } catch (error) {
     console.error('Error in getPatrolStats:', error);
@@ -266,8 +276,7 @@ exports.getPatrolStats = async (req, res) => {
 // Export patrols as JSON
 exports.exportPatrols = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const patrols = await Patrol.find({ ranger: userId });
+    const patrols = await Patrol.find({});
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', 'attachment; filename=patrols.json');
     res.send(JSON.stringify(patrols, null, 2));

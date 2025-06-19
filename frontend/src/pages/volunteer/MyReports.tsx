@@ -65,7 +65,7 @@ export default function MyReports() {
   useEffect(() => {
     const fetchReports = async () => {
       let currentUser = user;
-      if (!currentUser || !currentUser._id) {
+      if (!currentUser || (!currentUser._id && !currentUser.id)) {
         const storedUser = localStorage.getItem("eco-user");
         if (storedUser) {
           try {
@@ -79,8 +79,13 @@ export default function MyReports() {
           return;
         }
       }
+      const userId = currentUser.id || currentUser._id;
+      if (!userId) {
+        setError("User not loaded. Please log in again.");
+        return;
+      }
       try {
-        const response = await api.get(`/reports?submittedBy=${currentUser._id}`);
+        const response = await api.get(`/reports?submittedBy=${userId}`);
         setReports(response.data.data);
       } catch (err) {
         console.error("Failed to fetch reports:", err);

@@ -68,13 +68,29 @@ export default function Chat() {
   };
 
   const handleLike = async (id: string) => {
-    await api.post(`/chat/${id}/like`);
-    fetchMessages();
+    const res = await api.post(`/chat/${id}/like`);
+    if (res.data && res.data.message) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === id ? { ...msg, ...res.data.message } : msg
+        )
+      );
+    } else {
+      fetchMessages();
+    }
   };
 
   const handleUnlike = async (id: string) => {
-    await api.post(`/chat/${id}/unlike`);
-    fetchMessages();
+    const res = await api.post(`/chat/${id}/unlike`);
+    if (res.data && res.data.message) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === id ? { ...msg, ...res.data.message } : msg
+        )
+      );
+    } else {
+      fetchMessages();
+    }
   };
 
   const getRoleColor = (role: string) => {
@@ -95,40 +111,35 @@ export default function Chat() {
         ) : messages.length === 0 ? (
           <div className="text-gray-400 text-center">No messages yet. Start the conversation!</div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {Array.isArray(messages) && messages.map((msg) => {
               const liked = msg.likedBy && user && msg.likedBy.some((u: any) => u === user._id || u._id === user._id);
               const unliked = msg.unlikedBy && user && msg.unlikedBy.some((u: any) => u === user._id || u._id === user._id);
               return (
-                <div key={msg._id} className={`rounded-lg border px-4 py-2 ${getRoleColor(msg.user?.role)}`}> 
+                <div key={msg._id} className="rounded-lg border px-4 py-3 bg-white shadow-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-semibold">{msg.user?.firstName} {msg.user?.lastName}</span>
                     <span className="text-xs text-gray-400 ml-2">{msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                   </div>
-                  <div className="text-gray-800 mb-1">{msg.text}</div>
-                  {Array.isArray(msg.replies) && msg.replies.length > 0 && msg.replies.map(reply => {
-                    const replyLiked = reply.likedBy && user && reply.likedBy.some((u: any) => u === user._id || u._id === user._id);
-                    const replyUnliked = reply.unlikedBy && user && reply.unlikedBy.some((u: any) => u === user._id || u._id === user._id);
-                    return (
-                      <div key={reply._id} className="ml-6 mt-2 p-2 rounded border bg-gray-50">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold">{reply.user?.firstName} {reply.user?.lastName}</span>
-                          <span className="text-xs text-gray-400 ml-2">{reply.createdAt ? new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                  <div className="text-gray-800 mb-2">{msg.text}</div>
+                  {/* Replies */}
+                  {Array.isArray(msg.replies) && msg.replies.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {msg.replies.map(reply => (
+                        <div key={reply._id} className="ml-8 p-3 rounded border bg-gray-50">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold">{reply.user?.firstName} {reply.user?.lastName}</span>
+                            <span className="text-xs text-gray-400 ml-2">{reply.createdAt ? new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                          </div>
+                          <div className="border-l-2 border-green-200 pl-2 text-xs italic text-gray-500 mb-1">
+                            Replying to: <span className="font-medium text-gray-700">{msg.text}</span>
+                          </div>
+                          <div className="text-gray-800">{reply.text}</div>
                         </div>
-                        <div className="text-xs italic text-gray-500 border-l-2 border-gray-300 pl-2 mb-1">Replying to: {msg.text}</div>
-                        <div className="text-gray-800 mb-1">{reply.text}</div>
-                        <div className="flex items-center gap-4 text-sm">
-                          <button onClick={() => handleLike(reply._id)} className={`flex items-center gap-1 ${replyLiked ? 'text-green-600' : 'text-gray-500'} hover:underline`}>
-                            <ThumbsUp className="h-4 w-4" /> {reply.likedBy ? reply.likedBy.length : 0}
-                          </button>
-                          <button onClick={() => handleUnlike(reply._id)} className={`flex items-center gap-1 ${replyUnliked ? 'text-red-600' : 'text-gray-500'} hover:underline`}>
-                            <ThumbsDown className="h-4 w-4" /> {reply.unlikedBy ? reply.unlikedBy.length : 0}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div className="flex items-center gap-4 text-sm mt-2">
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4 text-sm mt-3">
                     <button onClick={() => handleReply(msg)} className="flex items-center gap-1 text-gray-500 hover:underline">
                       <CornerDownRight className="h-4 w-4" /> Reply
                     </button>

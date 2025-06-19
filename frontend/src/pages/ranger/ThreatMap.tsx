@@ -39,6 +39,7 @@ import {
   Users,
 } from "lucide-react";
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
 
 interface Threat {
   id: string;
@@ -63,6 +64,10 @@ export default function ThreatMap() {
   const [threats, setThreats] = useState<Threat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY', // TODO: Replace with your real key
+  });
 
   useEffect(() => {
     const fetchThreats = async () => {
@@ -199,6 +204,12 @@ export default function ThreatMap() {
   const teamsDeployedCount = 0; // Placeholder for now, as we don't have real team data yet
   const avgResponseTime = "N/A"; // Placeholder for now
 
+  const containerStyle = {
+    width: '100%',
+    height: '400px',
+  };
+  const center = { lat: -1.9981, lng: 30.1127 }; // KK 499 St. 17 Kigali
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -225,19 +236,45 @@ export default function ThreatMap() {
 
   return (
     <DashboardLayout>
-      <div>
+      <div className="space-y-6">
         <OfflineIndicator isOnline={isOnline} />
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <Map className="h-8 w-8 text-blue-600" /> Threat Map
+        </h1>
+        <p className="text-gray-600 mb-4">Visualize and monitor wildlife threats geographically in real time.</p>
 
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Map className="h-8 w-8 text-green-600" />
-            Unified Threat Map
-          </h1>
-          <p className="text-gray-600">
-            Real-time threat monitoring and response coordination across all
-            protected areas
-          </p>
+        {/* Real Map Section */}
+        <div style={{ height: '400px', width: '100%', marginBottom: '2rem' }}>
+          {isLoaded && (
+            <GoogleMap
+              mapContainerStyle={containerStyle}
+              center={center}
+              zoom={8}
+            >
+              {filteredThreats.map((threat) => (
+                <Marker
+                  key={threat.id}
+                  position={{ lat: threat.location.lat, lng: threat.location.lng }}
+                  onClick={() => setSelectedThreat(threat)}
+                  title={threat.title}
+                />
+              ))}
+              {selectedThreat && (
+                <InfoWindow
+                  position={{ lat: selectedThreat.location.lat, lng: selectedThreat.location.lng }}
+                  onCloseClick={() => setSelectedThreat(null)}
+                >
+                  <div>
+                    <strong>{selectedThreat.title}</strong><br />
+                    <span>{selectedThreat.type} ({selectedThreat.severity})</span><br />
+                    <span>Status: {selectedThreat.status}</span><br />
+                    <span>Reported: {formatDate(selectedThreat.reportedAt)}</span><br />
+                    <span>{selectedThreat.location.name}</span>
+                  </div>
+                </InfoWindow>
+              )}
+            </GoogleMap>
+          )}
         </div>
 
         {/* Critical Threat Alert */}
@@ -355,38 +392,7 @@ export default function ThreatMap() {
             </SelectContent>
           </Select>
           <div className="flex-1"></div>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="satellite">Satellite View</TabsTrigger>
-              <TabsTrigger value="center">Center Map</TabsTrigger>
-              <TabsTrigger value="live">Live Mode</TabsTrigger>
-            </TabsList>
-          </Tabs>
         </div>
-
-        {/* Interactive Map Placeholder */}
-        <Card className="h-[400px] flex items-center justify-center bg-gray-50 border-dashed border-gray-300">
-          <CardContent className="text-center text-gray-500 py-10">
-            <MapPin className="h-16 w-16 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Interactive Threat Map</h3>
-            <p className="max-w-md mx-auto">
-              Real-time visualization of threats, patrol teams, and response
-              activities across Rwanda's protected areas. In a production
-              environment, this would integrate with mapping services like
-              Mapbox or Google Maps.
-            </p>
-            <div className="flex justify-center gap-4 mt-6">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 bg-red-500 rounded-full"></span>
-                <span className="text-sm text-gray-700">Critical Threats</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 bg-blue-500 rounded-full"></span>
-                <span className="text-sm text-gray-700">Response Teams</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Threat List & Team Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

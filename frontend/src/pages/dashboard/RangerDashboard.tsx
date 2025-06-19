@@ -267,83 +267,6 @@ export default function RangerDashboard() {
           </Alert>
         )}
 
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.firstName}! 🛡️
-          </h1>
-          <p className="text-gray-600">
-            Monitor, verify, and respond to conservation activities
-          </p>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-amber-200 bg-amber-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-amber-800">
-                Reports to Verify
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-amber-600" />
-                <span className="text-2xl font-bold text-amber-900">
-                  {stats.reportsToVerify.toLocaleString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-emerald-200 bg-emerald-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-emerald-800">
-                Patrols Completed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Binoculars className="h-5 w-5 text-emerald-600" />
-                <span className="text-2xl font-bold text-emerald-900">
-                  {stats.patrolsCompleted.toLocaleString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-red-200 bg-red-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-red-800">
-                Active Threats
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-                <span className="text-2xl font-bold text-red-900">
-                  {stats.threatsDetected.toLocaleString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200 bg-purple-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-purple-800">
-                Avg Response Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-purple-600" />
-                <span className="text-lg font-bold text-purple-900">
-                  {stats.responseTime}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Ranger Tools */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -415,64 +338,13 @@ export default function RangerDashboard() {
                       {report.description}
                     </p>
                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                      <MapPin className="h-4 w-4" /> {typeof report.location === 'object' ? report.location.name : report.location}
+                      <MapPin className="h-4 w-4" /> {report.location == null ? 'Unknown' : (typeof (report.location as any) === 'object' ? (report.location as any).name ?? 'Unknown' : report.location)}
                     </div>
                     <div className="flex gap-2">
                       <Button asChild size="sm" className="flex-1">
                         <Link to={`/ranger/verify-reports?reportId=${report.id}`}>
                           <Eye className="h-4 w-4 mr-2" />
                           Verify Details
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Today's Patrols */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Binoculars className="h-6 w-6 text-blue-600" />
-            Today's Patrols
-          </h2>
-          <p className="text-gray-600">Overview of patrol activities for the current day</p>
-          {loading ? (
-            <p>Loading today's patrols...</p>
-          ) : error ? (
-            <p className="text-red-500">Error: {error}</p>
-          ) : todayPatrols.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center text-gray-500">
-                <Binoculars className="h-12 w-12 mx-auto mb-4" />
-                <p>No patrols scheduled for today.</p>
-                <p className="text-sm">Time to plan your next conservation patrol!</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {todayPatrols.map((patrol) => (
-                <Card key={patrol.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {patrol.route}
-                      </h3>
-                      <Badge className={getStatusColor(patrol.status)}>{patrol.status}</Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                      {patrol.findings || 'No specific findings yet.'}
-                    </p>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                      <Clock className="h-4 w-4" /> {patrol.duration || 'N/A'}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button asChild size="sm" className="flex-1">
-                        <Link to={`/ranger/patrol-data?patrolId=${patrol.id}`}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Manage Patrol
                         </Link>
                       </Button>
                     </div>

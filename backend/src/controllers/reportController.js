@@ -1,11 +1,12 @@
 const WildlifeReport = require('../models/WildlifeReport');
+const mongoose = require('mongoose');
 
 // Get all reports
 exports.getAllReports = async (req, res) => {
   try {
     const filter = {};
     if (req.query.submittedBy) {
-      filter.submittedBy = req.query.submittedBy;
+      filter.submittedBy = new mongoose.Types.ObjectId(req.query.submittedBy);
     }
     const reports = await WildlifeReport.find(filter).populate('submittedBy verifiedBy');
     res.status(200).json({ success: true, data: reports });

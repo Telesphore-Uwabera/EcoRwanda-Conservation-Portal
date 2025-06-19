@@ -3,7 +3,7 @@ const ChatMessage = require('../models/ChatMessage');
 // Get all chat messages (top-level only, populate user and replies)
 exports.getMessages = async (req, res) => {
   try {
-    const messages = await ChatMessage.find({ parent: null })
+    const messages = await ChatMessage.find({ replyTo: null })
       .populate('user', 'firstName lastName role')
       .populate({ path: 'replies', populate: { path: 'user', select: 'firstName lastName role' } })
       .sort({ createdAt: 1 });

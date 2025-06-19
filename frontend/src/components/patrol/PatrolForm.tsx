@@ -76,15 +76,15 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
           notes: patrol.notes || "",
         }
       : {
-          route: "",
-          patrolDate: new Date(),
-          startTime: "",
-          estimatedDuration: "",
-          priority: "medium",
-          objectives: "",
-          equipment: "",
-          notes: "",
-        },
+      route: "",
+      patrolDate: new Date(),
+      startTime: "",
+      estimatedDuration: "",
+      priority: "medium",
+      objectives: "",
+      equipment: "",
+      notes: "",
+    },
   });
 
   const onSubmit = async (data: PatrolFormValues) => {
@@ -116,17 +116,17 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
           description: "Patrol updated successfully",
         });
       } else {
-        await api.post('/patrols', patrolData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        toast({
-          title: "Success",
-          description: mode === "new" 
-            ? "New patrol started successfully" 
-            : "Patrol scheduled successfully",
-        });
+      await api.post('/patrols', patrolData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      toast({
+        title: "Success",
+        description: mode === "new" 
+          ? "New patrol started successfully" 
+          : "Patrol scheduled successfully",
+      });
       }
 
       if (onSuccess) {
@@ -223,11 +223,11 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
+                        // Allow any date to be selected (no minDate, maxDate, or disabled logic)
                         mode="single"
                         selected={field.value}
                         onSelect={(date) => {
                           field.onChange(date);
-                          console.log("Calendar onSelect - Selected date:", date);
                           setTimeout(() => {
                             setIsPopoverOpen(false);
                           }, 100);

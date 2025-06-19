@@ -199,81 +199,10 @@ export default function ResearcherDashboard() {
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.firstName}! 🔬
-          </h1>
-          <p className="text-gray-600">
-            Advance scientific understanding of Rwanda's ecosystems
-          </p>
-        </div>
+        {/* Removed welcome message and description */}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-blue-200 bg-blue-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-800">
-                Published Findings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-blue-600" />
-                <span className="text-2xl font-bold text-blue-900">
-                  {stats.publishedFindings.toLocaleString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-emerald-200 bg-emerald-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-emerald-800">
-                Active Projects
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Microscope className="h-5 w-5 text-emerald-600" />
-                <span className="text-2xl font-bold text-emerald-900">
-                  {stats.activeProjects.toLocaleString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-amber-200 bg-amber-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-amber-800">
-                Collaborators
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-amber-600" />
-                <span className="text-2xl font-bold text-amber-900">
-                  {stats.volunteerCollaborators.toLocaleString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200 bg-purple-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-purple-800">
-                Dataset Downloads
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Download className="h-5 w-5 text-purple-600" />
-                <span className="text-2xl font-bold text-purple-900">
-                  {stats.datasetDownloads.toLocaleString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Removed quick stats cards */}
 
         {/* Quick Actions */}
         <Card>
