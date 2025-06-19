@@ -3,7 +3,11 @@ const WildlifeReport = require('../models/WildlifeReport');
 // Get all reports
 exports.getAllReports = async (req, res) => {
   try {
-    const reports = await WildlifeReport.find().populate('submittedBy verifiedBy');
+    const filter = {};
+    if (req.query.submittedBy) {
+      filter.submittedBy = req.query.submittedBy;
+    }
+    const reports = await WildlifeReport.find(filter).populate('submittedBy verifiedBy');
     res.status(200).json({ success: true, data: reports });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server Error' });
@@ -34,8 +38,20 @@ exports.createReport = async (req, res) => {
 // Update a report by ID
 exports.updateReport = async (req, res) => {
   try {
-    const report = await WildlifeReport.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { status, ...rest } = req.body;
+    const report = await WildlifeReport.findById(req.params.id);
     if (!report) return res.status(404).json({ success: false, error: 'Report not found' });
+    if (status) {
+      report.status = status;
+      // Optionally, handle verifiedBy/verifiedAt for 'verified' status
+      if (status === 'verified' && req.user) {
+        report.verifiedBy = req.user.id;
+        report.verifiedAt = Date.now();
+      }
+    }
+    // Update other fields if needed
+    Object.assign(report, rest);
+    await report.save();
     res.status(200).json({ success: true, data: report });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server Error' });
