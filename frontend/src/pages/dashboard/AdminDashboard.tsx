@@ -94,6 +94,7 @@ interface DashboardStats {
   verifiedReports: number;
   rejectedReports?: number;
   investigatingReports?: number;
+  resolvedReports?: number;
   userStats: {
     totalUsers: number;
     activeUsers: number;
@@ -110,6 +111,13 @@ interface DashboardStats {
   researchStatus: Array<{ _id: string; count: number }>;
   conservationStatus: Array<{ _id: string; count: number }>;
   recentActivities: RecentActivity[]; // Correctly defined as an array of RecentActivity
+  latestReportDates?: {
+    pending?: string;
+    verified?: string;
+    rejected?: string;
+    investigating?: string;
+    resolved?: string;
+  };
 }
 
 export default function AdminDashboard() {
@@ -250,6 +258,18 @@ export default function AdminDashboard() {
     }
   };
 
+  // Add a date formatting helper
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'No recent updates';
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <DashboardLayout>
       <div>
@@ -355,48 +375,63 @@ export default function AdminDashboard() {
                 <Shield className="h-8 w-8 text-orange-600" />
               </CardContent>
             </Card>
+          </div>
 
-            <Card className="bg-white rounded-xl shadow-md p-6">
+          {/* Report Status Cards - Consistent Styling with Other Stat Cards */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5 mt-6">
+            {/* Pending Reports */}
+            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-lg font-medium text-gray-700">Pending Reports</CardTitle>
                 <Clock className="h-5 w-5 text-amber-500" />
               </CardHeader>
               <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.pendingReports}
+                {stats.pendingReports ?? 0}
                 <Clock className="h-8 w-8 text-amber-600" />
               </CardContent>
             </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
+            {/* Verified Reports */}
+            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-lg font-medium text-gray-700">Verified Reports</CardTitle>
                 <CheckCircle className="h-5 w-5 text-emerald-500" />
               </CardHeader>
               <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.verifiedReports}
+                {stats.verifiedReports ?? 0}
                 <CheckCircle className="h-8 w-8 text-emerald-600" />
               </CardContent>
             </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
+            {/* Rejected Reports */}
+            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-lg font-medium text-gray-700">Rejected Reports</CardTitle>
                 <AlertTriangle className="h-5 w-5 text-red-500" />
               </CardHeader>
               <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.rejectedReports}
+                {stats.rejectedReports ?? 0}
                 <AlertTriangle className="h-8 w-8 text-red-600" />
               </CardContent>
             </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
+            {/* Investigating Reports */}
+            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-lg font-medium text-gray-700">Investigating Reports</CardTitle>
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
               </CardHeader>
               <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.investigatingReports}
+                {stats.investigatingReports ?? 0}
                 <AlertTriangle className="h-8 w-8 text-amber-600" />
+              </CardContent>
+            </Card>
+            {/* Resolved Reports */}
+            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Resolved Reports</CardTitle>
+                <CheckCircle className="h-5 w-5 text-blue-500" />
+              </CardHeader>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.resolvedReports ?? 0}
+                <CheckCircle className="h-8 w-8 text-blue-600" />
               </CardContent>
             </Card>
           </div>

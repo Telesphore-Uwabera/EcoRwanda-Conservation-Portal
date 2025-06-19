@@ -32,7 +32,7 @@ const WildlifeReportSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'verified', 'investigating', 'resolved'],
+    enum: ['pending', 'verified', 'investigating', 'resolved', 'rejected'],
     default: 'pending',
   },
   submittedBy: {

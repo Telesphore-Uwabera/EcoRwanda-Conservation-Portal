@@ -18,6 +18,7 @@ exports.getDashboardStats = async (req, res) => {
         const verifiedReports = await WildlifeReport.countDocuments({ status: 'verified' });
         const rejectedReports = await WildlifeReport.countDocuments({ status: 'rejected' });
         const investigatingReports = await WildlifeReport.countDocuments({ status: 'investigating' });
+        const resolvedReports = await WildlifeReport.countDocuments({ status: 'resolved' });
         console.log('totalReports:', totalReports, 'pendingReports:', pendingReports, 'verifiedReports:', verifiedReports);
 
         const totalProjects = await ResearchProject.countDocuments() + await ConservationProject.countDocuments();
@@ -52,6 +53,17 @@ exports.getDashboardStats = async (req, res) => {
         ]);
         console.log('projectStatus:', projectStatus);
 
+        // Fetch latest update date for each status
+        const getLatestReportDate = async (status) => {
+            const report = await WildlifeReport.findOne({ status }).sort({ updatedAt: -1 });
+            return report ? (report.updatedAt || report.submittedAt) : null;
+        };
+        const latestPending = await getLatestReportDate('pending');
+        const latestVerified = await getLatestReportDate('verified');
+        const latestRejected = await getLatestReportDate('rejected');
+        const latestInvestigating = await getLatestReportDate('investigating');
+        const latestResolved = await getLatestReportDate('resolved');
+
         res.status(200).json({
             userStats: {
                 totalUsers,
@@ -69,7 +81,15 @@ exports.getDashboardStats = async (req, res) => {
             verifiedReports,
             rejectedReports,
             investigatingReports,
+            resolvedReports,
             projectStatus,
+            latestReportDates: {
+                pending: latestPending,
+                verified: latestVerified,
+                rejected: latestRejected,
+                investigating: latestInvestigating,
+                resolved: latestResolved,
+            },
         });
     } catch (error) {
         console.error('Error fetching admin dashboard stats:', error);
