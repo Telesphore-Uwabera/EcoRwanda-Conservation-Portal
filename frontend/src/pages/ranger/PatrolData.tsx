@@ -46,7 +46,7 @@ import { PatrolDialog } from "@/components/patrol/PatrolDialog";
 import { Link } from "react-router-dom";
 
 interface Patrol {
-  _id: string;
+  id: string;
   route: string;
   status: 'in_progress' | 'scheduled' | 'completed' | 'cancelled';
   duration?: string;
@@ -59,7 +59,7 @@ interface Patrol {
   }; // Assuming ranger is populated with basic user info
   patrolDate: string; // Date string from backend
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   incidents?: any[]; // To be defined more specifically later if needed
   // For scheduled patrols
   startTime?: string;
@@ -90,6 +90,7 @@ export default function PatrolData() {
     activePatrols: 0,
     patrolsCompleted: 0,
   });
+  const [editPatrol, setEditPatrol] = useState<any | null>(null);
 
   const fetchPatrols = async () => {
     setLoading(true);
@@ -446,7 +447,7 @@ export default function PatrolData() {
                 ) : (
                   <div className="grid gap-4">
                     {recentPatrols.map((patrol) => (
-                      <Card key={patrol._id} className="hover:shadow-md transition-shadow">
+                      <Card key={patrol.id} className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                           <CardTitle className="text-lg font-medium">
                             Patrol {patrol.route}
@@ -477,8 +478,8 @@ export default function PatrolData() {
                               <AlertTriangle className="h-4 w-4" /> Incidents: {patrol.incidents.length}
                             </p>
                           )}
-                          <Button size="sm" className="mt-3">
-                            View Details
+                          <Button size="sm" className="mt-3" onClick={() => setEditPatrol(patrol)}>
+                            Manage Patrol
                           </Button>
                         </CardContent>
                       </Card>
@@ -520,7 +521,7 @@ export default function PatrolData() {
                 ) : (
                   <div className="grid gap-4">
                     {scheduledPatrols.map((patrol) => (
-                      <Card key={patrol._id} className="hover:shadow-md transition-shadow">
+                      <Card key={patrol.id} className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                           <CardTitle className="text-lg font-medium">
                             Patrol {patrol.route}
@@ -590,6 +591,16 @@ export default function PatrolData() {
           if (!open) refreshPatrolData();
         }}
         mode="schedule"
+        onSuccess={refreshPatrolData}
+      />
+      <PatrolDialog
+        open={!!editPatrol}
+        onOpenChange={(open) => {
+          setEditPatrol(open ? editPatrol : null);
+          if (!open) refreshPatrolData();
+        }}
+        mode="edit"
+        patrol={editPatrol}
         onSuccess={refreshPatrolData}
       />
     </DashboardLayout>
