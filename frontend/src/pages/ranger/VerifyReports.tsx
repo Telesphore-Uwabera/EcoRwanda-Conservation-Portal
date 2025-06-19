@@ -395,7 +395,7 @@ export default function VerifyReports() {
                 <Clock className="h-8 w-8 text-amber-600" />
                 <div>
                   <p className="text-2xl font-bold text-amber-900">
-                    {reports.length}
+                    {reports.filter(r => r.status === 'pending').length}
                   </p>
                   <p className="text-sm text-amber-700">Pending Verification</p>
                 </div>

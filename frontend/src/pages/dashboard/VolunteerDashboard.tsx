@@ -71,7 +71,7 @@ export default function VolunteerDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = async (currentUser) => {
       try {
         setLoading(true);
         setError(null);
@@ -89,9 +89,20 @@ export default function VolunteerDashboard() {
       }
     };
 
-    if (user) { // Fetch data only if user is logged in
-      fetchDashboardData();
+    let currentUser = user;
+    if (!currentUser || !currentUser._id) {
+      const storedUser = localStorage.getItem("eco-user");
+      if (storedUser) {
+        try {
+          currentUser = JSON.parse(storedUser);
+        } catch {
+          return;
+        }
+      } else {
+        return;
+      }
     }
+    fetchDashboardData(currentUser);
   }, [user]); // Re-run when user changes
 
   const getStatusColor = (status: string) => {
