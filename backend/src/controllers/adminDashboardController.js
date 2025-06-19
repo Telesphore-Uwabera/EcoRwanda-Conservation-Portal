@@ -16,6 +16,8 @@ exports.getDashboardStats = async (req, res) => {
         const totalReports = await WildlifeReport.countDocuments();
         const pendingReports = await WildlifeReport.countDocuments({ status: 'pending' });
         const verifiedReports = await WildlifeReport.countDocuments({ status: 'verified' });
+        const rejectedReports = await WildlifeReport.countDocuments({ status: 'rejected' });
+        const investigatingReports = await WildlifeReport.countDocuments({ status: 'investigating' });
         console.log('totalReports:', totalReports, 'pendingReports:', pendingReports, 'verifiedReports:', verifiedReports);
 
         const totalProjects = await ResearchProject.countDocuments() + await ConservationProject.countDocuments();
@@ -65,6 +67,8 @@ exports.getDashboardStats = async (req, res) => {
             totalReports,
             pendingReports,
             verifiedReports,
+            rejectedReports,
+            investigatingReports,
             projectStatus,
         });
     } catch (error) {
