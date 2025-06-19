@@ -46,10 +46,36 @@ const getRangerDashboardData = async (req, res) => {
     const endOfToday = new Date();
     endOfToday.setHours(23, 59, 59, 999);
 
-    const todayPatrols = await Patrol.find({
+    const todayPatrolsRaw = await Patrol.find({
       ranger: userId,
       patrolDate: { $gte: startOfToday, $lt: endOfToday },
-    }).sort({ patrolDate: 1 }); // Sort by time
+    })
+      .populate('ranger', 'firstName lastName email')
+      .sort({ patrolDate: 1 }); // Sort by time
+
+    // Transform patrols for frontend
+    const todayPatrols = todayPatrolsRaw.map(patrol => ({
+      id: patrol._id.toString(),
+      route: patrol.route,
+      status: patrol.status,
+      duration: patrol.duration || '',
+      findings: patrol.findings || '',
+      ranger: patrol.ranger ? {
+        _id: patrol.ranger._id?.toString?.() || '',
+        firstName: patrol.ranger.firstName || '',
+        lastName: patrol.ranger.lastName || '',
+        email: patrol.ranger.email || '',
+      } : {},
+      patrolDate: patrol.patrolDate ? patrol.patrolDate.toISOString() : '',
+      startTime: patrol.startTime || '',
+      endTime: patrol.endTime || '',
+      estimatedDuration: patrol.estimatedDuration?.toString?.() || '',
+      priority: patrol.priority || '',
+      objectives: patrol.objectives || [],
+      equipment: patrol.equipment || [],
+      notes: patrol.notes || '',
+      createdAt: patrol.createdAt ? patrol.createdAt.toISOString() : '',
+    }));
 
     // Patrols by day for analytics (last 30 days)
     const thirtyDaysAgo = new Date();

@@ -41,6 +41,15 @@ const patrolSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  findings: {
+    type: String
+  },
+  duration: {
+    type: String
+  },
+  endTime: {
+    type: String
+  },
   createdAt: {
     type: Date,
     default: Date.now

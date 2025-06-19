@@ -53,26 +53,38 @@ type PatrolFormValues = z.infer<typeof patrolFormSchema>;
 interface PatrolFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  mode: "new" | "schedule";
+  mode: "new" | "schedule" | "edit";
+  patrol?: any;
 }
 
-export function PatrolForm({ onSuccess, onCancel, mode }: PatrolFormProps) {
+export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProps) {
   const { toast = () => {} } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const form = useForm<PatrolFormValues>({
     resolver: zodResolver(patrolFormSchema),
-    defaultValues: {
-      route: "",
-      patrolDate: new Date(),
-      startTime: "",
-      estimatedDuration: "",
-      priority: "medium",
-      objectives: "",
-      equipment: "",
-      notes: "",
-    },
+    defaultValues: patrol
+      ? {
+          route: patrol.route || "",
+          patrolDate: patrol.patrolDate ? new Date(patrol.patrolDate) : new Date(),
+          startTime: patrol.startTime || "",
+          estimatedDuration: patrol.estimatedDuration || "",
+          priority: patrol.priority || "medium",
+          objectives: patrol.objectives ? patrol.objectives.join(", ") : "",
+          equipment: patrol.equipment ? patrol.equipment.join(", ") : "",
+          notes: patrol.notes || "",
+        }
+      : {
+          route: "",
+          patrolDate: new Date(),
+          startTime: "",
+          estimatedDuration: "",
+          priority: "medium",
+          objectives: "",
+          equipment: "",
+          notes: "",
+        },
   });
 
   const onSubmit = async (data: PatrolFormValues) => {
@@ -87,24 +99,35 @@ export function PatrolForm({ onSuccess, onCancel, mode }: PatrolFormProps) {
 
       const patrolData = {
         ...data,
-        status: mode === "new" ? "in_progress" : "scheduled",
+        status: mode === "new" ? "in_progress" : mode === "schedule" ? "scheduled" : patrol.status,
         objectives: data.objectives.split(",").map(obj => obj.trim()),
         equipment: data.equipment.split(",").map(eq => eq.trim()),
         patrolDate: data.patrolDate.toISOString().split('T')[0],
       };
 
-      await api.post('/patrols', patrolData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      toast({
-        title: "Success",
-        description: mode === "new" 
-          ? "New patrol started successfully" 
-          : "Patrol scheduled successfully",
-      });
+      if (mode === "edit" && patrol && patrol.id) {
+        await api.patch(`/patrols/${patrol.id}`, patrolData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        toast({
+          title: "Success",
+          description: "Patrol updated successfully",
+        });
+      } else {
+        await api.post('/patrols', patrolData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        toast({
+          title: "Success",
+          description: mode === "new" 
+            ? "New patrol started successfully" 
+            : "Patrol scheduled successfully",
+        });
+      }
 
       if (onSuccess) {
         onSuccess();
@@ -344,8 +367,10 @@ export function PatrolForm({ onSuccess, onCancel, mode }: PatrolFormProps) {
                 "Submitting..."
               ) : mode === "new" ? (
                 "Start Patrol"
-              ) : (
+              ) : mode === "schedule" ? (
                 "Schedule Patrol"
+              ) : (
+                "Update Patrol"
               )}
             </Button>
           </div>

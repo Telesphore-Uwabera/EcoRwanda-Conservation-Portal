@@ -14,6 +14,15 @@ router.get('/', authenticateToken, patrolController.getPatrols);
 // Create a new patrol
 router.post('/', authenticateToken, patrolController.createPatrol);
 
+// Get single patrol
+router.get('/:id', authenticateToken, patrolController.getPatrol);
+
+// Update patrol
+router.patch('/:id', authenticateToken, patrolController.updatePatrol);
+
+// Delete patrol
+router.delete('/:id', authenticateToken, patrolController.deletePatrol);
+
 // Update patrol status
 router.patch('/:id/status', authenticateToken, patrolController.updatePatrolStatus);
 

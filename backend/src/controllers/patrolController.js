@@ -4,9 +4,42 @@ const { authenticateToken } = require('../middleware/auth');
 // Get all patrols
 exports.getPatrols = async (req, res) => {
   try {
-    const patrols = await Patrol.find({})
+    // Only return patrols for the logged-in user
+    const userId = req.user._id || req.user.id;
+    const patrolsRaw = await Patrol.find({ ranger: userId })
       .populate('ranger', 'firstName lastName email')
       .sort({ patrolDate: -1 });
+    
+    const patrols = patrolsRaw.map(patrol => ({
+      id: patrol._id.toString(),
+      route: patrol.route,
+      status: patrol.status,
+      duration: patrol.duration ? patrol.duration.toString() : '',
+      findings: patrol.findings || '',
+      ranger: patrol.ranger && patrol.ranger.firstName ? {
+        _id: patrol.ranger._id?.toString?.() || '',
+        firstName: patrol.ranger.firstName || '',
+        lastName: patrol.ranger.lastName || '',
+        email: patrol.ranger.email || '',
+      } : {},
+      patrolDate: patrol.patrolDate
+        ? (typeof patrol.patrolDate === 'number'
+            ? new Date(patrol.patrolDate).toISOString()
+            : new Date(patrol.patrolDate).toISOString())
+        : '',
+      startTime: patrol.startTime || '',
+      endTime: patrol.endTime || '',
+      estimatedDuration: patrol.estimatedDuration !== undefined ? patrol.estimatedDuration.toString() : '',
+      priority: patrol.priority || '',
+      objectives: patrol.objectives || [],
+      equipment: patrol.equipment || [],
+      notes: patrol.notes || '',
+      createdAt: patrol.createdAt
+        ? (typeof patrol.createdAt === 'number'
+            ? new Date(patrol.createdAt).toISOString()
+            : new Date(patrol.createdAt).toISOString())
+        : '',
+    }));
     
     res.status(200).json({
       success: true,
@@ -199,17 +232,24 @@ exports.getPatrolStats = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const totalPatrols = await Patrol.countDocuments({});
-    const completedToday = await Patrol.countDocuments({
-      status: 'completed',
-      patrolDate: { $gte: today }
+    // Defensive: Only count patrols for this user
+    const allPatrols = await Patrol.find({ ranger: req.user._id || req.user.id });
+    const validPatrols = allPatrols.filter(p => {
+      try {
+        return p.patrolDate && !isNaN(new Date(p.patrolDate).getTime());
+      } catch {
+        return false;
+      }
     });
-    const activePatrols = await Patrol.countDocuments({
-      status: { $in: ['in_progress', 'scheduled'] }
-    });
-    const patrolsCompleted = await Patrol.countDocuments({
-      status: 'completed'
-    });
+    const invalidPatrols = allPatrols.filter(p => !p.patrolDate || isNaN(new Date(p.patrolDate).getTime()));
+    if (invalidPatrols.length > 0) {
+      console.error('Invalid patrolDate found in patrols:', invalidPatrols.map(p => ({ id: p._id, patrolDate: p.patrolDate })));
+    }
+
+    const totalPatrols = validPatrols.length;
+    const completedToday = validPatrols.filter(p => p.status === 'completed' && new Date(p.patrolDate) >= today).length;
+    const activePatrols = validPatrols.filter(p => ['in_progress', 'scheduled'].includes(p.status)).length;
+    const patrolsCompleted = validPatrols.filter(p => p.status === 'completed').length;
 
     res.json({
       totalPatrols,
@@ -218,7 +258,8 @@ exports.getPatrolStats = async (req, res) => {
       patrolsCompleted
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching patrol stats' });
+    console.error('Error in getPatrolStats:', error);
+    res.status(500).json({ message: 'Error fetching patrol stats', error: error.message });
   }
 };
 
