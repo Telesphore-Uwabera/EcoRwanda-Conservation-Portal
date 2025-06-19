@@ -415,7 +415,7 @@ export default function RangerDashboard() {
                       {report.description}
                     </p>
                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                      <MapPin className="h-4 w-4" /> {report.location}
+                      <MapPin className="h-4 w-4" /> {typeof report.location === 'object' ? report.location.name : report.location}
                     </div>
                     <div className="flex gap-2">
                       <Button asChild size="sm" className="flex-1">
