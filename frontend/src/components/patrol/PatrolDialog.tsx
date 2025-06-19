@@ -12,9 +12,10 @@ interface PatrolDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: "new" | "schedule";
+  onSuccess?: () => void;
 }
 
-export function PatrolDialog({ open, onOpenChange, mode }: PatrolDialogProps) {
+export function PatrolDialog({ open, onOpenChange, mode, onSuccess }: PatrolDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[900px] lg:max-w-screen-lg max-h-[90vh] overflow-y-auto">
@@ -30,7 +31,10 @@ export function PatrolDialog({ open, onOpenChange, mode }: PatrolDialogProps) {
         </DialogHeader>
         <PatrolForm
           mode={mode}
-          onSuccess={() => onOpenChange(false)}
+          onSuccess={() => {
+            if (onSuccess) onSuccess();
+            onOpenChange(false);
+          }}
           onCancel={() => onOpenChange(false)}
         />
       </DialogContent>
