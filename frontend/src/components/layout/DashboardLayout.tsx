@@ -158,15 +158,15 @@ const navigationItems: NavigationItem[] = [
     roles: ["administrator"],
   },
   {
-    label: "System Settings",
-    href: "/admin/settings",
-    icon: Settings,
-    roles: ["administrator"],
-  },
-  {
     label: "Communications",
     href: "/admin/communications",
     icon: MessageSquare,
+    roles: ["administrator"],
+  },
+  {
+    label: "System Settings",
+    href: "/admin/settings",
+    icon: Settings,
     roles: ["administrator"],
   },
 ];

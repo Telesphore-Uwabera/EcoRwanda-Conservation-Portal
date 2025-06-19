@@ -1,39 +1,51 @@
 const ResearchProject = require('../models/ResearchProject');
-const AWS = require('aws-sdk');
-const multer = require('multer');
-const multerS3 = require('multer-s3');
 
-// Configure AWS S3
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-});
-const s3 = new AWS.S3();
-
-// Multer S3 storage
-const upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: process.env.AWS_S3_BUCKET,
-    acl: 'public-read',
-    metadata: function (req, file, cb) {
-      cb(null, { fieldName: file.fieldname });
-    },
-    key: function (req, file, cb) {
-      cb(null, `research-publishings/${Date.now()}_${file.originalname}`);
-    },
-  }),
-});
-
-// Controller to publish a finding (add a document to researchprojects)
+// Controller to publish a finding (add a finding and documents to researchprojects)
 const publishFinding = async (req, res) => {
   try {
-    const { title, description, projectId } = req.body;
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({ success: false, message: 'File is required' });
+    // Parse fields from form-data or JSON
+    const {
+      title,
+      abstract,
+      category,
+      methodology,
+      findings,
+      implications,
+      acknowledgments,
+      location,
+      studyPeriod,
+      keywords,
+      collaborators,
+      fundingSource,
+      ethicalApproval,
+      dataAvailability,
+      license,
+      projectId,
+      datasetFileNames = [],
+      publicationFileNames = [],
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !abstract || !category || !methodology || !findings || !location) {
+      return res.status(400).json({ success: false, message: 'Missing required fields.' });
     }
+
+    // Parse location and studyPeriod if sent as JSON strings
+    let parsedLocation = location;
+    let parsedStudyPeriod = studyPeriod;
+    let parsedKeywords = keywords;
+    let parsedCollaborators = collaborators;
+    try {
+      if (typeof location === 'string') parsedLocation = JSON.parse(location);
+      if (typeof studyPeriod === 'string') parsedStudyPeriod = JSON.parse(studyPeriod);
+      if (typeof keywords === 'string') parsedKeywords = JSON.parse(keywords);
+      if (typeof collaborators === 'string') parsedCollaborators = JSON.parse(collaborators);
+      if (typeof datasetFileNames === 'string') datasetFileNames = JSON.parse(datasetFileNames);
+      if (typeof publicationFileNames === 'string') publicationFileNames = JSON.parse(publicationFileNames);
+    } catch (e) {
+      // Ignore parse errors, fallback to raw values
+    }
+
     // Find the project or create a new one if projectId is not provided
     let project;
     if (projectId) {
@@ -42,27 +54,43 @@ const publishFinding = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Project not found' });
       }
     } else {
-      // Create a new project with minimal info
+      // Create a new project with all required info
       project = new ResearchProject({
-        title: title || 'Untitled Publishing',
-        description: description || '',
+        title,
+        description: abstract,
         objectives: [],
-        methodology: '',
-        location: { lat: 0, lng: 0, name: '' },
-        startDate: new Date(),
-        endDate: new Date(),
+        methodology,
+        location: typeof parsedLocation === 'object' ? parsedLocation : { lat: 0, lng: 0, name: parsedLocation },
+        startDate: parsedStudyPeriod?.start ? new Date(parsedStudyPeriod.start) : new Date(),
+        endDate: parsedStudyPeriod?.end ? new Date(parsedStudyPeriod.end) : new Date(),
         leadResearcher: req.user._id,
+        tags: parsedKeywords || [],
+        status: 'planning',
       });
     }
-    // Add the document to the project
-    project.documents.push({
+
+    // Add finding (store file names only)
+    project.findings.push({
       title,
-      description,
-      fileUrl: file.location,
-      uploadedBy: req.user._id,
-      fileType: file.mimetype,
-      fileSize: file.size,
+      description: abstract,
+      date: new Date(),
+      addedBy: req.user._id,
+      attachments: [
+        ...datasetFileNames.map(name => ({ fileName: name })),
+        ...publicationFileNames.map(name => ({ fileName: name })),
+      ],
     });
+
+    // Add documents (store file names only)
+    publicationFileNames.forEach(name => {
+      project.documents.push({
+        title,
+        description: abstract,
+        fileName: name,
+        uploadedBy: req.user._id,
+      });
+    });
+
     await project.save();
     res.status(201).json({ success: true, data: project });
   } catch (error) {
@@ -73,5 +101,4 @@ const publishFinding = async (req, res) => {
 
 module.exports = {
   publishFinding,
-  upload, // Export multer upload for use in routes
 }; 
