@@ -42,6 +42,7 @@ const researchProjectRoutes = require('./routes/researchProjectRoutes');
 const announcementsRoutes = require('./routes/announcements');
 const chatRoutes = require('./routes/chat');
 const collaborationRoutes = require('./routes/collaboration');
+const volunteerRequestsRoutes = require('./routes/volunteerRequests');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -60,6 +61,7 @@ app.use('/api/researchprojects', researchProjectRoutes);
 app.use('/api/announcements', announcementsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/collaboration', collaborationRoutes);
+app.use('/api/volunteer-requests', volunteerRequestsRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {

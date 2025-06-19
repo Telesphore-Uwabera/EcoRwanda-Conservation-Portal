@@ -99,6 +99,12 @@ const ResearchProjectSchema = new mongoose.Schema({
   tags: [{
     type: String,
   }],
+  datasetLinks: [{
+    type: String,
+  }],
+  publicationLinks: [{
+    type: String,
+  }],
   createdAt: {
     type: Date,
     default: Date.now,

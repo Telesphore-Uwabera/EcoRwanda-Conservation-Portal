@@ -94,6 +94,13 @@ export default function PublishFindings() {
     role: "",
   });
 
+  const [newDatasetLink, setNewDatasetLink] = useState("");
+  const [newDatasetType, setNewDatasetType] = useState("");
+  const [datasetLinks, setDatasetLinks] = useState([]);
+  const [newPublicationLink, setNewPublicationLink] = useState("");
+  const [newPublicationType, setNewPublicationType] = useState("");
+  const [publicationLinks, setPublicationLinks] = useState([]);
+
   const researchCategories = [
     { value: "biodiversity", label: "Biodiversity Conservation", icon: "🌿" },
     { value: "wildlife_behavior", label: "Wildlife Behavior", icon: "🦁" },
@@ -239,44 +246,15 @@ export default function PublishFindings() {
     setUploadProgress(0);
 
     try {
-      if (publications.length === 0) {
-        alert("Please select at least one publication file (PDF, etc.)");
+      // Require only main fields and at least one dataset/publication link
+      if (!formData.title || !formData.abstract || !formData.category || !formData.methodology || !formData.findings || !formData.implications || !formData.acknowledgments || !formData.location || !formData.studyPeriod.start || !formData.studyPeriod.end || !formData.dataAvailability || !formData.license || datasetLinks.length === 0 || publicationLinks.length === 0) {
+        alert("Please fill in all main fields, add at least one dataset link, and at least one publication link.");
         setIsSubmitting(false);
         setUploading(false);
         return;
       }
 
-      // Upload files to Firebase
-      const totalFiles = datasets.length + publications.length;
-      let uploaded = 0;
-      const datasetUrls = await Promise.all(
-        datasets.map(async (fileObj) => {
-          try {
-            const url = await uploadFileToFirebase(fileObj.file, 'datasets');
-            uploaded++;
-            setUploadProgress(Math.round((uploaded / totalFiles) * 100));
-            return url;
-          } catch (err) {
-            alert('Failed to upload dataset file: ' + fileObj.name);
-            throw err;
-          }
-        })
-      );
-      const publicationUrls = await Promise.all(
-        publications.map(async (fileObj) => {
-          try {
-            const url = await uploadFileToFirebase(fileObj.file, 'publications');
-            uploaded++;
-            setUploadProgress(Math.round((uploaded / totalFiles) * 100));
-            return url;
-          } catch (err) {
-            alert('Failed to upload publication file: ' + fileObj.name);
-            throw err;
-          }
-        })
-      );
-      setUploading(false);
-
+      // Prepare payload with links and types
       const payload = {
         title: formData.title,
         abstract: formData.abstract,
@@ -293,8 +271,8 @@ export default function PublishFindings() {
         ethicalApproval: formData.ethicalApproval,
         dataAvailability: formData.dataAvailability,
         license: formData.license,
-        datasetUrls: JSON.stringify(datasetUrls),
-        publicationUrls: JSON.stringify(publicationUrls),
+        datasetLinks: JSON.stringify(datasetLinks),
+        publicationLinks: JSON.stringify(publicationLinks),
       };
 
       // Add auth token if needed
@@ -660,88 +638,61 @@ export default function PublishFindings() {
 
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Datasets</h3>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col gap-2">
                       <Input
-                        id="datasetUpload"
-                        type="file"
-                        multiple
-                        onChange={(e) =>
-                          e.target.files &&
-                          handleFileUpload("dataset", e.target.files)
-                        }
+                        id="datasetLinkInput"
+                        type="text"
+                        placeholder="Paste dataset link and press Enter"
+                        value={newDatasetLink || ''}
+                        onChange={e => setNewDatasetLink(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && newDatasetLink.trim()) {
+                            setDatasetLinks(prev => [...prev, newDatasetLink.trim()]);
+                            setNewDatasetLink('');
+                          }
+                        }}
                         className="flex-1"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      {datasets.length === 0 ? (
-                        <p className="text-gray-500 text-sm">
-                          No datasets uploaded yet.
-                        </p>
-                      ) : (
                         <ul className="space-y-2">
-                          {datasets.map((file) => (
-                            <li
-                              key={file.id}
-                              className="flex items-center justify-between p-2 border rounded-md"
-                            >
-                              <span>
-                                {file.name} ({formatFileSize(file.size)})
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeFile("dataset", file.id)}
-                              >
+                        {datasetLinks.map((link, idx) => (
+                          <li key={idx} className="flex items-center justify-between p-2 border rounded-md">
+                            <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{link}</a>
+                            <Button variant="ghost" size="sm" onClick={() => setDatasetLinks(datasetLinks.filter((_, i) => i !== idx))}>
                                 <X className="h-4 w-4 text-red-500" />
                               </Button>
                             </li>
                           ))}
                         </ul>
-                      )}
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Publications (PDFs)</h3>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <h3 className="text-lg font-semibold">Publications</h3>
+                    <div className="flex flex-col gap-2">
                       <Input
-                        id="publicationUpload"
-                        type="file"
-                        accept=".pdf"
-                        multiple
-                        onChange={(e) =>
-                          e.target.files &&
-                          handleFileUpload("publication", e.target.files)
-                        }
+                        id="publicationLinkInput"
+                        type="text"
+                        placeholder="Paste publication link and press Enter"
+                        value={newPublicationLink || ''}
+                        onChange={e => setNewPublicationLink(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && newPublicationLink.trim()) {
+                            setPublicationLinks(prev => [...prev, newPublicationLink.trim()]);
+                            setNewPublicationLink('');
+                          }
+                        }}
                         className="flex-1"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      {publications.length === 0 ? (
-                        <p className="text-gray-500 text-sm">
-                          No publications uploaded yet.
-                        </p>
-                      ) : (
                         <ul className="space-y-2">
-                          {publications.map((file) => (
-                            <li
-                              key={file.id}
-                              className="flex items-center justify-between p-2 border rounded-md"
-                            >
-                              <span>
-                                {file.name} ({formatFileSize(file.size)})
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeFile("publication", file.id)}
-                              >
+                        {publicationLinks.map((link, idx) => (
+                          <li key={idx} className="flex items-center justify-between p-2 border rounded-md">
+                            <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{link}</a>
+                            <Button variant="ghost" size="sm" onClick={() => setPublicationLinks(publicationLinks.filter((_, i) => i !== idx))}>
                                 <X className="h-4 w-4 text-red-500" />
                               </Button>
                             </li>
                           ))}
                         </ul>
-                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -851,21 +802,29 @@ export default function PublishFindings() {
                     </div>
                     <div className="md:col-span-2">
                       <p className="font-medium">Uploaded Datasets:</p>
-                      {datasets.length === 0 ? (
-                        <p>No datasets uploaded.</p>
+                      {datasetLinks.length === 0 ? (
+                        <p>No datasets added.</p>
                       ) : (
                         <ul className="list-disc pl-5">
-                          {datasets.map(file => <li key={file.id}>{file.name} ({formatFileSize(file.size)})</li>)}
+                          {datasetLinks.map((link, idx) => (
+                            <li key={idx}>
+                              <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{link}</a>
+                            </li>
+                          ))}
                         </ul>
                       )}
                     </div>
                     <div className="md:col-span-2">
                       <p className="font-medium">Uploaded Publications:</p>
-                      {publications.length === 0 ? (
-                        <p>No publications uploaded.</p>
+                      {publicationLinks.length === 0 ? (
+                        <p>No publications added.</p>
                       ) : (
                         <ul className="list-disc pl-5">
-                          {publications.map(file => <li key={file.id}>{file.name} ({formatFileSize(file.size)})</li>)}
+                          {publicationLinks.map((link, idx) => (
+                            <li key={idx}>
+                              <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{link}</a>
+                            </li>
+                          ))}
                         </ul>
                       )}
                     </div>

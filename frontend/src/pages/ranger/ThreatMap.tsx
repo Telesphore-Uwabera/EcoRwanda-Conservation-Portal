@@ -208,7 +208,7 @@ export default function ThreatMap() {
     width: '100%',
     height: '400px',
   };
-  const center = { lat: -1.9981, lng: 30.1127 }; // KK 499 St. 17 Kigali
+  const center = { lat: -1.9719705, lng: 30.0929482 }; // 17 KK 499 St, Kigali, Rwanda
 
   if (loading) {
     return (
@@ -240,7 +240,7 @@ export default function ThreatMap() {
         <OfflineIndicator isOnline={isOnline} />
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
           <Map className="h-8 w-8 text-blue-600" /> Threat Map
-        </h1>
+          </h1>
         <p className="text-gray-600 mb-4">Visualize and monitor wildlife threats geographically in real time.</p>
 
         {/* Real Map Section */}
