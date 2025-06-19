@@ -233,7 +233,7 @@ export default function VerifyReports() {
         notes: verificationNotes,
         updatedBy: user._id,
       };
-      await api.put(`/api/reports/${selectedReport._id}`, updatePayload);
+      await api.put(`/reports/${selectedReport._id}`, updatePayload);
       setUpdateSuccess(true);
       setSelectedReport((prev) => {
         if (!prev) return null;
