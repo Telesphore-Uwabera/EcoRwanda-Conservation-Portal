@@ -43,6 +43,8 @@ import {
   ArrowRight,
   ArrowLeft,
 } from "lucide-react";
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 
 const tabTitles: Record<string, string> = {
   basic: "Basic Information",
@@ -59,6 +61,8 @@ export default function PublishFindings() {
   const [activeTab, setActiveTab] = useState("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -190,8 +194,20 @@ export default function PublishFindings() {
     }));
   };
 
+  const uploadFileToFirebase = async (file: File, folder: string) => {
+    try {
+      const fileRef = storageRef(storage, `${folder}/${Date.now()}_${file.name}`);
+      await uploadBytes(fileRef, file);
+      const url = await getDownloadURL(fileRef);
+      return url;
+    } catch (err) {
+      console.error('Firebase upload error:', err);
+      throw err;
+    }
+  };
+
   const handleFileUpload = (
-    type: "dataset" | "publication",
+    type: 'dataset' | 'publication',
     files: FileList,
   ) => {
     const fileArray = Array.from(files).map((file) => ({
@@ -201,16 +217,15 @@ export default function PublishFindings() {
       type: file.type,
       file,
     }));
-
-    if (type === "dataset") {
+    if (type === 'dataset') {
       setDatasets((prev) => [...prev, ...fileArray]);
     } else {
       setPublications((prev) => [...prev, ...fileArray]);
     }
   };
 
-  const removeFile = (type: "dataset" | "publication", id: number) => {
-    if (type === "dataset") {
+  const removeFile = (type: 'dataset' | 'publication', id: number) => {
+    if (type === 'dataset') {
       setDatasets((prev) => prev.filter((f) => f.id !== id));
     } else {
       setPublications((prev) => prev.filter((f) => f.id !== id));
@@ -220,21 +235,67 @@ export default function PublishFindings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setUploading(true);
+    setUploadProgress(0);
 
     try {
-      // Only allow one publication file for now
-      const file = publications[0]?.file;
-      if (!file) {
-        alert("Please upload a publication file (PDF, etc.)");
+      if (publications.length === 0) {
+        alert("Please select at least one publication file (PDF, etc.)");
         setIsSubmitting(false);
+        setUploading(false);
         return;
       }
 
-      const form = new FormData();
-      form.append("title", formData.title);
-      form.append("description", formData.abstract);
-      // If you want to attach to an existing project, add: form.append("projectId", projectId);
-      form.append("file", file);
+      // Upload files to Firebase
+      const totalFiles = datasets.length + publications.length;
+      let uploaded = 0;
+      const datasetUrls = await Promise.all(
+        datasets.map(async (fileObj) => {
+          try {
+            const url = await uploadFileToFirebase(fileObj.file, 'datasets');
+            uploaded++;
+            setUploadProgress(Math.round((uploaded / totalFiles) * 100));
+            return url;
+          } catch (err) {
+            alert('Failed to upload dataset file: ' + fileObj.name);
+            throw err;
+          }
+        })
+      );
+      const publicationUrls = await Promise.all(
+        publications.map(async (fileObj) => {
+          try {
+            const url = await uploadFileToFirebase(fileObj.file, 'publications');
+            uploaded++;
+            setUploadProgress(Math.round((uploaded / totalFiles) * 100));
+            return url;
+          } catch (err) {
+            alert('Failed to upload publication file: ' + fileObj.name);
+            throw err;
+          }
+        })
+      );
+      setUploading(false);
+
+      const payload = {
+        title: formData.title,
+        abstract: formData.abstract,
+        category: formData.category,
+        methodology: formData.methodology,
+        findings: formData.findings,
+        implications: formData.implications,
+        acknowledgments: formData.acknowledgments,
+        location: JSON.stringify(formData.location),
+        studyPeriod: JSON.stringify(formData.studyPeriod),
+        keywords: JSON.stringify(formData.keywords),
+        collaborators: JSON.stringify(formData.collaborators),
+        fundingSource: formData.fundingSource,
+        ethicalApproval: formData.ethicalApproval,
+        dataAvailability: formData.dataAvailability,
+        license: formData.license,
+        datasetUrls: JSON.stringify(datasetUrls),
+        publicationUrls: JSON.stringify(publicationUrls),
+      };
 
       // Add auth token if needed
       const storedUser = localStorage.getItem('eco-user');
@@ -246,12 +307,16 @@ export default function PublishFindings() {
 
       const response = await fetch("/api/researchprojects/publish", {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: form,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to publish finding");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || "Failed to publish finding");
       }
 
       setSuccess(true);
@@ -260,9 +325,10 @@ export default function PublishFindings() {
       }, 3000);
     } catch (error) {
       console.error("Error submitting findings:", error);
-      alert("Error submitting findings: " + (error as Error).message);
+      alert("Error submitting findings: " + (error && error.message ? error.message : error));
     } finally {
       setIsSubmitting(false);
+      setUploading(false);
     }
   };
 

@@ -171,53 +171,66 @@ export default function RequestVolunteers() {
 
     try {
       const requestData = {
-        ...formData,
-        requesterId: user?.id,
-        requesterName: user?.firstName + ' ' + user?.lastName,
-        organization: user?.organization,
-        status: "active",
-        postedDate: new Date().toISOString(),
-        volunteersApplied: 0,
-        responses: 0,
+        title: formData.title,
+        description: formData.description,
+        skillsRequired: formData.requiredSkills,
+        location: typeof formData.location === 'string' ? { name: formData.location } : formData.location,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        numberOfVolunteersNeeded: formData.volunteersNeeded,
+        // Add other fields as needed
       };
 
-      if (isOnline) {
-        // Simulate API submission
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        console.log("Volunteer request submitted:", requestData);
-      } else {
-        // Store offline
-        console.log("Volunteer request stored offline:", requestData);
+      // Add auth token if needed
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
+      }
+
+      const response = await fetch('/api/volunteer-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || 'Failed to submit volunteer request');
       }
 
       setSuccess(true);
-
       setTimeout(() => {
-        setActiveTab("existing");
+        setActiveTab('existing');
         setFormData({
-          title: "",
-          description: "",
-          objectives: "",
-          location: "",
-          duration: "",
-          startDate: "",
-          endDate: "",
+          title: '',
+          description: '',
+          objectives: '',
+          location: '',
+          duration: '',
+          startDate: '',
+          endDate: '',
           volunteersNeeded: 10,
           requiredSkills: [],
           preferredSkills: [],
-          timeCommitment: "",
-          difficultyLevel: "",
-          compensation: "",
+          timeCommitment: '',
+          difficultyLevel: '',
+          compensation: '',
           trainingProvided: false,
           accommodationProvided: false,
           transportationProvided: false,
-          contactInfo: user?.email || "",
-          applicationDeadline: "",
+          contactInfo: user?.email || '',
+          applicationDeadline: '',
         });
         setSuccess(false);
       }, 3000);
     } catch (error) {
-      console.error("Error submitting volunteer request:", error);
+      console.error('Error submitting volunteer request:', error);
+      alert('Error submitting volunteer request: ' + (error && error.message ? error.message : error));
     } finally {
       setIsSubmitting(false);
     }
