@@ -15,6 +15,33 @@ exports.getAllReports = async (req, res) => {
   }
 };
 
+// Get reports for a specific user
+exports.getUserReports = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const reports = await WildlifeReport.find({ submittedBy: userId })
+      .sort({ submittedAt: -1 })
+      .populate('submittedBy verifiedBy');
+    res.status(200).json({ success: true, data: reports });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
+// Get recent reports for a user
+exports.getRecentUserReports = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const reports = await WildlifeReport.find({ submittedBy: userId })
+      .sort({ submittedAt: -1 })
+      .limit(5)
+      .populate('submittedBy verifiedBy');
+    res.status(200).json({ success: true, data: reports });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
 // Get a single report by ID
 exports.getReportById = async (req, res) => {
   try {

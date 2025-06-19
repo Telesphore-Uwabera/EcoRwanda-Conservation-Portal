@@ -2,16 +2,11 @@ export type UserRole = "volunteer" | "researcher" | "ranger" | "administrator";
 
 export interface User {
   _id: string;
-  id: string;
-  email: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
-  avatar?: string;
-  location?: string;
-  organization?: string;
+  email: string;
+  role: string;
   verified: boolean;
-  createdAt: string;
   token?: string;
 }
 
@@ -27,13 +22,11 @@ export interface LoginCredentials {
 }
 
 export interface SignupData {
-  email: string;
-  password: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
-  location?: string;
-  organization?: string;
+  email: string;
+  password: string;
+  role: string;
 }
 
 export interface WildlifeReport {

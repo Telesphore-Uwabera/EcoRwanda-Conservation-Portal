@@ -21,10 +21,25 @@ const ConservationProjectSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   volunteers: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
+  requiredVolunteers: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  currentVolunteers: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   impact: {
     treesPlanted: { type: Number, default: 0 },
     wildlifeProtected: { type: Number, default: 0 },
@@ -32,7 +47,7 @@ const ConservationProjectSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'completed', 'planning'],
+    enum: ['planning', 'active', 'completed', 'cancelled'],
     default: 'planning',
   },
   startDate: {
@@ -41,9 +56,30 @@ const ConservationProjectSchema = new mongoose.Schema({
   },
   endDate: {
     type: Date,
+    required: true,
   },
+  skills: [{
+    type: String,
+    trim: true,
+  }],
+  requirements: {
+    type: String,
+    trim: true,
+  },
+  category: {
+    type: String,
+    required: true,
+    enum: ['wildlife', 'forest', 'water', 'community', 'research', 'other'],
+  },
+  images: [{
+    type: String,
+    trim: true,
+  }],
 }, {
   timestamps: true,
 });
+
+// Add index for efficient querying
+ConservationProjectSchema.index({ status: 1, startDate: 1 });
 
 module.exports = mongoose.model('ConservationProject', ConservationProjectSchema); 

@@ -22,7 +22,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
-import api from "@/config/api"; // Import API client
+import api from "@/config/api";
 import {
   Camera,
   Search,
@@ -38,68 +38,64 @@ import {
   TrendingUp,
   FileText,
 } from "lucide-react";
+import { format } from 'date-fns';
 
-interface Report {
+interface WildlifeReport {
   _id: string;
   title: string;
   description: string;
-  location: { name: string; lat: number; lng: number };
+  location: {
+    latitude: number;
+    longitude: number;
+    name?: string;
+  };
+  photos: string[];
   category: string;
   urgency: string;
   status: string;
-  submittedBy: { _id: string; firstName: string; lastName: string; email: string };
+  submittedBy: string;
   submittedAt: string;
-  photos: string[];
-  updates: Array<{ note: string; timestamp: string; updatedBy?: { _id: string; firstName: string; lastName: string } }>;
+  updatedAt: string;
 }
 
-export default function MyReports() {
-  const { user, loading } = useAuth();
+const MyReports = () => {
+  const { user } = useAuth();
   const isOnline = useOfflineStatus();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [urgencyFilter, setUrgencyFilter] = useState("all");
-  const [reports, setReports] = useState<Report[]>([]); // Initialize as empty array
+  const [reports, setReports] = useState<WildlifeReport[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReports = async () => {
-      let currentUser = user;
-      if (!currentUser || (!currentUser._id && !currentUser.id)) {
-        const storedUser = localStorage.getItem("eco-user");
-        if (storedUser) {
-          try {
-            currentUser = JSON.parse(storedUser);
-          } catch {
-            setError("User not loaded. Please log in again.");
-            return;
-          }
-        } else {
-          setError("User not loaded. Please log in again.");
-          return;
-        }
-      }
-      const userId = currentUser.id || currentUser._id;
-      if (!userId) {
-        setError("User not loaded. Please log in again.");
+      if (!user?._id) {
+        setLoading(false);
         return;
       }
+
       try {
-        const response = await api.get(`/reports?submittedBy=${userId}`);
+        console.log('Fetching reports for user:', user._id);
+        const response = await api.get(`/reports/user/${user._id}`);
+        console.log('API Response:', response);
+
+        if (response.data && Array.isArray(response.data.data)) {
         setReports(response.data.data);
+        } else {
+          console.error('Invalid response format:', response.data);
+          throw new Error('Invalid response format from server');
+        }
       } catch (err) {
-        console.error("Failed to fetch reports:", err);
-        setError("Failed to load your reports. Please try again later.");
+        console.error('Error fetching reports:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch reports');
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (isOnline) {
       fetchReports();
-    } else {
-      // For offline: Implement fetching from IndexedDB if reports are stored there
-      // For now, it will just show no reports if offline and not in IndexedDB
-    }
-  }, [user, isOnline]); // Re-fetch when user or online status changes
+  }, [user?._id]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -117,17 +113,15 @@ export default function MyReports() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "verified":
-        return "bg-emerald-100 text-emerald-800";
-      case "investigating":
-        return "bg-amber-100 text-amber-800";
-      case "pending":
-        return "bg-gray-100 text-gray-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -163,25 +157,16 @@ export default function MyReports() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
-      report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.location.name.toLowerCase().includes(searchTerm.toLowerCase());
+      report.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.urgency?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "all" || report.status === statusFilter;
+      statusFilter === "all" || report.status.toLowerCase() === statusFilter.toLowerCase();
     const matchesUrgency =
-      urgencyFilter === "all" || report.urgency === urgencyFilter;
+      urgencyFilter === "all" || report.urgency.toLowerCase() === urgencyFilter.toLowerCase();
 
     return matchesSearch && matchesStatus && matchesUrgency;
   });
@@ -195,115 +180,83 @@ export default function MyReports() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center h-full py-20">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Loading...</h2>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
         </div>
-      </DashboardLayout>
     );
   }
-  if (!user || !user._id) {
+
+  if (error) {
     return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center h-full py-20">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">No reports found</h2>
-          <p className="text-gray-500 mb-4">We couldn't load your reports. Please try refreshing the page or contact support if the issue persists.</p>
+      <div className="p-4 text-red-600">
+        Error: {error}
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      <div className="">
+      <div className="container mx-auto p-4">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <FileText className="h-8 w-8 text-emerald-600" />
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <FileText className="h-6 w-6 text-emerald-600" />
               My Reports
             </h1>
-            <p className="text-gray-600">
-              Track the status of your submitted wildlife and conservation
-              reports
-            </p>
+            <p className="text-gray-600">Track the status of your submitted wildlife and conservation reports</p>
           </div>
-          <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
             <Link to="/volunteer/submit-report">
-              <Camera className="h-4 w-4 mr-2" />
+            <Button className="gap-2">
+              <Camera className="h-4 w-4" />
               Submit New Report
+            </Button>
             </Link>
-          </Button>
         </div>
 
-        {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <FileText className="h-8 w-8 text-blue-600" />
-                <div>
-                  <p className="text-2xl font-bold text-blue-900">
-                    {stats.total}
-                  </p>
-                  <p className="text-sm text-blue-700">Total Reports</p>
-                </div>
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+                <div className="text-sm text-gray-600">Total Reports</div>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-emerald-200 bg-emerald-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="h-8 w-8 text-emerald-600" />
-                <div>
-                  <p className="text-2xl font-bold text-emerald-900">
-                    {stats.verified}
-                  </p>
-                  <p className="text-sm text-emerald-700">Verified</p>
-                </div>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-emerald-600">{stats.verified}</div>
+                <div className="text-sm text-gray-600">Verified</div>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="h-8 w-8 text-amber-600" />
-                <div>
-                  <p className="text-2xl font-bold text-amber-900">
-                    {stats.investigating}
-                  </p>
-                  <p className="text-sm text-amber-700">Investigating</p>
-                </div>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-amber-600">{stats.investigating}</div>
+                <div className="text-sm text-gray-600">Investigating</div>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-gray-200 bg-gray-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Clock className="h-8 w-8 text-gray-600" />
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stats.pending}
-                  </p>
-                  <p className="text-sm text-gray-700">Pending</p>
-                </div>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-600">{stats.pending}</div>
+                <div className="text-sm text-gray-600">Pending</div>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <Input
                     placeholder="Search reports by title, description, or location..."
                     value={searchTerm}
@@ -312,21 +265,24 @@ export default function MyReports() {
                   />
                 </div>
               </div>
+          <div className="flex gap-4">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Status" />
+              <SelectTrigger className="w-[180px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="investigating">Investigating</SelectItem>
                   <SelectItem value="verified">Verified</SelectItem>
-                  <SelectItem value="investigating">Investigating</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Urgency" />
+              <SelectTrigger className="w-[180px]">
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by urgency" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Urgency</SelectItem>
@@ -337,144 +293,87 @@ export default function MyReports() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Reports List */}
-        <div className="space-y-4">
-          {filteredReports.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No reports found
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {searchTerm ||
-                  statusFilter !== "all" ||
-                  urgencyFilter !== "all"
-                    ? "Try adjusting your search filters"
-                    : "You haven't submitted any reports yet"}
-                </p>
-                {!searchTerm &&
-                  statusFilter === "all" &&
-                  urgencyFilter === "all" && (
-                    <Button
-                      asChild
-                      className="bg-emerald-600 hover:bg-emerald-700"
-                    >
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-red-600">{error}</p>
+            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </div>
+        ) : filteredReports.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="mb-4">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">No reports found</h3>
+            <p className="text-gray-600 mt-1">
+              {reports.length === 0
+                ? "You haven't submitted any reports yet"
+                : "No reports match your current filters"}
+            </p>
+            {reports.length === 0 && (
                       <Link to="/volunteer/submit-report">
-                        <Camera className="h-4 w-4 mr-2" />
-                        Submit Your First Report
+                <Button className="mt-4">Submit Your First Report</Button>
                       </Link>
-                    </Button>
-                  )}
-              </CardContent>
-            </Card>
-          ) : (
-            filteredReports.map((report) => (
-              <Card
-                key={report._id}
-                className="hover:shadow-md transition-shadow"
-              >
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {/* Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <span className="text-2xl">
-                          {getCategoryIcon(report.category)}
-                        </span>
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-gray-900">
-                            {report.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            {report.description}
-                          </p>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredReports.map((report) => (
+              <Card key={report._id} className="overflow-hidden">
+                {report.photos && report.photos.length > 0 && (
+                  <div className="h-48 overflow-hidden">
+                    <img
+                      src={report.photos[0]}
+                      alt={report.title}
+                      className="w-full h-full object-cover"
+                    />
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
+                )}
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-lg">{report.title || 'Untitled Report'}</h3>
                         <Badge className={getStatusColor(report.status)}>
                           {getStatusIcon(report.status)}
                           <span className="ml-1">{report.status}</span>
                         </Badge>
                       </div>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{report.description}</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Badge variant="outline" className="text-xs">
+                      {report.category}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {report.urgency}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {format(new Date(report.submittedAt), 'PPp')}
                     </div>
-
-                    {/* Metadata */}
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
+                    {report.location.name && (
+                      <div className="flex items-center">
+                        <MapPin className="h-3 w-3 mr-1" />
                         {report.location.name}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(report.submittedAt)}
-                      </span>
-                      <span
-                        className={`flex items-center gap-1 ${getUrgencyColor(report.urgency)}`}
-                      >
-                        <AlertTriangle className="h-3 w-3" />
-                        {report.urgency} priority
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Camera className="h-3 w-3" />
-                        {report.photos.length} photos
-                      </span>
-                      {report.updates.length > 0 && (
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" />
-                          {report.updates.length} updates
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Latest Update */}
-                    {report.updates.length > 0 && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-start gap-2">
-                          <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
-                          <div className="flex-1">
-                            <p className="text-sm text-gray-900">
-                              {
-                                report.updates[report.updates.length - 1]
-                                  .note
-                              }
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              by{" "}
-                              {report.updates[report.updates.length - 1].updatedBy ? `${report.updates[report.updates.length - 1].updatedBy.firstName} ${report.updates[report.updates.length - 1].updatedBy.lastName}` : ""}
-                              •{" "}
-                              {formatDate(
-                                report.updates[report.updates.length - 1].timestamp,
-                              )}
-                            </p>
-                          </div>
-                        </div>
                       </div>
                     )}
-
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                      {report.updates.length > 0 && (
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          View All Updates ({report.updates.length})
-                        </Button>
-                      )}
-                    </div>
                   </div>
                 </CardContent>
               </Card>
-            ))
+            ))}
+          </div>
           )}
-        </div>
       </div>
     </DashboardLayout>
   );
-}
+};
+
+export default MyReports;

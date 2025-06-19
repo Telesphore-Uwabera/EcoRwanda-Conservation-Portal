@@ -25,11 +25,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const storedUser = localStorage.getItem("eco-user");
     if (storedUser) {
       try {
-        const user = JSON.parse(storedUser);
-        // Ensure 'verified' property is correctly set, defaulting to false if undefined
+        const userData = JSON.parse(storedUser);
+        // Ensure required fields are present
+        if (!userData._id || !userData.token) {
+          throw new Error('Invalid user data');
+        }
+
+        // Ensure 'verified' property is correctly set
         const userWithVerified: User = {
-          ...user,
-          verified: typeof user.verified === 'boolean' ? user.verified : false,
+          ...userData,
+          verified: typeof userData.verified === 'boolean' ? userData.verified : false,
         };
 
         setAuthState({
@@ -37,7 +42,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           isAuthenticated: true,
           loading: false,
         });
-      } catch {
+
+        // Set the token in the API client
+        api.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
         localStorage.removeItem("eco-user");
         setAuthState({
           user: null,
@@ -60,16 +69,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await api.post('/auth/login', credentials);
       const { user, token } = response.data;
       
-      // Store user data and token
-      const userData = { ...user, token };
+      if (!user._id || !token) {
+        throw new Error('Invalid response from server');
+      }
+
+      // Store user data with token
+      const userData: User = {
+        ...user,
+        token,
+        verified: typeof user.verified === 'boolean' ? user.verified : false,
+      };
+
       localStorage.setItem("eco-user", JSON.stringify(userData));
       
+      // Set the token in the API client
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       setAuthState({
         user: userData,
         isAuthenticated: true,
         loading: false,
       });
     } catch (error) {
+      console.error('Login error:', error);
       setAuthState({
         user: null,
         isAuthenticated: false,
@@ -85,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await api.post('/auth/register', data);
       setAuthState((prev) => ({ ...prev, loading: false }));
     } catch (error) {
+      console.error('Signup error:', error);
       setAuthState({
         user: null,
         isAuthenticated: false,
@@ -96,6 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = (): void => {
     localStorage.removeItem("eco-user");
+    // Remove the token from API client
+    delete api.defaults.headers.common['Authorization'];
     setAuthState({
       user: null,
       isAuthenticated: false,
@@ -104,8 +129,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateUser = (user: User): void => {
-    setAuthState((prev) => ({ ...prev, user }));
-    localStorage.setItem("eco-user", JSON.stringify(user));
+    const updatedUser = {
+      ...user,
+      verified: typeof user.verified === 'boolean' ? user.verified : false,
+    };
+    setAuthState((prev) => ({ ...prev, user: updatedUser }));
+    localStorage.setItem("eco-user", JSON.stringify(updatedUser));
   };
 
   return (

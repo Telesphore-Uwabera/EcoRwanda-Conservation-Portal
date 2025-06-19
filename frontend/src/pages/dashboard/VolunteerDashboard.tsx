@@ -27,6 +27,7 @@ import {
   Leaf,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { format } from 'date-fns';
 
 // Define interfaces for the data structures
 interface VolunteerStats {
@@ -55,6 +56,34 @@ interface AvailableProject {
   volunteersNeeded: number;
 }
 
+interface WildlifeReport {
+  _id: string;
+  title: string;
+  description: string;
+  location: {
+    latitude: number;
+    longitude: number;
+    name?: string;
+  };
+  photos: string[];
+  category: string;
+  urgency: string;
+  status: string;
+  submittedAt: string;
+}
+
+interface ConservationProject {
+  _id: string;
+  title: string;
+  description: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  requiredVolunteers: number;
+  currentVolunteers: number;
+}
+
 export default function VolunteerDashboard() {
   const { user } = useAuth();
   const isOnline = useOfflineStatus();
@@ -65,56 +94,57 @@ export default function VolunteerDashboard() {
     impactScore: 0,
     rank: "N/A",
   });
-  const [recentReports, setRecentReports] = useState<RecentReport[]>([]);
-  const [availableProjects, setAvailableProjects] = useState<AvailableProject[]>([]);
+  const [recentReports, setRecentReports] = useState<WildlifeReport[]>([]);
+  const [availableProjects, setAvailableProjects] = useState<ConservationProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDashboardData = async (currentUser) => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await api.get('/volunteer-dashboard'); 
-        const data = response.data;
+    const fetchData = async () => {
+      if (!user?._id) {
+        setLoading(false);
+        return;
+      }
 
-        setStats(data.stats);
-        setRecentReports(data.recentReports);
-        setAvailableProjects(data.availableProjects);
+      try {
+        console.log('Fetching data for user:', user._id);
+        
+        // Fetch recent reports
+        const reportsResponse = await api.get(`/reports/user/${user._id}/recent`);
+        console.log('Reports Response:', reportsResponse);
+
+        if (reportsResponse.data && Array.isArray(reportsResponse.data.data)) {
+          setRecentReports(reportsResponse.data.data);
+        }
+
+        // Fetch available projects
+        const projectsResponse = await api.get('/conservation-projects/available');
+        console.log('Projects Response:', projectsResponse);
+
+        if (projectsResponse.data && Array.isArray(projectsResponse.data.data)) {
+          setAvailableProjects(projectsResponse.data.data);
+        }
       } catch (err) {
-        console.error('Error fetching volunteer dashboard data:', err);
-        setError('Failed to load dashboard data. Please try again later.');
+        console.error('Error fetching dashboard data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
       } finally {
         setLoading(false);
       }
     };
 
-    let currentUser = user;
-    if (!currentUser || !currentUser._id) {
-      const storedUser = localStorage.getItem("eco-user");
-      if (storedUser) {
-        try {
-          currentUser = JSON.parse(storedUser);
-        } catch {
-          return;
-        }
-      } else {
-        return;
-      }
-    }
-    fetchDashboardData(currentUser);
-  }, [user]); // Re-run when user changes
+    fetchData();
+  }, [user?._id]);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "verified":
-        return "bg-emerald-100 text-emerald-800";
-      case "pending":
-        return "bg-amber-100 text-amber-800";
-      case "investigating":
-        return "bg-blue-100 text-blue-800";
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -130,6 +160,22 @@ export default function VolunteerDashboard() {
         return "text-gray-600";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-red-600">
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -198,46 +244,48 @@ export default function VolunteerDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {loading ? (
-              <p>Loading reports...</p>
-            ) : error ? (
-              <p className="text-red-600">{error}</p>
-            ) : recentReports.length === 0 ? (
-              <p className="text-gray-500">No recent reports found.</p>
+            {recentReports.length === 0 ? (
+              <Card className="p-6 text-center text-gray-600">
+                No recent reports. Start by submitting a new wildlife report.
+              </Card>
             ) : (
-              recentReports.map((report) => (
-                <div
-                  key={report.id}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-gray-50"
-                >
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-gray-900">
-                        {report.title}
-                      </h4>
+              <div className="space-y-4">
+                {recentReports.map((report) => (
+                  <Card key={report._id} className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-semibold">{report.title || 'Untitled Report'}</h3>
                       <Badge className={getStatusColor(report.status)}>
                         {report.status}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {report.location}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {report.submittedAt}
-                      </span>
-                      <span
-                        className={`flex items-center gap-1 ${getUrgencyColor(report.urgency)}`}
-                      >
-                        <AlertTriangle className="h-3 w-3" />
-                        {report.urgency}
+                    
+                    {report.photos && report.photos.length > 0 && (
+                      <div className="mb-3">
+                        <img 
+                          src={report.photos[0]} 
+                          alt="Report" 
+                          className="w-full h-32 object-cover rounded-md"
+                        />
+                      </div>
+                    )}
+                    
+                    <p className="text-sm text-gray-600 mb-2">{report.description}</p>
+                    <div className="flex justify-between items-center">
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {report.category}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {report.urgency}
+                        </Badge>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {format(new Date(report.submittedAt), 'PPp')}
                       </span>
                     </div>
-                  </div>
-                </div>
-              ))
+                  </Card>
+                ))}
+              </div>
             )}
             {recentReports.length > 0 && (
               <Button asChild variant="outline" className="w-full">
@@ -259,43 +307,40 @@ export default function VolunteerDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {loading ? (
-              <p>Loading projects...</p>
-            ) : error ? (
-              <p className="text-red-600">{error}</p>
-            ) : availableProjects.length === 0 ? (
-              <p className="text-gray-500">No available projects found.</p>
+            {availableProjects.length === 0 ? (
+              <Card className="p-6 text-center text-gray-600">
+                No available projects at the moment. Check back later!
+              </Card>
             ) : (
-              availableProjects.map((project) => (
-                <div
-                  key={project.id}
-                  className="p-4 rounded-lg border border-gray-200"
-                >
-                  <h4 className="font-medium text-gray-900">{project.title}</h4>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {project.description}
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {project.location}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      Starts: {project.startDate}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center mt-3">
-                    <Badge className={getStatusColor(project.status)}>
-                      {project.status}
-                    </Badge>
-                    <Button size="sm">
-                      <Users className="h-4 w-4 mr-1" />
-                      Join ({project.volunteersNeeded} needed)
-                    </Button>
-                  </div>
-                </div>
-              ))
+              <div className="space-y-4">
+                {availableProjects.map((project) => (
+                  <Card key={project._id} className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold">{project.title}</h3>
+                      <Badge variant="outline">
+                        {project.currentVolunteers}/{project.requiredVolunteers} Volunteers
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <Badge variant="secondary" className="text-xs">
+                        📍 {project.location}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        📅 {format(new Date(project.startDate), 'PP')} - {format(new Date(project.endDate), 'PP')}
+                      </Badge>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Link to={`/volunteer/projects/${project._id}`}>
+                        <Button size="sm">Learn More</Button>
+                      </Link>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             )}
             {availableProjects.length > 0 && (
               <Button asChild variant="outline" className="w-full">
