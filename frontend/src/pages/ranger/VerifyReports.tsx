@@ -87,7 +87,7 @@ export default function VerifyReports() {
       setError(null);
       try {
         let response;
-        if (reportId) {
+        if (reportId && reportId !== 'undefined') {
           response = await api.get(`/reports/${reportId}`);
           setSelectedReport(response.data.data);
         } else {
