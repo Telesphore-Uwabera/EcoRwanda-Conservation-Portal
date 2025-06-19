@@ -92,6 +92,8 @@ interface DashboardStats {
   totalReports: number;
   pendingReports: number;
   verifiedReports: number;
+  rejectedReports?: number;
+  investigatingReports?: number;
   userStats: {
     totalUsers: number;
     activeUsers: number;
@@ -290,6 +292,17 @@ export default function AdminDashboard() {
 
             <Card className="bg-white rounded-xl shadow-md p-6">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Unverified Users</CardTitle>
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              </CardHeader>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.userStats.totalUsers - stats.userStats.verifiedUsers}
+                <AlertTriangle className="h-8 w-8 text-amber-600" />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-lg font-medium text-gray-700">Total Projects</CardTitle>
                 <FolderOpen className="h-5 w-5 text-amber-500" />
               </CardHeader>
@@ -362,6 +375,28 @@ export default function AdminDashboard() {
               <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
                 {stats.verifiedReports}
                 <CheckCircle className="h-8 w-8 text-emerald-600" />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Rejected Reports</CardTitle>
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+              </CardHeader>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.rejectedReports}
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-xl shadow-md p-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-medium text-gray-700">Investigating Reports</CardTitle>
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              </CardHeader>
+              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+                {stats.investigatingReports}
+                <AlertTriangle className="h-8 w-8 text-amber-600" />
               </CardContent>
             </Card>
           </div>

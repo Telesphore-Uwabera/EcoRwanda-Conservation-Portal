@@ -54,13 +54,12 @@ interface Report {
 }
 
 export default function MyReports() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const isOnline = useOfflineStatus();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [urgencyFilter, setUrgencyFilter] = useState("all");
   const [reports, setReports] = useState<Report[]>([]); // Initialize as empty array
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,25 +72,19 @@ export default function MyReports() {
             currentUser = JSON.parse(storedUser);
           } catch {
             setError("User not loaded. Please log in again.");
-            setLoading(false);
             return;
           }
         } else {
           setError("User not loaded. Please log in again.");
-          setLoading(false);
           return;
         }
       }
-      setLoading(true);
-      setError(null);
       try {
         const response = await api.get(`/reports?submittedBy=${currentUser._id}`);
         setReports(response.data.data);
       } catch (err) {
         console.error("Failed to fetch reports:", err);
         setError("Failed to load your reports. Please try again later.");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -100,7 +93,6 @@ export default function MyReports() {
     } else {
       // For offline: Implement fetching from IndexedDB if reports are stored there
       // For now, it will just show no reports if offline and not in IndexedDB
-      setLoading(false);
     }
   }, [user, isOnline]); // Re-fetch when user or online status changes
 
@@ -196,15 +188,21 @@ export default function MyReports() {
     investigating: reports.filter((r) => r.status === "investigating").length,
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-full py-20">
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Loading...</h2>
+        </div>
+      </DashboardLayout>
+    );
+  }
   if (!user || !user._id) {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-full py-20">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">User not loaded</h2>
-          <p className="text-gray-500 mb-4">Please log in again to view your reports.</p>
-          <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
-            <Link to="/auth/login">Go to Login</Link>
-          </Button>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">No reports found</h2>
+          <p className="text-gray-500 mb-4">We couldn't load your reports. Please try refreshing the page or contact support if the issue persists.</p>
         </div>
       </DashboardLayout>
     );
