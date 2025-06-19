@@ -33,6 +33,8 @@ import {
   UserCheck,
   AlertTriangle,
   Map,
+  Megaphone,
+  MessageSquare,
 } from "lucide-react";
 import { useMediaQuery } from '@mui/material';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -129,6 +131,12 @@ const navigationItems: NavigationItem[] = [
     icon: Map,
     roles: ["ranger"],
   },
+  {
+    label: "Communications",
+    href: "/ranger/communications",
+    icon: MessageSquare,
+    roles: ["ranger"],
+  },
 
   // Administrator Navigation
   {
@@ -153,6 +161,12 @@ const navigationItems: NavigationItem[] = [
     label: "System Settings",
     href: "/admin/settings",
     icon: Settings,
+    roles: ["administrator"],
+  },
+  {
+    label: "Communications",
+    href: "/admin/communications",
+    icon: MessageSquare,
     roles: ["administrator"],
   },
 ];

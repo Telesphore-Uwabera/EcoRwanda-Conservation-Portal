@@ -39,6 +39,9 @@ const analyticsRoutes = require('./routes/analytics');
 const systemSettingsRoutes = require('./routes/systemSettings');
 const reportsRoutes = require('./routes/reports');
 const researchProjectRoutes = require('./routes/researchProjectRoutes');
+const announcementsRoutes = require('./routes/announcements');
+const chatRoutes = require('./routes/chat');
+const collaborationRoutes = require('./routes/collaboration');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -54,6 +57,9 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', systemSettingsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/researchprojects', researchProjectRoutes);
+app.use('/api/announcements', announcementsRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/collaboration', collaborationRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {

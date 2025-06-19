@@ -43,6 +43,7 @@ import {
 import api from "@/config/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PatrolDialog } from "@/components/patrol/PatrolDialog";
+import { Link } from "react-router-dom";
 
 interface Patrol {
   _id: string;
@@ -90,45 +91,47 @@ export default function PatrolData() {
     patrolsCompleted: 0,
   });
 
-  useEffect(() => {
-    const fetchPatrols = async () => {
-      setLoading(true);
-      try {
-        const storedUser = localStorage.getItem('eco-user');
-        let token = null;
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          token = user.token;
-        }
-
-        const response = await api.get('/patrols', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setPatrols(response.data.patrols || []);
-        setError(null);
-      } catch (err) {
-        setError('Failed to fetch patrol data.');
-        console.error('Error fetching patrol data:', err);
-      } finally {
-        setLoading(false);
+  const fetchPatrols = async () => {
+    setLoading(true);
+    try {
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
       }
-    };
+      const response = await api.get('/patrols', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPatrols(response.data.patrols || []);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch patrol data.');
+      console.error('Error fetching patrol data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchPatrols();
-  }, []);
+  const fetchStats = async () => {
+    try {
+      const response = await api.get('/patrols/stats');
+      setStats(response.data);
+    } catch (err) {
+      console.error('Error fetching patrol stats:', err);
+    }
+  };
+
+  // Combine refresh logic
+  const refreshPatrolData = async () => {
+    await Promise.all([fetchPatrols(), fetchStats()]);
+  };
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await api.get('/patrols/stats');
-        setStats(response.data);
-      } catch (err) {
-        console.error('Error fetching patrol stats:', err);
-      }
-    };
-    fetchStats();
+    refreshPatrolData();
+    // eslint-disable-next-line
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -359,10 +362,10 @@ export default function PatrolData() {
                 <Download className="h-5 w-5" />
                 Export Data
               </Button>
-              <Button variant="outline" className="h-16">
+              <Link to="/ranger/analytics" className="h-16 flex items-center justify-center border rounded-md hover:bg-gray-100 transition-colors">
                 <TrendingUp className="h-5 w-5" />
-                View Analytics
-              </Button>
+                <span className="ml-2">View Analytics</span>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -573,13 +576,21 @@ export default function PatrolData() {
       </div>
       <PatrolDialog
         open={showNewPatrolDialog}
-        onOpenChange={setShowNewPatrolDialog}
+        onOpenChange={(open) => {
+          setShowNewPatrolDialog(open);
+          if (!open) refreshPatrolData();
+        }}
         mode="new"
+        onSuccess={refreshPatrolData}
       />
       <PatrolDialog
         open={showScheduleDialog}
-        onOpenChange={setShowScheduleDialog}
+        onOpenChange={(open) => {
+          setShowScheduleDialog(open);
+          if (!open) refreshPatrolData();
+        }}
         mode="schedule"
+        onSuccess={refreshPatrolData}
       />
     </DashboardLayout>
   );

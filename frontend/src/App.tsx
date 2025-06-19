@@ -38,12 +38,21 @@ import Analytics from "./pages/researcher/Analytics";
 import VerifyReports from "./pages/ranger/VerifyReports";
 import PatrolData from "./pages/ranger/PatrolData";
 import ThreatMap from "./pages/ranger/ThreatMap";
+import Communications from "./pages/ranger/Communications";
+import RangerAnalytics from "./pages/ranger/Analytics";
+import Announcements from "./pages/ranger/Announcements";
+import Chat from "./pages/ranger/Chat";
+import Collaboration from "./pages/ranger/Collaboration";
 
 // Admin Pages
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import UserProfileViewPage from "./pages/admin/UserProfileViewPage";
 import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import AdminAnnouncements from "./pages/admin/Announcements";
+import AdminChat from "./pages/admin/Chat";
+import AdminCommunications from "./pages/admin/Communications";
+import AdminCollaboration from "./pages/admin/Collaboration";
 
 const queryClient = new QueryClient();
 
@@ -209,6 +218,56 @@ const App = () => (
                 </RoleGuard>
               }
             />
+            <Route
+              path="/ranger/communications"
+              element={
+                <RoleGuard allowedRoles={["ranger"]}>
+                  <DashboardLayout>
+                    <Communications />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/ranger/analytics"
+              element={
+                <RoleGuard allowedRoles={["ranger"]}>
+                  <DashboardLayout>
+                    <RangerAnalytics />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/ranger/announcements"
+              element={
+                <RoleGuard allowedRoles={["ranger"]}>
+                  <DashboardLayout>
+                    <Announcements />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/ranger/chat"
+              element={
+                <RoleGuard allowedRoles={["ranger"]}>
+                  <DashboardLayout>
+                    <Chat />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/ranger/collaboration"
+              element={
+                <RoleGuard allowedRoles={["ranger"]}>
+                  <DashboardLayout>
+                    <Collaboration />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
 
             {/* Admin Routes */}
             <Route
@@ -247,6 +306,46 @@ const App = () => (
                 <RoleGuard allowedRoles={["administrator"]}>
                   <DashboardLayout>
                     <AnalyticsPage />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/announcements"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <AdminAnnouncements />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/chat"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <AdminChat />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/communications"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <AdminCommunications />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/collaboration"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <AdminCollaboration />
                   </DashboardLayout>
                 </RoleGuard>
               }
