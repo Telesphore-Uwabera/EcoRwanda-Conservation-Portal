@@ -1,4 +1,5 @@
 const ResearchProject = require('../models/ResearchProject');
+const { sendNotification } = require('../utils/notifications');
 
 // Controller to publish a finding (add a finding and documents to researchprojects)
 const publishFinding = async (req, res) => {
@@ -21,8 +22,8 @@ const publishFinding = async (req, res) => {
       dataAvailability,
       license,
       projectId,
-      datasetFileNames = [],
-      publicationFileNames = [],
+      datasetUrls = [],
+      publicationUrls = [],
     } = req.body;
 
     // Validate required fields
@@ -35,13 +36,15 @@ const publishFinding = async (req, res) => {
     let parsedStudyPeriod = studyPeriod;
     let parsedKeywords = keywords;
     let parsedCollaborators = collaborators;
+    let parsedDatasetUrls = datasetUrls;
+    let parsedPublicationUrls = publicationUrls;
     try {
       if (typeof location === 'string') parsedLocation = JSON.parse(location);
       if (typeof studyPeriod === 'string') parsedStudyPeriod = JSON.parse(studyPeriod);
       if (typeof keywords === 'string') parsedKeywords = JSON.parse(keywords);
       if (typeof collaborators === 'string') parsedCollaborators = JSON.parse(collaborators);
-      if (typeof datasetFileNames === 'string') datasetFileNames = JSON.parse(datasetFileNames);
-      if (typeof publicationFileNames === 'string') publicationFileNames = JSON.parse(publicationFileNames);
+      if (typeof datasetUrls === 'string') parsedDatasetUrls = JSON.parse(datasetUrls);
+      if (typeof publicationUrls === 'string') parsedPublicationUrls = JSON.parse(publicationUrls);
     } catch (e) {
       // Ignore parse errors, fallback to raw values
     }
@@ -66,32 +69,50 @@ const publishFinding = async (req, res) => {
         leadResearcher: req.user._id,
         tags: parsedKeywords || [],
         status: 'planning',
+        datasetLinks: parsedDatasetUrls,
+        publicationLinks: parsedPublicationUrls,
       });
     }
 
-    // Add finding (store file names only)
+    // If editing an existing project, update datasetLinks and publicationLinks
+    if (projectId) {
+      project.datasetLinks = parsedDatasetUrls;
+      project.publicationLinks = parsedPublicationUrls;
+    }
+
+    // Add finding (store file URLs)
     project.findings.push({
       title,
       description: abstract,
       date: new Date(),
       addedBy: req.user._id,
       attachments: [
-        ...datasetFileNames.map(name => ({ fileName: name })),
-        ...publicationFileNames.map(name => ({ fileName: name })),
+        ...parsedDatasetUrls.map(url => ({ fileUrl: url })),
+        ...parsedPublicationUrls.map(url => ({ fileUrl: url })),
       ],
     });
 
-    // Add documents (store file names only)
-    publicationFileNames.forEach(name => {
+    // Add documents (store file URLs)
+    parsedPublicationUrls.forEach(url => {
       project.documents.push({
         title,
         description: abstract,
-        fileName: name,
+        fileUrl: url,
         uploadedBy: req.user._id,
       });
     });
 
     await project.save();
+
+    // Send notification (placeholder)
+    sendNotification({
+      recipients: [req.user._id],
+      title: 'Research Finding Published',
+      message: `A new research finding has been published: ${title}`,
+      type: 'research_finding',
+      link: `/researchprojects/${project._id}`,
+    });
+
     res.status(201).json({ success: true, data: project });
   } catch (error) {
     console.error('Error publishing finding:', error);

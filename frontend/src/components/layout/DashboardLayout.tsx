@@ -221,7 +221,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen">
       {/* Mobile Header with Toggle Button */}
       {isMobile && (
         <div className="fixed top-0 left-0 right-0 bg-white shadow-md p-4 flex items-center justify-between z-50">
@@ -327,9 +327,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       )}
 
       {/* Main Content */}
-      <main className={`flex-1 overflow-y-auto p-[5px] ${isMobile ? 'pt-20' : 'pl-64'}`}>
-            {children}
-        </main>
+      <main
+        className={`flex-1 overflow-y-auto ${isMobile ? 'pt-20' : ''}`}
+        style={{ marginLeft: isMobile ? 0 : '12vw', marginRight: 8 }}
+      >
+        {children}
+      </main>
     </div>
   );
 };
