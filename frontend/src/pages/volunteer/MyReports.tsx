@@ -65,15 +65,27 @@ export default function MyReports() {
 
   useEffect(() => {
     const fetchReports = async () => {
-      if (!user || !user._id) {
-        setError("User not loaded. Please log in again.");
-        setLoading(false);
-        return;
+      let currentUser = user;
+      if (!currentUser || !currentUser._id) {
+        const storedUser = localStorage.getItem("eco-user");
+        if (storedUser) {
+          try {
+            currentUser = JSON.parse(storedUser);
+          } catch {
+            setError("User not loaded. Please log in again.");
+            setLoading(false);
+            return;
+          }
+        } else {
+          setError("User not loaded. Please log in again.");
+          setLoading(false);
+          return;
+        }
       }
       setLoading(true);
       setError(null);
       try {
-        const response = await api.get(`/reports?submittedBy=${user._id}`);
+        const response = await api.get(`/reports?submittedBy=${currentUser._id}`);
         setReports(response.data.data);
       } catch (err) {
         console.error("Failed to fetch reports:", err);

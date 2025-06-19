@@ -4,7 +4,7 @@ const { authenticateToken } = require('../middleware/auth');
 // Get all patrols
 exports.getPatrols = async (req, res) => {
   try {
-    const patrols = await Patrol.find({ ranger: req.user._id })
+    const patrols = await Patrol.find({})
       .populate('ranger', 'firstName lastName email')
       .sort({ patrolDate: -1 });
     
@@ -196,22 +196,18 @@ exports.addFindings = async (req, res) => {
 // Get patrol stats for dashboard
 exports.getPatrolStats = async (req, res) => {
   try {
-    const userId = req.user._id;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const totalPatrols = await Patrol.countDocuments({ ranger: userId });
+    const totalPatrols = await Patrol.countDocuments({});
     const completedToday = await Patrol.countDocuments({
-      ranger: userId,
       status: 'completed',
       patrolDate: { $gte: today }
     });
     const activePatrols = await Patrol.countDocuments({
-      ranger: userId,
       status: { $in: ['in_progress', 'scheduled'] }
     });
     const patrolsCompleted = await Patrol.countDocuments({
-      ranger: userId,
       status: 'completed'
     });
 
