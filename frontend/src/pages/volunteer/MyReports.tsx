@@ -73,7 +73,7 @@ export default function MyReports() {
       setLoading(true);
       setError(null);
       try {
-        const response = await api.get(`/api/reports?submittedBy=${user._id}`);
+        const response = await api.get(`/reports?submittedBy=${user._id}`);
         setReports(response.data.data);
       } catch (err) {
         console.error("Failed to fetch reports:", err);
