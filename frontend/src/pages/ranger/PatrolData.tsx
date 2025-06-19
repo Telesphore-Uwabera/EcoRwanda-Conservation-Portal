@@ -92,38 +92,38 @@ export default function PatrolData() {
   });
   const [editPatrol, setEditPatrol] = useState<any | null>(null);
 
-  const fetchPatrols = async () => {
-    setLoading(true);
-    try {
-      const storedUser = localStorage.getItem('eco-user');
-      let token = null;
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        token = user.token;
+    const fetchPatrols = async () => {
+      setLoading(true);
+      try {
+        const storedUser = localStorage.getItem('eco-user');
+        let token = null;
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          token = user.token;
+        }
+        const response = await api.get('/patrols', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setPatrols(response.data.patrols || []);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch patrol data.');
+        console.error('Error fetching patrol data:', err);
+      } finally {
+        setLoading(false);
       }
-      const response = await api.get('/patrols', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setPatrols(response.data.patrols || []);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch patrol data.');
-      console.error('Error fetching patrol data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const fetchStats = async () => {
-    try {
-      const response = await api.get('/patrols/stats');
-      setStats(response.data);
-    } catch (err) {
-      console.error('Error fetching patrol stats:', err);
-    }
-  };
+    const fetchStats = async () => {
+      try {
+        const response = await api.get('/patrols/stats');
+        setStats(response.data);
+      } catch (err) {
+        console.error('Error fetching patrol stats:', err);
+      }
+    };
 
   // Combine refresh logic
   const refreshPatrolData = async () => {
@@ -574,6 +574,28 @@ export default function PatrolData() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Patrol Team Status */}
+        <Card className="col-span-1 border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle>Patrol Team Status</CardTitle>
+            <CardDescription>Current status and assignments of active patrol teams.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {patrols.filter(p => ["in_progress", "scheduled"].includes(p.status)).length === 0 ? (
+              <div className="text-gray-500">No active patrol teams found.</div>
+            ) : (
+              <ul>
+                {patrols.filter(p => ["in_progress", "scheduled"].includes(p.status)).map((p) => (
+                  <li key={p.id} className="mb-2">
+                    <span className="font-semibold">{p.route}</span> - {p.status.replace('_', ' ')}<br />
+                    <span className="text-sm text-gray-600">Assigned: {p.ranger?.firstName} {p.ranger?.lastName}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
       <PatrolDialog
         open={showNewPatrolDialog}
