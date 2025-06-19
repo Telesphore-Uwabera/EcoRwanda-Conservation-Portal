@@ -1,21 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const reportController = require('../controllers/reportController');
-const { authenticateToken, isAdmin } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
+const {
+  getAllReports,
+  getReportById,
+  createReport,
+  updateReport,
+  deleteReport,
+  getUserReports,
+  getRecentUserReports
+} = require('../controllers/reportController');
 
 // Get all reports
-router.get('/', authenticateToken, reportController.getAllReports);
+router.get('/', authenticateToken, getAllReports);
 
-// Get a single report by ID
-router.get('/:id', authenticateToken, reportController.getReportById);
+// Get reports for a specific user
+router.get('/user/:userId', authenticateToken, getUserReports);
+
+// Get recent reports for a user
+router.get('/user/:userId/recent', authenticateToken, getRecentUserReports);
+
+// Get a single report
+router.get('/:id', authenticateToken, getReportById);
 
 // Create a new report
-router.post('/', authenticateToken, reportController.createReport);
+router.post('/', authenticateToken, createReport);
 
-// Update a report by ID
-router.put('/:id', authenticateToken, reportController.updateReport);
+// Update a report
+router.put('/:id', authenticateToken, updateReport);
 
-// Delete a report by ID (admin only)
-router.delete('/:id', authenticateToken, isAdmin, reportController.deleteReport);
+// Delete a report
+router.delete('/:id', authenticateToken, deleteReport);
 
 module.exports = router; 
