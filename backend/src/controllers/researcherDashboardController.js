@@ -51,19 +51,18 @@ const getResearcherDashboardData = async (req, res) => {
       status: { $in: ['active', 'data_collection', 'analysis'] },
     }).populate('leadResearcher', 'firstName lastName').limit(5);
 
-    // Fetch recent publications by this researcher (assuming publications are completed projects)
-    const recentPublications = await ResearchProject.find({
-      leadResearcher: userId,
-      status: { $in: ['completed', 'published'] },
-    }).populate('leadResearcher', 'firstName lastName').sort({ updatedAt: -1 }).limit(5);
+    // This is a placeholder, as we don't have a publications model yet
+    const recentPublications = [];
 
-    // Fetch collaboration requests made by this researcher
+    // Get collaboration requests (volunteer requests for their projects)
     const collaborationRequests = await VolunteerRequest.find({
       requestedBy: userId,
-      status: { $in: ['open', 'in-progress'] },
-    }).populate('researchProject', 'title').populate('applicants', 'firstName lastName').sort({ createdAt: -1 }).limit(5);
+    })
+      .sort({ createdAt: -1 })
+      .limit(5);
 
-    res.json({
+    res.status(200).json({
+      success: true,
       stats,
       activeProjects,
       recentPublications,
@@ -80,28 +79,35 @@ const getDashboardData = async (req, res) => {
   try {
     const researcherId = req.user._id;
 
-    const activeProjects = await ResearchProject.find({
-      researcher: researcherId,
-      status: { $in: ['active', 'planning'] }
+    // Fetch active projects
+    const activeProjects = await ResearchProject.find({ 
+      leadResearcher: researcherId,
+      status: { $in: ['planning', 'in-progress', 'on-hold'] }
     }).sort({ createdAt: -1 }).limit(5);
 
+    // Fetch recent publications (completed projects)
     const recentPublications = await ResearchProject.find({
-        researcher: researcherId,
-        status: 'completed',
+      leadResearcher: researcherId,
+      status: 'completed'
     }).sort({ updatedAt: -1 }).limit(5);
 
-    const collaborationRequests = await VolunteerRequest.find({
-        requestedBy: researcherId,
-        status: 'open'
-    }).populate('applicants', 'firstName lastName email').sort({ createdAt: -1 }).limit(5);
+    // Fetch collaboration requests (dummy data for now, as model is not defined)
+    const collaborationRequests = []; // Placeholder
 
-    res.status(200).json({
+    // Calculate stats
+    const stats = {
+      publishedFindings: await ResearchProject.countDocuments({ leadResearcher: researcherId, status: 'completed' }),
+      activeProjects: await ResearchProject.countDocuments({ leadResearcher: researcherId, status: { $in: ['planning', 'in-progress', 'on-hold'] } }),
+      volunteerCollaborators: 0, // Placeholder
+      datasetDownloads: 0, // Placeholder
+    };
+
+    res.json({
       success: true,
-      data: {
-        activeProjects,
-        recentPublications,
-        collaborationRequests,
-      },
+      stats,
+      activeProjects,
+      recentPublications,
+      collaborationRequests,
     });
   } catch (error) {
     console.error('Error fetching researcher dashboard data:', error);

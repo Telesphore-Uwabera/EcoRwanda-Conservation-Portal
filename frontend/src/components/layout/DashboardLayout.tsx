@@ -35,6 +35,8 @@ import {
   Map,
   Megaphone,
   MessageSquare,
+  LayoutGrid,
+  Briefcase,
 } from "lucide-react";
 import { useMediaQuery } from '@mui/material';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -77,6 +79,12 @@ const navigationItems: NavigationItem[] = [
     label: "Conservation Projects",
     href: "/volunteer/projects",
     icon: TreePine,
+    roles: ["volunteer"],
+  },
+  {
+    label: "My Applications",
+    href: "/volunteer/my-applications",
+    icon: Briefcase,
     roles: ["volunteer"],
   },
 

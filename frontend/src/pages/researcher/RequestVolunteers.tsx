@@ -43,6 +43,7 @@ import {
   Eye,
   AlertCircle,
   BookMarked,
+  ExternalLink,
 } from "lucide-react";
 import {
   Tabs,
@@ -51,10 +52,41 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ResearchProject {
   _id: string;
   title: string;
+}
+
+interface Application {
+  _id: string;
+  applicant: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  coverLetter: string;
+  portfolioLink?: string;
+  status: 'pending' | 'accepted' | 'rejected';
+}
+
+interface VolunteerRequest {
+  _id: string;
+  title: string;
+  status: 'open' | 'closed';
+  applications: Application[];
+  numberOfVolunteersNeeded: number;
 }
 
 export default function RequestVolunteers() {
@@ -65,9 +97,15 @@ export default function RequestVolunteers() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("create");
+  const [error, setError] = useState<string | null>(null);
 
   const [projects, setProjects] = useState<ResearchProject[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [existingRequests, setExistingRequests] = useState<VolunteerRequest[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<VolunteerRequest | null>(null);
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [isHandlingApplication, setIsHandlingApplication] = useState(false);
 
   const [formData, setFormData] = useState({
     researchProject: "",
@@ -93,9 +131,6 @@ export default function RequestVolunteers() {
 
   const [newSkill, setNewSkill] = useState("");
   const [skillType, setSkillType] = useState("required");
-
-  // TODO: Fetch existing requests from MongoDB backend
-  const existingRequests = [];
 
   const skillSuggestions = [
     "Species identification",
@@ -157,16 +192,41 @@ export default function RequestVolunteers() {
         const response = await api.get(`/researchprojects/user/${user._id}`);
         if (response.data.success) {
           setProjects(response.data.data);
+        } else {
+            setError(response.data.message || "Failed to load projects.");
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to fetch projects", err);
-        setError("Could not load your research projects. Please try again later.");
+        setError(err.response?.data?.message || "Could not load your research projects. Please try again later.");
       } finally {
         setLoadingProjects(false);
       }
     };
     fetchProjects();
   }, [user?._id]);
+
+  const fetchRequests = async () => {
+    if (!user?._id) return;
+    setLoadingRequests(true);
+    try {
+      // Assuming an endpoint to get requests by the researcher
+      const response = await api.get(`/volunteer-requests?requestedBy=${user._id}&populate=applications`);
+      if (response.data.success) {
+        setExistingRequests(response.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch volunteer requests", err);
+      // Silently fail for now or set a specific error for this tab
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  useEffect(() => {
+    if(activeTab === 'view') {
+      fetchRequests();
+    }
+  }, [activeTab, user?._id]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -197,7 +257,7 @@ export default function RequestVolunteers() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError(null);
     setSuccess(false);
 
     if (!formData.researchProject) {
@@ -212,13 +272,10 @@ export default function RequestVolunteers() {
         ...formData,
         numberOfVolunteersNeeded: Number(formData.volunteersNeeded),
         skillsRequired: formData.requiredSkills,
-        // The backend expects a location object, but for now we send a string.
-        // We will need to adjust the backend or geocode on the front-end later.
-        // Let's satisfy the schema with a dummy structure for now.
         location: {
           name: formData.location,
-          lat: 6.45, // Placeholder for Kigali
-          lng: 30.06, // Placeholder for Kigali
+          lat: 6.45,
+          lng: 30.06,
         }
       };
 
@@ -255,17 +312,54 @@ export default function RequestVolunteers() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
-      month: "short",
+      month: "long",
       day: "numeric",
     });
+  };
+
+  const handleApplicationAction = async (applicationId: string, action: 'accept' | 'reject') => {
+    setIsHandlingApplication(true);
+    try {
+        await api.post(`/volunteer-requests/handle-application`, { applicationId, action });
+        
+        const newStatus: 'accepted' | 'rejected' = action === 'accept' ? 'accepted' : 'rejected';
+
+        const updatedRequests = existingRequests.map(req => ({
+            ...req,
+            applications: req.applications.map(app => 
+                app._id === applicationId ? { ...app, status: newStatus } : app
+            ),
+        }));
+        setExistingRequests(updatedRequests);
+        
+        setSelectedApplication(null); // Close the modal on success
+
+    } catch (error) {
+        console.error(`Failed to ${action} application`, error);
+    } finally {
+        setIsHandlingApplication(false);
+    }
   };
 
   if (loadingProjects) {
   return (
     <DashboardLayout>
-        <div className="flex justify-center items-center h-full">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-          <p className="ml-2">Loading your projects...</p>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="p-4">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error Loading Data</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         </div>
       </DashboardLayout>
     );
@@ -274,20 +368,13 @@ export default function RequestVolunteers() {
   if (projects.length === 0) {
     return (
       <DashboardLayout>
-        <div className="container mx-auto p-4 flex justify-center items-center h-full">
-          <Alert variant="destructive" className="max-w-lg">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>No Research Projects Found</AlertTitle>
-            <AlertDescription>
-              You must create a research project before you can request volunteers.
-              <br />
-              <Link to="/researcher/publish">
-                <Button variant="link" className="p-0 h-auto mt-2">
-                  Click here to create your first project.
+        <div className="flex flex-col items-center justify-center h-full text-center p-4">
+          <BookMarked className="h-16 w-16 text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">No Research Projects Found</h2>
+          <p className="text-gray-600 mb-4 max-w-md">You need to create a research project before you can request volunteers to join it.</p>
+          <Button asChild>
+            <Link to="/researcher/publish">Create Your First Project</Link>
                 </Button>
-              </Link>
-            </AlertDescription>
-          </Alert>
         </div>
       </DashboardLayout>
     );
@@ -295,108 +382,306 @@ export default function RequestVolunteers() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto p-4">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-              <Users className="h-6 w-6 text-emerald-600" />
-              Request Volunteers
-            </h1>
-            <p className="text-gray-600">Create a new request for volunteers to join your research project.</p>
-          </div>
+      <div className="container mx-auto p-4 md:p-6 lg:p-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Volunteer Recruitment Center</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-            <Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="create">
+              <UserPlus className="mr-2 h-4 w-4" /> Create New Request
+            </TabsTrigger>
+            <TabsTrigger value="view">
+              <Eye className="mr-2 h-4 w-4" /> View Existing Requests
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="create">
+            <Card className="mt-6">
               <CardHeader>
-              <CardTitle>1. Project Information</CardTitle>
-              <CardDescription>Select the project you are recruiting for and provide a title for the request.</CardDescription>
+                <CardTitle>Create a Volunteer Request</CardTitle>
+                <CardDescription>
+                  Fill out the form below to find the perfect volunteers for your
+                  next research project.
+                </CardDescription>
               </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-2">
-                <Label htmlFor="researchProject">Which project is this for?</Label>
-                <Select onValueChange={(value) => handleInputChange("researchProject", value)} value={formData.researchProject}>
-                  <SelectTrigger id="researchProject" className="h-11">
-                    <SelectValue placeholder="Select a research project..." />
+              <CardContent>
+                {success && (
+                  <Alert className="mb-4 bg-emerald-50 border-emerald-300">
+                    <CheckCircle className="h-4 w-4 text-emerald-600" />
+                    <AlertTitle className="text-emerald-800">Request Submitted!</AlertTitle>
+                    <AlertDescription className="text-emerald-700">
+                      Your volunteer request has been successfully created. You will be redirected shortly.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {error && !success && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Submission Failed</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <div className="grid gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="researchProject" className="flex items-center">
+                          <BookMarked className="mr-2 h-4 w-4" />
+                          Associate with Research Project
+                        </Label>
+                        <Select
+                          onValueChange={(value) => handleInputChange("researchProject", value)}
+                          defaultValue={formData.researchProject}
+                          required
+                        >
+                          <SelectTrigger id="researchProject">
+                            <SelectValue placeholder="Select a project..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {projects.map(p => <SelectItem key={p._id} value={p._id}>{p.title}</SelectItem>)}
+                            {projects.map((p) => (
+                              <SelectItem key={p._id} value={p._id}>
+                                {p.title}
+                              </SelectItem>
+                            ))}
                   </SelectContent>
                 </Select>
                 </div>
-              <div className="grid gap-2">
-                <Label htmlFor="title">What is the title of this volunteer request?</Label>
-                <Input id="title" placeholder="e.g., Field Assistants for Gorilla Behavior Study" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} required className="h-11"/>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="title">Request Title</Label>
+                        <Input id="title" placeholder="e.g., Mountain Gorilla Behavior Study Volunteers" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Role Description</Label>
+                      <Textarea id="description" placeholder="Describe the volunteer's role, responsibilities, and impact..." value={formData.description} onChange={(e) => handleInputChange("description", e.target.value)} required />
                 </div>
-              <div className="grid gap-2">
-                <Label htmlFor="description">Describe the volunteer role and responsibilities</Label>
-                <Textarea id="description" placeholder="Provide a detailed overview of what the volunteers will be doing, the goals of their work, and the impact they will have..." value={formData.description} onChange={(e) => handleInputChange("description", e.target.value)} required rows={5}/>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="objectives">Key Objectives</Label>
+                      <Textarea id="objectives" placeholder="List the key objectives of this volunteer role, e.g., '1. Collect behavioral data...'" value={formData.objectives} onChange={(e) => handleInputChange("objectives", e.target.value)} />
                 </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>2. Logistical Details</CardTitle>
-              <CardDescription>Specify the location, dates, and number of volunteers required for this opportunity.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="grid gap-2">
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Select onValueChange={(value) => handleInputChange("location", value)} value={formData.location}>
-                        <SelectTrigger id="location" className="h-11">
-                            <SelectValue placeholder="Select location"/>
+                        <Select onValueChange={(value) => handleInputChange("location", value)} defaultValue={formData.location}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select location" />
                       </SelectTrigger>
                       <SelectContent>
                             {rwandaLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="volunteersNeeded">Number of Volunteers Needed</Label>
-                    <Input id="volunteersNeeded" type="number" value={formData.volunteersNeeded} onChange={(e) => handleInputChange("volunteersNeeded", e.target.value)} min="1" required className="h-11"/>
+                      <div className="space-y-2">
+                        <Label htmlFor="startDate">Start Date</Label>
+                        <Input id="startDate" type="date" value={formData.startDate} onChange={(e) => handleInputChange("startDate", e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="endDate">End Date</Label>
+                        <Input id="endDate" type="date" value={formData.endDate} onChange={(e) => handleInputChange("endDate", e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="volunteersNeeded">Volunteers Needed</Label>
+                        <Input id="volunteersNeeded" type="number" value={formData.volunteersNeeded} onChange={(e) => handleInputChange("volunteersNeeded", e.target.value)} min="1" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="timeCommitment">Time Commitment (Hours/Week)</Label>
+                        <Input id="timeCommitment" type="number" value={formData.timeCommitment} onChange={(e) => handleInputChange("timeCommitment", e.target.value)} min="1" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="applicationDeadline">Application Deadline</Label>
+                        <Input id="applicationDeadline" type="date" value={formData.applicationDeadline} onChange={(e) => handleInputChange("applicationDeadline", e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label>Skills</Label>
+                      <div className="flex gap-4 items-center">
+                        <Select value={skillType} onValueChange={(v) => setSkillType(v as 'required' | 'preferred')}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="required">Required</SelectItem>
+                            <SelectItem value="preferred">Preferred</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          placeholder="e.g., GPS Navigation"
+                          value={newSkill}
+                          onChange={(e) => setNewSkill(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                        />
+                        <Button type="button" onClick={addSkill}>Add Skill</Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-semibold">Required Skills:</h4>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {formData.requiredSkills.map(skill => (
+                              <Badge key={skill} variant="secondary">{skill} <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => removeSkill(skill, 'required')} /></Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">Preferred Skills:</h4>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {formData.preferredSkills.map(skill => (
+                              <Badge key={skill} variant="outline">{skill} <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => removeSkill(skill, 'preferred')} /></Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label>Benefits & Support</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="trainingProvided" checked={formData.trainingProvided} onCheckedChange={(checked) => handleInputChange('trainingProvided', checked)} />
+                                <Label htmlFor="trainingProvided">Training Provided</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="accommodationProvided" checked={formData.accommodationProvided} onCheckedChange={(checked) => handleInputChange('accommodationProvided', checked)} />
+                                <Label htmlFor="accommodationProvided">Accommodation</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="transportationProvided" checked={formData.transportationProvided} onCheckedChange={(checked) => handleInputChange('transportationProvided', checked)} />
+                                <Label htmlFor="transportationProvided">Transportation</Label>
+                            </div>
+                        </div>
                 </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="startDate">Start Date</Label>
-                    <Input id="startDate" type="date" value={formData.startDate} onChange={(e) => handleInputChange("startDate", e.target.value)} required className="h-11"/>
+
                   </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="endDate">End Date</Label>
-                    <Input id="endDate" type="date" value={formData.endDate} onChange={(e) => handleInputChange("endDate", e.target.value)} required className="h-11"/>
+                  <div className="flex justify-end gap-4">
+                    <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create Volunteer Request
+                    </Button>
                 </div>
-                 <div className="grid gap-2">
-                  <Label htmlFor="applicationDeadline">Application Deadline</Label>
-                    <Input id="applicationDeadline" type="date" value={formData.applicationDeadline} onChange={(e) => handleInputChange("applicationDeadline", e.target.value)} required className="h-11"/>
-                </div>
+                </form>
               </CardContent>
             </Card>
-
-          {/* ... other form cards ... */}
+          </TabsContent>
           
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error Submitting Request</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <TabsContent value="view">
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Existing Volunteer Requests</CardTitle>
+                <CardDescription>
+                  Manage your volunteer requests and view applicants.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingRequests ? (
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                  </div>
+                ) : existingRequests.length > 0 ? (
+                  <div className="space-y-6">
+                    {existingRequests.map((req) => (
+                      <Card key={req._id}>
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle>{req.title}</CardTitle>
+                              <CardDescription>
+                                {req.applications.length} / {req.numberOfVolunteersNeeded} applicants
+                              </CardDescription>
+                            </div>
+                            <Badge variant={req.status === 'open' ? 'default' : 'destructive'}>{req.status}</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <h4 className="font-semibold mb-2">Applicants</h4>
+                          {req.applications.length > 0 ? (
+                            <ul className="divide-y divide-gray-200">
+                              {req.applications.map(app => (
+                                <li key={app._id} className="py-3 flex justify-between items-center">
+                                  <div>
+                                    <p className="font-medium">{app.applicant.firstName} {app.applicant.lastName}</p>
+                                    <p className="text-sm text-gray-500">{app.applicant.email}</p>
+                                  </div>
+                                  <Button variant="outline" size="sm" onClick={() => setSelectedApplication(app)}>
+                                    View Application
+                                  </Button>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-sm text-gray-500">No applications yet.</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                     <Users className="mx-auto h-12 w-12 text-gray-400" />
+                     <h3 className="mt-2 text-sm font-medium text-gray-900">No requests found</h3>
+                     <p className="mt-1 text-sm text-gray-500">You haven't created any volunteer requests yet.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
-          {success && (
-            <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertTitle>Request Submitted Successfully!</AlertTitle>
-              <AlertDescription>Your volunteer request has been posted. You will be redirected shortly.</AlertDescription>
-            </Alert>
-          )}
-
-          <div className="flex justify-end gap-4 pt-4">
-            <Button variant="outline" type="button" onClick={() => navigate(-1)} className="h-11">Cancel</Button>
-            <Button type="submit" disabled={isSubmitting} className="h-11">
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Submitting...' : 'Submit Request'}
-                        </Button>
-                      </div>
-        </form>
+        {selectedApplication && (
+          <Dialog open={!!selectedApplication} onOpenChange={(isOpen) => !isOpen && setSelectedApplication(null)}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Application from {selectedApplication.applicant.firstName} {selectedApplication.applicant.lastName}</DialogTitle>
+                <DialogDescription>{selectedApplication.applicant.email}</DialogDescription>
+              </DialogHeader>
+              <ScrollArea className="max-h-[60vh] p-4">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Cover Letter</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedApplication.coverLetter}</p>
+                  </div>
+                  {selectedApplication.portfolioLink && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Portfolio</h4>
+                      <a href={selectedApplication.portfolioLink} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                        {selectedApplication.portfolioLink} <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-semibold mb-2">Status</h4>
+                    <Badge variant={
+                      selectedApplication.status === 'accepted' ? 'default' :
+                      selectedApplication.status === 'rejected' ? 'destructive' : 'secondary'
+                    }>
+                      {selectedApplication.status}
+                    </Badge>
+                  </div>
+                </div>
+              </ScrollArea>
+              <DialogFooter>
+                  {selectedApplication.status === 'pending' && (
+                    <>
+                      <Button variant="outline" onClick={() => handleApplicationAction(selectedApplication._id, 'reject')} disabled={isHandlingApplication}>
+                        {isHandlingApplication && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Reject
+                      </Button>
+                      <Button onClick={() => handleApplicationAction(selectedApplication._id, 'accept')} disabled={isHandlingApplication}>
+                        {isHandlingApplication && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Accept Application
+                      </Button>
+                    </>
+                  )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </DashboardLayout>
   );

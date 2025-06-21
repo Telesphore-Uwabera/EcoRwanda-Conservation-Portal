@@ -1,5 +1,5 @@
+import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import { Bell } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import {
@@ -23,7 +23,7 @@ interface Notification {
 }
 
 export default function NotificationDropdown() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -77,7 +77,7 @@ export default function NotificationDropdown() {
         ));
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
-      router.push(notification.link);
+      navigate(notification.link);
     } catch (error) {
       toast.error('Failed to mark notification as read');
       console.error(error);

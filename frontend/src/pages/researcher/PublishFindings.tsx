@@ -22,6 +22,7 @@ import {
   AlertCircle,
   CheckCircle,
   List,
+  Trash2,
 } from "lucide-react";
 import { format } from 'date-fns';
 import { Badge } from "@/components/ui/badge";
@@ -42,14 +43,16 @@ export default function PublishFindings() {
   const [projects, setProjects] = useState<ResearchProject[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     title: "",
     description: "",
-    objectives: "",
-    location: "",
+    objectives: [""],
+    methodology: "",
+    location: { name: "", lat: "", lng: "" },
     startDate: "",
     endDate: "",
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
 
   const fetchProjects = async () => {
     if (!user?._id) return;
@@ -75,24 +78,49 @@ export default function PublishFindings() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleLocationChange = (field: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      location: { ...prev.location, [field]: value },
+    }));
+  };
+
+  const handleObjectiveChange = (index: number, value: string) => {
+    const newObjectives = [...formData.objectives];
+    newObjectives[index] = value;
+    setFormData((prev) => ({ ...prev, objectives: newObjectives }));
+  };
+
+  const addObjective = () => {
+    setFormData((prev) => ({ ...prev, objectives: [...prev.objectives, ""] }));
+  };
+
+  const removeObjective = (index: number) => {
+    const newObjectives = formData.objectives.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, objectives: newObjectives }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
     setIsSubmitting(true);
 
+    const submissionData = {
+      ...formData,
+      leadResearcher: user?._id,
+      location: {
+        ...formData.location,
+        lat: parseFloat(formData.location.lat),
+        lng: parseFloat(formData.location.lng),
+      },
+    };
+
     try {
-      const response = await api.post('/researchprojects', formData);
+      const response = await api.post('/researchprojects', submissionData);
       if (response.data.success) {
         setSuccess(true);
-        setFormData({ // Reset form
-            title: "",
-            description: "",
-            objectives: "",
-            location: "",
-            startDate: "",
-            endDate: "",
-        });
+        setFormData(initialFormData); // Reset form
         fetchProjects(); // Refresh the list
       } else {
         throw new Error(response.data.error || "An unknown error occurred.");
@@ -123,18 +151,39 @@ export default function PublishFindings() {
                 <CardTitle className="flex items-center gap-2">
                     <Plus /> Create a New Research Project
                 </CardTitle>
-                <CardDescription>Fill out the details below to register a new project. More details can be added later.</CardDescription>
+                <CardDescription>Fill out the details below to register a new project.</CardDescription>
                 </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Row 1 */}
                   <div className="grid gap-2">
                     <Label htmlFor="title">Project Title</Label>
                     <Input id="title" placeholder="e.g., Impact of Tourism on Gorilla Behavior" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} required />
                   </div>
+
+                  {/* Row 2 */}
                   <div className="grid gap-2">
                     <Label htmlFor="description">Brief Description</Label>
                     <Textarea id="description" placeholder="A short summary of the project's purpose and scope." value={formData.description} onChange={(e) => handleInputChange("description", e.target.value)} required />
                   </div>
+                  
+                  {/* Row 3 - Location */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-3">
+                        <Label>Primary Location</Label>
+                    </div>
+                    <div className="grid gap-2">
+                        <Input id="locationName" placeholder="e.g., Nyungwe National Park" value={formData.location.name} onChange={(e) => handleLocationChange("name", e.target.value)} required />
+                    </div>
+                    <div className="grid gap-2">
+                        <Input id="locationLat" placeholder="Latitude" type="number" value={formData.location.lat} onChange={(e) => handleLocationChange("lat", e.target.value)} required />
+                    </div>
+                    <div className="grid gap-2">
+                        <Input id="locationLng" placeholder="Longitude" type="number" value={formData.location.lng} onChange={(e) => handleLocationChange("lng", e.target.value)} required />
+                    </div>
+                  </div>
+
+                  {/* Row 4 - Dates */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="startDate">Start Date</Label>
@@ -145,22 +194,48 @@ export default function PublishFindings() {
                         <Input id="endDate" type="date" value={formData.endDate} onChange={(e) => handleInputChange("endDate", e.target.value)} required />
                     </div>
                   </div>
+
+                  {/* Row 5 - Methodology */}
                   <div className="grid gap-2">
-                    <Label htmlFor="location">Primary Location</Label>
-                    <Input id="location" placeholder="e.g., Nyungwe National Park" value={formData.location} onChange={(e) => handleInputChange("location", e.target.value)} required />
+                    <Label htmlFor="methodology">Methodology</Label>
+                    <Textarea id="methodology" placeholder="Describe the methodology that will be used for this research." value={formData.methodology} onChange={(e) => handleInputChange("methodology", e.target.value)} required />
                   </div>
 
+                  {/* Row 6 - Objectives */}
+                  <div className="grid gap-2">
+                    <Label>Objectives</Label>
+                    {formData.objectives.map((objective, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          placeholder={`Objective ${index + 1}`}
+                          value={objective}
+                          onChange={(e) => handleObjectiveChange(index, e.target.value)}
+                          required
+                        />
+                        {formData.objectives.length > 1 && (
+                          <Button type="button" variant="destructive" size="icon" onClick={() => removeObjective(index)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button type="button" variant="outline" onClick={addObjective} className="mt-2">
+                      <Plus className="mr-2 h-4 w-4" /> Add Objective
+                    </Button>
+                  </div>
+
+
                   {error && <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
-                  {success && <Alert variant="default" className="bg-green-50 border-green-200"><CheckCircle className="h-4 w-4 text-green-600" /><AlertTitle>Success!</AlertTitle><AlertDescription>Project created successfully. It now appears in your list.</AlertDescription></Alert>}
+                  {success && <Alert variant="default" className="bg-green-50 border-green-200"><CheckCircle className="h-4 w-4 text-green-600" /><AlertTitle>Success!</AlertTitle><AlertDescription>Project created successfully.</AlertDescription></Alert>}
 
                   <Button type="submit" disabled={isSubmitting} className="w-full">
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Project
-                </Button>
+                  </Button>
                 </form>
                 </CardContent>
               </Card>
-                  </div>
+          </div>
 
           <div>
               <Card>
@@ -195,7 +270,7 @@ export default function PublishFindings() {
                 </CardContent>
               </Card>
           </div>
-              </div>
+        </div>
       </div>
     </DashboardLayout>
   );

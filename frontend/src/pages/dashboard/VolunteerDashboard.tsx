@@ -46,16 +46,6 @@ interface RecentReport {
   urgency: string;
 }
 
-interface AvailableProject {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  location: string;
-  startDate: string;
-  volunteersNeeded: number;
-}
-
 interface WildlifeReport {
   _id: string;
   title: string;
@@ -72,16 +62,11 @@ interface WildlifeReport {
   submittedAt: string;
 }
 
-interface ConservationProject {
+interface AvailableProject {
   _id: string;
   title: string;
-  description: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  status: string;
-  requiredVolunteers: number;
-  currentVolunteers: number;
+  location: { name: string };
+  status: 'open' | 'closed';
 }
 
 export default function VolunteerDashboard() {
@@ -95,7 +80,7 @@ export default function VolunteerDashboard() {
     rank: "N/A",
   });
   const [recentReports, setRecentReports] = useState<WildlifeReport[]>([]);
-  const [availableProjects, setAvailableProjects] = useState<ConservationProject[]>([]);
+  const [availableProjects, setAvailableProjects] = useState<AvailableProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,8 +102,8 @@ export default function VolunteerDashboard() {
           setRecentReports(reportsResponse.data.data);
         }
 
-        // Fetch available projects
-        const projectsResponse = await api.get('/conservation-projects/available');
+        // Fetch available projects (now volunteer requests)
+        const projectsResponse = await api.get('/volunteer-requests?status=open');
         console.log('Projects Response:', projectsResponse);
 
         if (projectsResponse.data && Array.isArray(projectsResponse.data.data)) {
@@ -313,33 +298,23 @@ export default function VolunteerDashboard() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {availableProjects.map((project) => (
-                  <Card key={project._id} className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold">{project.title}</h3>
-                      <Badge variant="outline">
-                        {project.currentVolunteers}/{project.requiredVolunteers} Volunteers
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 mb-3">{project.description}</p>
-                    
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <Badge variant="secondary" className="text-xs">
-                        📍 {project.location}
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        📅 {format(new Date(project.startDate), 'PP')} - {format(new Date(project.endDate), 'PP')}
-                      </Badge>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Link to={`/volunteer/projects/${project._id}`}>
-                        <Button size="sm">Learn More</Button>
-                      </Link>
-                    </div>
+                {availableProjects.length > 0 ? (
+                  availableProjects.slice(0, 3).map((project) => (
+                    <Card key={project._id} className="p-4 flex justify-between items-center">
+                      <div>
+                        <h4 className="font-semibold">{project.title}</h4>
+                        <p className="text-sm text-gray-500 flex items-center gap-2"><MapPin className="h-4 w-4" /> {project.location.name}</p>
+                      </div>
+                      <Button asChild size="sm" variant="outline">
+                        <Link to={`/volunteer/request/${project._id}`}>View</Link>
+                      </Button>
+                    </Card>
+                  ))
+                ) : (
+                  <Card className="p-6 text-center text-gray-600">
+                    No available projects at the moment. Check back later!
                   </Card>
-                ))}
+                )}
               </div>
             )}
             {availableProjects.length > 0 && (

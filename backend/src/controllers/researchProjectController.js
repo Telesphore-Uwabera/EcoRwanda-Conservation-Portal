@@ -127,7 +127,7 @@ exports.createResearchProject = async (req, res) => {
   try {
     const project = new ResearchProject({
       ...req.body,
-      researcher: req.user._id,
+      leadResearcher: req.user._id,
     });
     await project.save();
     res.status(201).json({ success: true, data: project });
@@ -141,7 +141,7 @@ exports.createResearchProject = async (req, res) => {
 // @access  Public
 exports.getAllResearchProjects = async (req, res) => {
   try {
-    const projects = await ResearchProject.find().populate('researcher', 'firstName lastName');
+    const projects = await ResearchProject.find().populate('leadResearcher', 'firstName lastName');
     res.status(200).json({ success: true, data: projects });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server Error' });
@@ -157,7 +157,7 @@ exports.getProjectsByUser = async (req, res) => {
         if (req.user._id.toString() !== req.params.userId && req.user.role !== 'administrator') {
             return res.status(403).json({ success: false, error: 'Not authorized to access these projects' });
         }
-        const projects = await ResearchProject.find({ researcher: req.params.userId });
+        const projects = await ResearchProject.find({ leadResearcher: req.params.userId });
         if (!projects) {
             return res.status(404).json({ success: false, error: 'No projects found for this user' });
         }
@@ -172,7 +172,7 @@ exports.getProjectsByUser = async (req, res) => {
 // @access  Public
 exports.getResearchProjectById = async (req, res) => {
   try {
-    const project = await ResearchProject.findById(req.params.id).populate('researcher', 'firstName lastName');
+    const project = await ResearchProject.findById(req.params.id).populate('leadResearcher', 'firstName lastName');
     if (!project) {
       return res.status(404).json({ success: false, error: 'Project not found' });
     }
@@ -193,7 +193,7 @@ exports.updateResearchProject = async (req, res) => {
     }
 
     // Check if the user is the author or an admin
-    if (project.researcher.toString() !== req.user._id.toString() && req.user.role !== 'administrator') {
+    if (project.leadResearcher.toString() !== req.user._id.toString() && req.user.role !== 'administrator') {
         return res.status(401).json({ success: false, error: 'User not authorized to update this project' });
     }
 
@@ -218,7 +218,7 @@ exports.deleteResearchProject = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Project not found' });
     }
 
-    if (project.researcher.toString() !== req.user._id.toString() && req.user.role !== 'administrator') {
+    if (project.leadResearcher.toString() !== req.user._id.toString() && req.user.role !== 'administrator') {
         return res.status(401).json({ success: false, error: 'User not authorized to delete this project' });
     }
 

@@ -28,6 +28,9 @@ import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import SubmitReport from "./pages/volunteer/SubmitReport";
 import MyReports from "./pages/volunteer/MyReports";
 import ViewProjects from "./pages/volunteer/ViewProjects";
+import VolunteerRequests from "./pages/volunteer/VolunteerRequests";
+import VolunteerRequestDetails from "./pages/volunteer/VolunteerRequestDetails";
+import MyApplications from "./pages/volunteer/MyApplications";
 
 // Researcher Pages
 import PublishFindings from "./pages/researcher/PublishFindings";
@@ -145,6 +148,36 @@ const App = () => (
                 <RoleGuard allowedRoles={["volunteer"]}>
                   <DashboardLayout>
                     <ViewProjects />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/volunteer/requests"
+              element={
+                <RoleGuard allowedRoles={["volunteer"]}>
+                  <DashboardLayout>
+                    <VolunteerRequests />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/volunteer/request/:id"
+              element={
+                <RoleGuard allowedRoles={["volunteer"]}>
+                  <DashboardLayout>
+                    <VolunteerRequestDetails />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/volunteer/my-applications"
+              element={
+                <RoleGuard allowedRoles={["volunteer"]}>
+                  <DashboardLayout>
+                    <MyApplications />
                   </DashboardLayout>
                 </RoleGuard>
               }
