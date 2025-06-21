@@ -10,11 +10,17 @@ exports.createVolunteerRequest = async (req, res) => {
       title,
       description,
       skillsRequired,
-      location,
+      location, // Expecting an object { name, lat, lng }
       startDate,
       endDate,
       numberOfVolunteersNeeded,
+      applicationDeadline,
     } = req.body;
+
+    // Basic validation
+    if (!researchProject || !title || !description || !location || !startDate || !endDate || !numberOfVolunteersNeeded || !applicationDeadline) {
+        return res.status(400).json({ success: false, error: 'Please provide all required fields.' });
+    }
 
     const volunteerRequest = new VolunteerRequest({
       researchProject,
@@ -22,10 +28,11 @@ exports.createVolunteerRequest = async (req, res) => {
       title,
       description,
       skillsRequired,
-      location,
+      location, // Storing the location object directly
       startDate,
       endDate,
       numberOfVolunteersNeeded,
+      applicationDeadline,
     });
 
     await volunteerRequest.save();
@@ -40,37 +47,26 @@ exports.createVolunteerRequest = async (req, res) => {
       link: `/volunteer-requests/${volunteerRequest._id}`,
     });
 
-    res.status(201).json(volunteerRequest);
+    res.status(201).json({ success: true, data: volunteerRequest });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Create Volunteer Request Error:", error);
+    if (error.name === 'ValidationError') {
+        return res.status(400).json({ success: false, error: error.message });
+    }
+    res.status(500).json({ success: false, error: 'Server Error' });
   }
 };
 
 // Get all volunteer requests
 exports.getVolunteerRequests = async (req, res) => {
   try {
-    const { status, search } = req.query;
-    let query = {};
-
-    if (status) {
-      query.status = status;
-    }
-
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    const requests = await VolunteerRequest.find(query)
-      .populate('requestedBy', 'name email')
+    const requests = await VolunteerRequest.find(req.query)
       .populate('researchProject', 'title')
       .sort({ createdAt: -1 });
 
-    res.json(requests);
+    res.status(200).json({ success: true, data: requests });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, error: 'Server Error' });
   }
 };
 
@@ -78,17 +74,16 @@ exports.getVolunteerRequests = async (req, res) => {
 exports.getVolunteerRequest = async (req, res) => {
   try {
     const request = await VolunteerRequest.findById(req.params.id)
-      .populate('requestedBy', 'name email')
       .populate('researchProject', 'title')
-      .populate('applicants', 'name email skills');
+      .populate('applicants', 'firstName lastName email');
 
     if (!request) {
-      return res.status(404).json({ message: 'Volunteer request not found' });
+      return res.status(404).json({ success: false, error: 'Volunteer request not found' });
     }
 
-    res.json(request);
+    res.status(200).json({ success: true, data: request });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, error: 'Server Error' });
   }
 };
 
@@ -119,37 +114,20 @@ exports.updateVolunteerRequest = async (req, res) => {
 
 // Apply to a volunteer request
 exports.applyToRequest = async (req, res) => {
-  try {
-    const request = await VolunteerRequest.findById(req.params.id);
-
-    if (!request) {
-      return res.status(404).json({ message: 'Volunteer request not found' });
+    try {
+        const request = await VolunteerRequest.findById(req.params.id);
+        if (!request) {
+            return res.status(404).json({ success: false, error: 'Request not found' });
+        }
+        if (request.applicants.includes(req.user._id)) {
+            return res.status(400).json({ success: false, error: 'You have already applied' });
+        }
+        request.applicants.push(req.user._id);
+        await request.save();
+        res.status(200).json({ success: true, data: request });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Server Error' });
     }
-
-    if (request.status !== 'open') {
-      return res.status(400).json({ message: 'This request is no longer accepting applications' });
-    }
-
-    if (request.applicants.includes(req.user._id)) {
-      return res.status(400).json({ message: 'You have already applied to this request' });
-    }
-
-    request.applicants.push(req.user._id);
-    await request.save();
-
-    // Notify the researcher
-    await sendNotification({
-      recipients: [request.requestedBy],
-      title: 'New Application',
-      message: `${req.user.name} has applied to your volunteer request: ${request.title}`,
-      type: 'application',
-      link: `/volunteer-requests/${request._id}`,
-    });
-
-    res.json({ message: 'Application submitted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
 };
 
 // Accept/Reject an application

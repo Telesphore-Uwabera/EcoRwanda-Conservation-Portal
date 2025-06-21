@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const researcherDashboardController = require('../controllers/researcherDashboardController');
 const { authenticateToken } = require('../middleware/auth');
+const { getDashboardData } = require('../controllers/researcherDashboardController');
 
-router.get('/', authenticateToken, researcherDashboardController.getResearcherDashboardData);
+// @route   GET api/researcher-dashboard/
+// @desc    Get all data for the main researcher dashboard
+// @access  Private
+router.get('/', authenticateToken, getDashboardData);
 
 module.exports = router; 
