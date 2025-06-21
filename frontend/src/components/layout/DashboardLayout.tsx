@@ -105,6 +105,12 @@ const navigationItems: NavigationItem[] = [
     icon: Users,
     roles: ["researcher"],
   },
+  {
+    label: "Threat Map",
+    href: "/researcher/threat-map",
+    icon: Map,
+    roles: ["researcher"],
+  },
 
   // Ranger Navigation
   {
@@ -146,6 +152,12 @@ const navigationItems: NavigationItem[] = [
     roles: ["administrator"],
   },
   {
+    label: "Threat Map",
+    href: "/admin/threat-map",
+    icon: Map,
+    roles: ["administrator"],
+  },
+  {
     label: "User Management",
     href: "/admin/users",
     icon: Users,
@@ -183,7 +195,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const navigate = useNavigate();
   const isOnline = useOfflineStatus();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const isMobile = useMediaQuery('(max-width:768px)');
+  const isMobile = useMediaQuery('(max-width:1024px)');
 
   useEffect(() => {
     if (!user && !authLoading) {
@@ -329,7 +341,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {/* Main Content */}
       <main
         className={`flex-1 overflow-y-auto ${isMobile ? 'pt-20' : ''}`}
-        style={{ marginLeft: isMobile ? 0 : '12vw', marginRight: 8 }}
+        style={{ marginLeft: isMobile ? 0 : '8vw', marginRight: 8 }}
       >
         {children}
       </main>

@@ -226,9 +226,9 @@ exports.addFindings = async (req, res) => {
 };
 
 // Utility: Update patrol statuses based on time
-async function autoUpdatePatrolStatuses() {
+async function autoUpdatePatrolStatuses(userId) {
   const now = new Date();
-  const patrols = await Patrol.find({ status: { $in: ["scheduled", "in_progress"] } });
+  const patrols = await Patrol.find({ status: { $in: ["scheduled", "in_progress"] }, ranger: userId });
   for (const patrol of patrols) {
     const patrolStart = new Date(patrol.patrolDate + 'T' + (patrol.startTime || '00:00'));
     const durationHours = Number(patrol.estimatedDuration) || 0;
@@ -246,10 +246,13 @@ async function autoUpdatePatrolStatuses() {
 // Get patrol stats for dashboard
 exports.getPatrolStats = async (req, res) => {
   try {
-    await autoUpdatePatrolStatuses();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const allPatrols = await Patrol.find({});
+
+    // Find patrols for the logged-in ranger only
+    const allPatrols = await Patrol.find({ ranger: req.user._id });
+
+    // 1. Calculate stats based on the CURRENT state of patrols BEFORE auto-updating.
     const validPatrols = allPatrols.filter(p => {
       try {
         return p.patrolDate && !isNaN(new Date(p.patrolDate).getTime());
@@ -257,10 +260,20 @@ exports.getPatrolStats = async (req, res) => {
         return false;
       }
     });
+
     const totalCompleted = validPatrols.filter(p => p.status === 'completed').length;
     const activePatrols = validPatrols.filter(p => ['in_progress', 'scheduled'].includes(p.status)).length;
-    const completedToday = validPatrols.filter(p => p.status === 'completed' && new Date(p.patrolDate).toDateString() === today.toDateString()).length;
-    const totalPatrols = totalCompleted + activePatrols;
+    const completedToday = validPatrols.filter(p => 
+      p.status === 'completed' && 
+      new Date(p.patrolDate).toDateString() === today.toDateString()
+    ).length;
+
+    // 2. Correctly calculate total patrols. It should be the count of all valid patrols.
+    const totalPatrols = validPatrols.length;
+    
+    // Now, perform the auto-update. This will not affect the stats we've already calculated.
+    await autoUpdatePatrolStatuses(req.user._id);
+
     res.json({
       totalPatrols,
       completedToday,
@@ -276,7 +289,7 @@ exports.getPatrolStats = async (req, res) => {
 // Export patrols as JSON
 exports.exportPatrols = async (req, res) => {
   try {
-    const patrols = await Patrol.find({});
+    const patrols = await Patrol.find({ ranger: req.user._id });
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', 'attachment; filename=patrols.json');
     res.send(JSON.stringify(patrols, null, 2));

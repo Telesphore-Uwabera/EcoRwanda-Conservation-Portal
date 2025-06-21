@@ -8,6 +8,9 @@ export interface User {
   role: string;
   verified: boolean;
   token?: string;
+  createdAt: string;
+  location?: string;
+  organization?: string;
 }
 
 export interface AuthState {

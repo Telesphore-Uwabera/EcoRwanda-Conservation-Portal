@@ -33,6 +33,7 @@ import {
   ClipboardList,
   FlaskConical,
   TreePine,
+  Map,
 } from "lucide-react";
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert"; // Renamed to avoid conflict
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -377,6 +378,42 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Quick Actions */}
+            <Card className="col-span-1 md:col-span-2 lg:col-span-4">
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Manage your platform efficiently</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Button asChild>
+                  <Link to="/admin/users" className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    <span>User Management</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/admin/analytics" className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    <span>View Analytics</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/admin/threat-map" className="flex items-center gap-2">
+                    <Map className="h-5 w-5" />
+                    <span>Threat Map</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/admin/settings" className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    <span>System Settings</span>
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Report Status Cards - Consistent Styling with Other Stat Cards */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5 mt-6">
             {/* Pending Reports */}
@@ -566,6 +603,64 @@ export default function AdminDashboard() {
                   No recent activities.
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          {/* User Growth & Distribution */}
+          <Card className="col-span-1 lg:col-span-2">
+            <CardHeader>
+              <CardTitle>User Growth & Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={[
+                  { name: 'Volunteers', count: stats.userStats.userDistribution.volunteers, growth: 0 },
+                  { name: 'Researchers', count: stats.userStats.userDistribution.researchers, growth: 0 },
+                  { name: 'Rangers', count: stats.userStats.userDistribution.rangers, growth: 0 },
+                  { name: 'Admins', count: stats.userStats.userDistribution.administrators, growth: 0 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#8884d8" name="Total Users" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* System Status */}
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>System Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* System Status content */}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {/* Recent Activities */}
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>Recent Activities</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Recent Activities content */}
+            </CardContent>
+          </Card>
+
+          {/* System Alerts */}
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>System Alerts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* System Alerts content */}
             </CardContent>
           </Card>
         </div>
