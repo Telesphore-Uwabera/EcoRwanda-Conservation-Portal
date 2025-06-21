@@ -20,14 +20,48 @@ const VolunteerRequestSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  objectives: {
+    type: [String],
+    default: [],
+  },
   skillsRequired: {
     type: [String],
     default: [],
   },
+  preferredSkills: {
+    type: [String],
+    default: [],
+  },
   location: {
-    lat: { type: Number, required: true },
-    lng: { type: Number, required: true },
+    lat: { type: Number, required: false },
+    lng: { type: Number, required: false },
     name: { type: String, required: true },
+  },
+  duration: {
+    type: String, // e.g., "3 weeks", "2 months"
+  },
+  timeCommitment: {
+    type: String, // e.g., "10 hours/week"
+  },
+  difficultyLevel: {
+    type: String,
+    enum: ['beginner', 'intermediate', 'advanced'],
+    default: 'intermediate',
+  },
+  compensation: {
+    type: String,
+  },
+  trainingProvided: {
+    type: Boolean,
+    default: false,
+  },
+  accommodationProvided: {
+    type: Boolean,
+    default: false,
+  },
+  transportationProvided: {
+    type: Boolean,
+    default: false,
   },
   startDate: {
     type: Date,
@@ -42,10 +76,10 @@ const VolunteerRequestSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
-  applicants: [
+  applications: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Volunteers who have applied
+      ref: 'Application',
     },
   ],
   status: {

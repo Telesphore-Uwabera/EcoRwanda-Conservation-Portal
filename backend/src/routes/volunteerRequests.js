@@ -1,24 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
-const volunteerRequestController = require('../controllers/volunteerRequestController');
+const {
+  createVolunteerRequest,
+  getVolunteerRequests,
+  getVolunteerRequest,
+  updateVolunteerRequest,
+  applyToRequest,
+  handleApplication,
+  getApplicationsForRequest,
+} = require('../controllers/volunteerRequestController');
 
 // Create a new volunteer request
-router.post('/', authenticateToken, volunteerRequestController.createVolunteerRequest);
+router.post('/', authenticateToken, createVolunteerRequest);
 
 // Get all volunteer requests
-router.get('/', authenticateToken, volunteerRequestController.getVolunteerRequests);
+router.get('/', authenticateToken, getVolunteerRequests);
 
 // Get a single volunteer request
-router.get('/:id', authenticateToken, volunteerRequestController.getVolunteerRequest);
+router.get('/:id', authenticateToken, getVolunteerRequest);
 
 // Update a volunteer request
-router.put('/:id', authenticateToken, volunteerRequestController.updateVolunteerRequest);
+router.put('/:id', authenticateToken, updateVolunteerRequest);
 
 // Apply to a volunteer request
-router.post('/:id/apply', authenticateToken, volunteerRequestController.applyToRequest);
+router.post('/:id/apply', authenticateToken, applyToRequest);
 
 // Accept/Reject an application
-router.post('/:id/handle-application', authenticateToken, volunteerRequestController.handleApplication);
+router.post('/handle-application', authenticateToken, handleApplication);
+
+// Get applications for a volunteer request
+router.get('/:id/applications', authenticateToken, getApplicationsForRequest);
 
 module.exports = router;

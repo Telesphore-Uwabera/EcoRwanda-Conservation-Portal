@@ -289,35 +289,16 @@ export default function ResearcherDashboard() {
               ) : (
                 <div className="grid gap-4">
                   {activeProjects.map((project) => (
-                    <Card key={project._id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-lg font-medium flex items-center gap-2">
-                          {project.title}
-                        </CardTitle>
-                        <Badge className={getStatusColor(project.status)}>
-                          {project.status.replace("_", " ")}
-                        </Badge>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Users className="h-4 w-4" /> Lead Researcher: {project.leadResearcher?.firstName} {project.leadResearcher?.lastName}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <MapPin className="h-4 w-4" /> Location: {project.location.name}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Calendar className="h-4 w-4" /> Start Date: {formatDate(project.startDate)}
-                        </p>
-                        <p className="text-sm text-gray-700 mt-2">
-                          {project.description}
-                        </p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            Volunteers Needed: {project.volunteersNeeded || 0}
-                          </Badge>
+                    <div key={project._id} className="p-3 rounded-lg border bg-white flex justify-between items-center">
+                      <div>
+                        <Link to={`/researcher/projects/${project._id}`} className="font-semibold text-gray-800 hover:underline">{project.title}</Link>
+                        <div className="text-sm text-gray-500 space-x-4">
+                          <span>Lead: {project.leadResearcher?.firstName || 'N/A'}</span>
+                          <span>Location: {project.location?.name || 'TBD'}</span>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                      <Badge variant="outline">{project.status}</Badge>
+                    </div>
                   ))}
                 </div>
               )}
@@ -389,57 +370,24 @@ export default function ResearcherDashboard() {
                 Requests for volunteer assistance in your research
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {(!collaborationRequests || collaborationRequests.length === 0) ? (
-                <div className="text-center text-gray-500 py-10">
-                  <p>No collaboration requests found.</p>
+            <CardContent>
+              {collaborationRequests && collaborationRequests.length > 0 ? (
+                <div className="space-y-4">
+                  {collaborationRequests.map((req: any) => (
+                    <div key={req._id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
+                      <div>
+                        <Link to="/researcher/request-volunteers" className="font-semibold text-gray-800 hover:underline">
+                          {req.title}
+                        </Link>
+                        <p className="text-sm text-gray-500">{req.applicants.length} Applicants</p>
+                      </div>
+                      <Badge variant={req.status === 'open' ? 'default' : 'secondary'}>{req.status}</Badge>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <div className="grid gap-4">
-                  {collaborationRequests.map((request) => (
-                    <Card key={request._id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-lg font-medium flex items-center gap-2">
-                          {request.title}
-                        </CardTitle>
-                        <Badge variant="outline" className="text-xs">
-                          {request.status.replace("_", " ")}
-                        </Badge>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <BookOpen className="h-4 w-4" /> Project: {request.researchProject?.title}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Users className="h-4 w-4" /> Requested by: {request.requestedBy?.firstName} {request.requestedBy?.lastName}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <MapPin className="h-4 w-4" /> Location: {request.location.name}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Calendar className="h-4 w-4" /> Dates: {formatDate(request.startDate)} - {formatDate(request.endDate)}
-                        </p>
-                        <p className="text-sm text-gray-700 mt-2">
-                          {request.description}
-                        </p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            Volunteers Needed: {request.numberOfVolunteersNeeded}
-                          </Badge>
-                          {request.skillsRequired && request.skillsRequired.length > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              Skills: {request.skillsRequired.join(", ")}
-                            </Badge>
-                          )}
-                          {request.applicants && (
-                            <Badge variant="outline" className="text-xs">
-                              Applicants: {request.applicants.length}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="text-center text-gray-500 py-4">
+                  <p>No active collaboration requests found.</p>
                 </div>
               )}
             </CardContent>

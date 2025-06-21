@@ -44,6 +44,7 @@ const chatRoutes = require('./routes/chat');
 const collaborationRoutes = require('./routes/collaboration');
 const volunteerRequestsRoutes = require('./routes/volunteerRequests');
 const conservationProjectsRoutes = require('./routes/conservationProjects');
+const applicationRoutes = require('./routes/applicationRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -64,6 +65,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/collaboration', collaborationRoutes);
 app.use('/api/volunteer-requests', volunteerRequestsRoutes);
 app.use('/api/conservation-projects', conservationProjectsRoutes);
+app.use('/api/applications', applicationRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
