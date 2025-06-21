@@ -30,8 +30,12 @@ export default function Login() {
         const user = JSON.parse(storedUser);
         navigate(getDashboardRoute(user.role));
       }
-    } catch (err) {
-      setError("Invalid email or password. Please try again.");
+    } catch (err: any) {
+      if (err.response && err.response.data.errorCode === 'ACCOUNT_NOT_VERIFIED') {
+        navigate('/auth/waiting-for-verification');
+      } else {
+        setError("Invalid email or password. Please try again.");
+      }
     }
   };
 

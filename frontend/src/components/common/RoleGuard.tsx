@@ -30,7 +30,12 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
     return <Navigate to="/auth/login" replace />;
   }
 
-  if (!allowedRoles.includes(user.role)) {
+  // Redirect to a waiting page if not verified, unless an administrator
+  if (user.role !== 'administrator' && !user.verified) {
+    return <Navigate to="/auth/waiting-for-verification" replace />;
+  }
+
+  if (!allowedRoles.includes(user.role as UserRole)) {
     if (fallback) {
       return <>{fallback}</>;
     }

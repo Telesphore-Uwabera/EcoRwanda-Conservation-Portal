@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,501 +17,207 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { OfflineIndicator } from "@/components/common/OfflineIndicator";
-import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
-import api from "@/config/api"; // Import your API instance
-import {
-  Map,
-  AlertTriangle,
-  MapPin,
-  Clock,
-  TrendingUp,
-  Filter,
-  Layers,
-  Zap,
-  Shield,
-  Camera,
-  Navigation,
-  Target,
-  Activity,
-  Radio,
-  Users,
-} from "lucide-react";
-import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
+import api from "@/config/api";
+import { Map as MapIcon, AlertTriangle, Filter } from "lucide-react";
 
-interface Threat {
-  id: string;
-  type: string; // Maps to WildlifeReport.category (e.g., 'poaching', 'human_wildlife_conflict')
-  severity: string; // Maps to WildlifeReport.urgency (e.g., 'critical', 'high', 'medium', 'low')
+// Define an interface for a single wildlife report
+interface WildlifeReport {
+  _id: string;
   title: string;
   description: string;
-  location: { lat: number; lng: number; name: string };
-  coordinates: { lat: number; lng: number }; // Redundant if location has lat/lng but kept for compatibility
-  reportedAt: string;
-  reportedBy: string;
+  category: string;
+  urgency: string;
   status: string;
-  lastUpdate: string;
+  location: {
+    lat: number;
+    lng: number;
+    name: string;
+  };
+  createdAt: string;
 }
 
+// Define colors for each threat category for consistent styling
+const categoryColors: { [key: string]: string } = {
+  poaching: "red",
+  habitat_destruction: "orange",
+  wildlife_sighting: "blue",
+  human_wildlife_conflict: "purple",
+  other: "gray",
+};
+
+// Create custom colored icons for the map pins
+const getIcon = (color: string) => {
+  return new L.Icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    shadowUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+};
+
 export default function ThreatMap() {
-  const { user } = useAuth();
-  const isOnline = useOfflineStatus();
-  const [threatFilter, setThreatFilter] = useState("all");
-  const [timeFilter, setTimeFilter] = useState("24h");
-  const [activeTab, setActiveTab] = useState("live");
-  const [threats, setThreats] = useState<Threat[]>([]);
+  const [reports, setReports] = useState<WildlifeReport[]>([]);
+  const [filteredReports, setFilteredReports] = useState<WildlifeReport[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY', // TODO: Replace with your real key
-  });
+  const { user } = useAuth();
+  const [mapCenter, setMapCenter] = useState<L.LatLngTuple>([-1.9441, 29.8739]);
+
+  // State to hold the dynamically imported Leaflet components
+  const [leafletComponents, setLeafletComponents] = useState<any>(null);
 
   useEffect(() => {
-    const fetchThreats = async () => {
-      setLoading(true);
+    // Dynamically import react-leaflet only on the client side
+    import("react-leaflet").then((components) => {
+      setLeafletComponents(components);
+    });
+  }, []);
+
+  useEffect(() => {
+    const fetchReports = async () => {
       try {
-        const storedUser = localStorage.getItem('eco-user');
-        let token = null;
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          token = user.token;
-        }
-
-        const response = await api.get('/threats', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const token = user?.token;
+        const response = await api.get("/reports", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        // Sort threats by reportedAt (most recent first)
-        const sortedThreats = response.data.threats.sort((a: Threat, b: Threat) => {
-          return new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime();
-        });
-        setThreats(sortedThreats);
-        setError(null);
+        setReports(response.data.data);
+        setFilteredReports(response.data.data);
       } catch (err) {
-        setError('Failed to fetch threat data.');
-        console.error('Error fetching threat data:', err);
+        setError("Failed to fetch reports.");
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchThreats();
-  }, []);
-
-  // Patrol teams are not directly fetched here, keeping as placeholder for now
-  const patrolTeams: any[] = []; 
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "critical":
-        return "bg-red-100 text-red-800 border-red-300";
-      case "high":
-        return "bg-orange-100 text-orange-800 border-orange-300";
-      case "medium":
-        return "bg-amber-100 text-amber-800 border-amber-300";
-      case "low":
-        return "bg-emerald-100 text-emerald-800 border-emerald-300";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+    if (user) {
+      fetchReports();
     }
-  };
+  }, [user]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-red-100 text-red-800";
-      case "pending":
-        return "bg-amber-100 text-amber-800";
-      case "verified":
-        return "bg-blue-100 text-blue-800";
-      case "investigating":
-        return "bg-purple-100 text-purple-800";
-      case "resolved":
-        return "bg-emerald-100 text-emerald-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  useEffect(() => {
+    let newFilteredReports = reports;
 
-  const getTeamStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-emerald-100 text-emerald-800";
-      case "responding":
-        return "bg-blue-100 text-blue-800";
-      case "investigating":
-        return "bg-amber-100 text-amber-800";
-      case "standby":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getThreatIcon = (type: string) => {
-    switch (type) {
-      case "poaching":
-        return "🎯";
-      case "habitat_destruction":
-        return "🪓";
-      case "wildlife_sighting":
-        return "🐾";
-      case "human_wildlife_conflict":
-        return "⚡";
-      case "other":
-        return "❓";
-      default:
-        return "⚠️";
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const filteredThreats = threats.filter((threat) => {
-    const matchesThreat = threatFilter === "all" || threat.type === threatFilter;
-    const now = new Date();
-    const threatTime = new Date(threat.reportedAt);
-    let matchesTime = true;
-
-    if (timeFilter === "24h") {
-      matchesTime = (now.getTime() - threatTime.getTime()) < (24 * 60 * 60 * 1000);
-    } else if (timeFilter === "7d") {
-      matchesTime = (now.getTime() - threatTime.getTime()) < (7 * 24 * 60 * 60 * 1000);
-    } else if (timeFilter === "30d") {
-      matchesTime = (now.getTime() - threatTime.getTime()) < (30 * 24 * 60 * 60 * 1000);
-    } else if (timeFilter === "all") {
-      matchesTime = true; // No time filter applied
+    if (categoryFilter !== "all") {
+      newFilteredReports = newFilteredReports.filter(
+        (report) => report.category === categoryFilter
+      );
     }
 
-    return matchesThreat && matchesTime;
-  });
+    if (statusFilter !== "all") {
+      newFilteredReports = newFilteredReports.filter(
+        (report) => report.status === statusFilter
+      );
+    }
 
-  // Calculate stats based on fetched threats
-  const activeThreatsCount = filteredThreats.filter(t => t.status !== 'resolved' && t.status !== 'pending').length; 
-  const criticalThreatsCount = filteredThreats.filter(t => t.severity === 'critical' && t.status !== 'resolved' && t.status !== 'pending').length;
-  const teamsDeployedCount = 0; // Placeholder for now, as we don't have real team data yet
-  const avgResponseTime = "N/A"; // Placeholder for now
+    setFilteredReports(newFilteredReports);
 
-  const containerStyle = {
-    width: '100%',
-    height: '400px',
+    if (newFilteredReports.length > 0) {
+      const { lat, lng } = newFilteredReports[0].location;
+      setMapCenter([lat, lng]);
+    } else {
+      setMapCenter([-1.9441, 29.8739]); // Reset to default if no reports
+    }
+  }, [categoryFilter, statusFilter, reports]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
+  // Destructure the components once they are loaded
+  const { MapContainer, TileLayer, Marker, Popup, useMap } = leafletComponents || {};
+
+  // useMap requires to be a child of MapContainer, so we create a helper component
+  const ChangeView = ({ center, zoom }: { center: L.LatLngTuple; zoom: number }) => {
+    if (!useMap) return null;
+    const map = useMap();
+    useEffect(() => {
+      map.setView(center, zoom);
+    }, [center, zoom, map]);
+    return null;
   };
-  const center = { lat: -1.9719705, lng: 30.0929482 }; // 17 KK 499 St, Kigali, Rwanda
 
-  if (loading) {
+  if (!leafletComponents) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <p>Loading threat map data...</p>
+      <div style={{ height: "600px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        Loading Map...
         </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <div className="p-4">
-          <AlertDialog variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </AlertDialog>
-        </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <OfflineIndicator isOnline={isOnline} />
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <Map className="h-8 w-8 text-blue-600" /> Threat Map
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <MapIcon /> Threat Map
           </h1>
-        <p className="text-gray-600 mb-4">Visualize and monitor wildlife threats geographically in real time.</p>
-
-        {/* Real Map Section */}
-        <div style={{ height: '400px', width: '100%', marginBottom: '2rem' }}>
-          {isLoaded && (
-            <GoogleMap
-              mapContainerStyle={containerStyle}
-              center={center}
-              zoom={8}
-            >
-              {filteredThreats.map((threat) => (
-                <Marker
-                  key={threat.id}
-                  position={{ lat: threat.location.lat, lng: threat.location.lng }}
-                  onClick={() => setSelectedThreat(threat)}
-                  title={threat.title}
-                />
-              ))}
-              {selectedThreat && (
-                <InfoWindow
-                  position={{ lat: selectedThreat.location.lat, lng: selectedThreat.location.lng }}
-                  onCloseClick={() => setSelectedThreat(null)}
-                >
-                  <div>
-                    <strong>{selectedThreat.title}</strong><br />
-                    <span>{selectedThreat.type} ({selectedThreat.severity})</span><br />
-                    <span>Status: {selectedThreat.status}</span><br />
-                    <span>Reported: {formatDate(selectedThreat.reportedAt)}</span><br />
-                    <span>{selectedThreat.location.name}</span>
-                  </div>
-                </InfoWindow>
-              )}
-            </GoogleMap>
-          )}
-        </div>
-
-        {/* Critical Threat Alert */}
-        {criticalThreatsCount > 0 && (
-          <Card className="border-l-4 border-red-500 bg-red-50 text-red-800 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <p className="font-semibold">
-                {criticalThreatsCount} Critical Threat{criticalThreatsCount > 1 ? "s" : ""} Require Immediate Response
-              </p>
-            </div>
-            <p className="text-sm mt-2">
-              Emergency response teams have been notified and are coordinating
-              response actions.
-            </p>
-            <Button className="mt-4 bg-red-600 hover:bg-red-700">
-              <Target className="h-4 w-4 mr-2" />
-              Coordinate Response
-            </Button>
-          </Card>
-        )}
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="h-8 w-8 text-red-600" />
-                <div>
-                  <p className="text-2xl font-bold text-red-900">
-                    {activeThreatsCount}
-                  </p>
-                  <p className="text-sm text-red-700">Active Threats</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Zap className="h-8 w-8 text-orange-600" />
-                <div>
-                  <p className="text-2xl font-bold text-orange-900">
-                    {criticalThreatsCount}
-                  </p>
-                  <p className="text-sm text-orange-700">Critical Priority</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Shield className="h-8 w-8 text-blue-600" />
-                <div>
-                  <p className="text-2xl font-bold text-blue-900">
-                    {teamsDeployedCount}
-                  </p>
-                  <p className="text-sm text-blue-700">Teams Deployed</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-emerald-200 bg-emerald-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <Clock className="h-8 w-8 text-emerald-600" />
-                <div>
-                  <p className="text-2xl font-bold text-emerald-900">
-                    {avgResponseTime}
-                  </p>
-                  <p className="text-sm text-emerald-700">Avg Response Time</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Map Controls & Filters */}
-        <div className="flex flex-wrap items-center gap-4">
-          <input
-            type="text"
-            placeholder="Search threats..."
-            className="flex-1 min-w-[200px] md:min-w-[250px] p-2 border rounded-md"
-          />
-          <Select onValueChange={setThreatFilter} value={threatFilter}>
-            <SelectTrigger className="w-[180px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="All Threat Types" />
+        <div className="flex items-center gap-2">
+          <Filter className="h-5 w-5" />
+          <Select onValueChange={setCategoryFilter} defaultValue="all">
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Threat Types</SelectItem>
-              <SelectItem value="poaching">Poaching Activity</SelectItem>
-              <SelectItem value="human_wildlife_conflict">
-                Human-Wildlife Conflict
+              <SelectItem value="all">All Categories</SelectItem>
+              {Object.keys(categoryColors).map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, " ")}
               </SelectItem>
-              <SelectItem value="habitat_destruction">Habitat Destruction</SelectItem>
-              <SelectItem value="wildlife_sighting">Wildlife Sighting</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Select onValueChange={setTimeFilter} value={timeFilter}>
-            <SelectTrigger className="w-[160px]">
-              <Clock className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Last 24h" />
+          <Select onValueChange={setStatusFilter} defaultValue="all">
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="24h">Last 24h</SelectItem>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="verified">Verified</SelectItem>
+              <SelectItem value="investigating">Investigating</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex-1"></div>
         </div>
+                </div>
 
-        {/* Threat List & Team Status */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Threat List */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-600" />
-                Threat Incidents
-              </CardTitle>
-              <CardDescription>
-                Reported threats and their current status.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {filteredThreats.length === 0 ? (
-                <div className="text-center text-gray-500 py-10">
-                  <p>No threats found for the selected filters.</p>
+        <CardContent className="p-0">
+          <MapContainer
+            center={mapCenter}
+            zoom={8}
+            style={{ height: "600px", width: "100%" }}
+          >
+            <ChangeView center={mapCenter} zoom={filteredReports.length > 0 ? 10 : 8} />
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            {filteredReports.map((report) => (
+              <Marker
+                key={report._id}
+                position={[report.location.lat, report.location.lng]}
+                icon={getIcon(categoryColors[report.category] || "gray")}
+              >
+                <Popup>
+                  <div className="font-bold">{report.title}</div>
+                  <p>{report.description}</p>
+                  <Badge>{report.category}</Badge>
+                  <div className="text-xs text-gray-500 mt-2">
+                    {new Date(report.createdAt).toLocaleString()}
                 </div>
-              ) : (
-                <div className="grid gap-4">
-                  {filteredThreats.map((threat) => (
-                    <Card key={threat.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-lg font-medium flex items-center gap-2">
-                          {getThreatIcon(threat.type)} {threat.title}
-                        </CardTitle>
-                        <Badge className={getSeverityColor(threat.severity)}>
-                          {threat.severity.replace("_", " ")}
-                        </Badge>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <MapPin className="h-4 w-4" /> {threat.location.name}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Clock className="h-4 w-4" /> Reported:
-                          {formatDate(threat.reportedAt)} by {threat.reportedBy}
-                        </p>
-                        <p className="text-sm text-gray-700 mt-2">
-                          {threat.description}
-                        </p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Badge className={getStatusColor(threat.status)}>
-                            {threat.status.replace("_", " ")}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Patrol Team Status (Placeholder for now) */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-blue-600" />
-                Patrol Team Status
-              </CardTitle>
-              <CardDescription>
-                Current status and assignments of active patrol teams.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {patrolTeams.length === 0 ? (
-                <div className="text-center text-gray-500 py-10">
-                  <p>No active patrol teams found.</p>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {patrolTeams.map((team) => (
-                    <Card key={team.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-lg font-medium flex items-center gap-2">
-                          {team.name}
-                        </CardTitle>
-                        <Badge className={getTeamStatusColor(team.status)}>
-                          {team.status}
-                        </Badge>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Users className="h-4 w-4" /> Leader: {team.leader}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <MapPin className="h-4 w-4" /> Location: {team.currentLocation.lat.toFixed(4)}, {team.currentLocation.lng.toFixed(4)}
-                        </p>
-                        {team.assignedThreat && (
-                          <p className="text-sm text-gray-600 flex items-center gap-1">
-                            <AlertTriangle className="h-4 w-4" /> Assigned Threat: {threats.find(t => t.id === team.assignedThreat)?.title || 'N/A'}
-                          </p>
-                        )}
-                        <p className="text-sm text-gray-700 mt-2">
-                          Members: {team.members.join(", ")}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-1">
-                          {team.equipment.map((item: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {item}
-                            </Badge>
-                          ))}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Last Updated: {formatDate(team.lastUpdate)}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
             </CardContent>
           </Card>
         </div>
-      </div>
-    </DashboardLayout>
   );
 }

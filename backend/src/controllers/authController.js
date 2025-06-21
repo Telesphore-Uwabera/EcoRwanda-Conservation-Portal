@@ -81,9 +81,17 @@ exports.login = async (req, res) => {
     }
     console.log('Password verified for user:', email);
 
+    // Check if user is verified
+    if (!user.verified && user.role !== 'administrator') {
+      return res.status(403).json({ 
+        message: 'Your account has not been verified yet. Please wait for an administrator to approve your registration.',
+        errorCode: 'ACCOUNT_NOT_VERIFIED' 
+      });
+    }
+
     // Generate JWT token
     const token = jwt.sign(
-      { _id: user._id, role: user.role },
+      { _id: user._id, role: user.role, verified: user.verified },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -95,6 +103,7 @@ exports.login = async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
+      verified: user.verified,
       location: user.location,
       organization: user.organization
     };

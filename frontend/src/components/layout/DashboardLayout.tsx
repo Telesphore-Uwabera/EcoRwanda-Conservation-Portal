@@ -159,7 +159,7 @@ const navigationItems: NavigationItem[] = [
   },
   {
     label: "User Management",
-    href: "/admin/users",
+    href: "/admin/user-management",
     icon: Users,
     roles: ["administrator"],
   },
@@ -177,7 +177,7 @@ const navigationItems: NavigationItem[] = [
   },
   {
     label: "System Settings",
-    href: "/admin/settings",
+    href: "/admin/system-settings",
     icon: Settings,
     roles: ["administrator"],
   },

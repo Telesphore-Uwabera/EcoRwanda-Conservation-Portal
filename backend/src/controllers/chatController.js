@@ -96,4 +96,54 @@ exports.replyMessage = async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+};
+
+// Edit a message
+exports.editMessage = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const message = await ChatMessage.findById(req.params.id);
+    if (!message) return res.status(404).json({ success: false, error: 'Message not found' });
+
+    // Check if the user is the author
+    if (message.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, error: 'User not authorized to edit this message' });
+    }
+
+    message.text = text;
+    await message.save();
+    await message.populate('user', 'firstName lastName role');
+    res.json({ success: true, message });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// Delete a message
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await ChatMessage.findById(req.params.id);
+    if (!message) return res.status(404).json({ success: false, error: 'Message not found' });
+
+    // Check if the user is the author
+    if (message.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, error: 'User not authorized to delete this message' });
+    }
+
+    // If it's a reply, remove it from the parent's replies array
+    if (message.replyTo) {
+      await ChatMessage.updateOne({ _id: message.replyTo }, { $pull: { replies: message._id } });
+    }
+    
+    // Also delete any replies to this message
+    if (message.replies && message.replies.length > 0) {
+      await ChatMessage.deleteMany({ _id: { $in: message.replies } });
+    }
+
+    await message.deleteOne();
+
+    res.json({ success: true, message: 'Message deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 }; 
