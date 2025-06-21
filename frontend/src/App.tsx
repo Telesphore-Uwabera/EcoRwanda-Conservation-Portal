@@ -8,7 +8,6 @@ import { RoleGuard } from "@/components/common/RoleGuard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 // Pages
-import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 // Auth Pages
@@ -186,6 +185,16 @@ const App = () => (
                 </RoleGuard>
               }
             />
+            <Route
+              path="/researcher/threat-map"
+              element={
+                <RoleGuard allowedRoles={["researcher", "administrator"]}>
+                  <DashboardLayout>
+                    <ThreatMap />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
 
             {/* Ranger Routes */}
             <Route
@@ -211,7 +220,7 @@ const App = () => (
             <Route
               path="/ranger/threat-map"
               element={
-                <RoleGuard allowedRoles={["ranger"]}>
+                <RoleGuard allowedRoles={["ranger", "researcher", "administrator"]}>
                   <DashboardLayout>
                     <ThreatMap />
                   </DashboardLayout>
@@ -346,6 +355,16 @@ const App = () => (
                 <RoleGuard allowedRoles={["administrator"]}>
                   <DashboardLayout>
                     <AdminCollaboration />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/threat-map"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <ThreatMap />
                   </DashboardLayout>
                 </RoleGuard>
               }

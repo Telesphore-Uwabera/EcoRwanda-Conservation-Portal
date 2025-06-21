@@ -29,6 +29,7 @@ import {
   Globe,
   Clock,
   AlertTriangle,
+  Map,
 } from "lucide-react";
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -250,7 +251,17 @@ export default function ResearcherDashboard() {
               >
                 <Link to="/researcher/analytics" className="flex flex-col gap-1 items-center justify-center">
                   <BarChart3 className="h-6 w-6" />
-                  <span>Analytics</span>
+                  <span>View Analytics</span>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-16 border-red-300 text-red-700 hover:bg-red-50"
+              >
+                <Link to="/researcher/threat-map" className="flex flex-col gap-1 items-center justify-center">
+                  <Map className="h-6 w-6" />
+                  <span>Threat Map</span>
                 </Link>
               </Button>
             </div>
@@ -271,7 +282,7 @@ export default function ResearcherDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {activeProjects.length === 0 ? (
+              {(!activeProjects || activeProjects.length === 0) ? (
                 <div className="text-center text-gray-500 py-10">
                   <p>No active projects found.</p>
                 </div>
@@ -325,7 +336,7 @@ export default function ResearcherDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentPublications.length === 0 ? (
+              {(!recentPublications || recentPublications.length === 0) ? (
                 <div className="text-center text-gray-500 py-10">
                   <p>No recent publications found.</p>
                 </div>
@@ -379,7 +390,7 @@ export default function ResearcherDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {collaborationRequests.length === 0 ? (
+              {(!collaborationRequests || collaborationRequests.length === 0) ? (
                 <div className="text-center text-gray-500 py-10">
                   <p>No collaboration requests found.</p>
                 </div>
@@ -415,14 +426,16 @@ export default function ResearcherDashboard() {
                           <Badge variant="outline" className="text-xs">
                             Volunteers Needed: {request.numberOfVolunteersNeeded}
                           </Badge>
-                          {request.skillsRequired.length > 0 && (
+                          {request.skillsRequired && request.skillsRequired.length > 0 && (
                             <Badge variant="outline" className="text-xs">
                               Skills: {request.skillsRequired.join(", ")}
                             </Badge>
                           )}
-                          <Badge variant="outline" className="text-xs">
-                            Applicants: {request.applicants.length}
-                          </Badge>
+                          {request.applicants && (
+                            <Badge variant="outline" className="text-xs">
+                              Applicants: {request.applicants.length}
+                            </Badge>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
