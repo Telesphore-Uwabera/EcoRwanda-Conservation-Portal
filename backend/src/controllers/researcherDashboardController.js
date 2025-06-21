@@ -76,6 +76,40 @@ const getResearcherDashboardData = async (req, res) => {
   }
 };
 
+const getDashboardData = async (req, res) => {
+  try {
+    const researcherId = req.user._id;
+
+    const activeProjects = await ResearchProject.find({
+      researcher: researcherId,
+      status: { $in: ['active', 'planning'] }
+    }).sort({ createdAt: -1 }).limit(5);
+
+    const recentPublications = await ResearchProject.find({
+        researcher: researcherId,
+        status: 'completed',
+    }).sort({ updatedAt: -1 }).limit(5);
+
+    const collaborationRequests = await VolunteerRequest.find({
+        requestedBy: researcherId,
+        status: 'open'
+    }).populate('applicants', 'firstName lastName email').sort({ createdAt: -1 }).limit(5);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        activeProjects,
+        recentPublications,
+        collaborationRequests,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching researcher dashboard data:', error);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
 module.exports = {
   getResearcherDashboardData,
+  getDashboardData,
 }; 

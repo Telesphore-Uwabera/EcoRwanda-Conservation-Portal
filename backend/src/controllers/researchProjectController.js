@@ -120,6 +120,121 @@ const publishFinding = async (req, res) => {
   }
 };
 
+// @desc    Create a new research project
+// @route   POST /api/researchprojects
+// @access  Private (Researcher)
+exports.createResearchProject = async (req, res) => {
+  try {
+    const project = new ResearchProject({
+      ...req.body,
+      researcher: req.user._id,
+    });
+    await project.save();
+    res.status(201).json({ success: true, data: project });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Get all research projects
+// @route   GET /api/researchprojects
+// @access  Public
+exports.getAllResearchProjects = async (req, res) => {
+  try {
+    const projects = await ResearchProject.find().populate('researcher', 'firstName lastName');
+    res.status(200).json({ success: true, data: projects });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
+// @desc    Get research projects for a specific user
+// @route   GET /api/researchprojects/user/:userId
+// @access  Private
+exports.getProjectsByUser = async (req, res) => {
+    try {
+        // Ensure the requester is the user themselves or an admin
+        if (req.user._id.toString() !== req.params.userId && req.user.role !== 'administrator') {
+            return res.status(403).json({ success: false, error: 'Not authorized to access these projects' });
+        }
+        const projects = await ResearchProject.find({ researcher: req.params.userId });
+        if (!projects) {
+            return res.status(404).json({ success: false, error: 'No projects found for this user' });
+        }
+        res.status(200).json({ success: true, data: projects });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Server Error' });
+    }
+};
+
+// @desc    Get a single research project by ID
+// @route   GET /api/researchprojects/:id
+// @access  Public
+exports.getResearchProjectById = async (req, res) => {
+  try {
+    const project = await ResearchProject.findById(req.params.id).populate('researcher', 'firstName lastName');
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+    res.status(200).json({ success: true, data: project });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
+// @desc    Update a research project
+// @route   PUT /api/researchprojects/:id
+// @access  Private (Author or Admin)
+exports.updateResearchProject = async (req, res) => {
+  try {
+    let project = await ResearchProject.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    // Check if the user is the author or an admin
+    if (project.researcher.toString() !== req.user._id.toString() && req.user.role !== 'administrator') {
+        return res.status(401).json({ success: false, error: 'User not authorized to update this project' });
+    }
+
+    project = await ResearchProject.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({ success: true, data: project });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Delete a research project
+// @route   DELETE /api/researchprojects/:id
+// @access  Private (Author or Admin)
+exports.deleteResearchProject = async (req, res) => {
+  try {
+    const project = await ResearchProject.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ success: false, error: 'Project not found' });
+    }
+
+    if (project.researcher.toString() !== req.user._id.toString() && req.user.role !== 'administrator') {
+        return res.status(401).json({ success: false, error: 'User not authorized to delete this project' });
+    }
+
+    await project.deleteOne();
+    res.status(200).json({ success: true, data: {} });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
 module.exports = {
   publishFinding,
+  createResearchProject: exports.createResearchProject,
+  getAllResearchProjects: exports.getAllResearchProjects,
+  getProjectsByUser: exports.getProjectsByUser,
+  getResearchProjectById: exports.getResearchProjectById,
+  updateResearchProject: exports.updateResearchProject,
+  deleteResearchProject: exports.deleteResearchProject,
 }; 

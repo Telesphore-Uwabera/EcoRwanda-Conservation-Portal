@@ -1,11 +1,11 @@
 const Patrol = require('../models/Patrol');
 const { authenticateToken } = require('../middleware/auth');
 
-// Get all patrols
+// Get all patrols for the logged-in ranger
 exports.getPatrols = async (req, res) => {
   try {
-    // Return all patrols regardless of user
-    const patrolsRaw = await Patrol.find({})
+    // Find patrols assigned to the logged-in ranger
+    const patrolsRaw = await Patrol.find({ ranger: req.user._id })
       .populate('ranger', 'firstName lastName email')
       .sort({ patrolDate: -1 });
     

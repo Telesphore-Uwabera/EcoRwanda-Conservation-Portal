@@ -88,7 +88,7 @@ const navigationItems: NavigationItem[] = [
     roles: ["researcher"],
   },
   {
-    label: "Publish Findings",
+    label: "My Research Projects",
     href: "/researcher/publish",
     icon: BookOpen,
     roles: ["researcher"],
