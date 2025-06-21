@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleGuard } from "@/components/common/RoleGuard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import React from "react";
 
 // Pages
 import NotFound from "./pages/NotFound";
@@ -15,6 +16,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import WaitingForVerification from "./pages/auth/WaitingForVerification";
 
 // Dashboard Pages
 import VolunteerDashboard from "./pages/dashboard/VolunteerDashboard";
@@ -36,12 +38,12 @@ import Analytics from "./pages/researcher/Analytics";
 // Ranger Pages
 import VerifyReports from "./pages/ranger/VerifyReports";
 import PatrolData from "./pages/ranger/PatrolData";
-import ThreatMap from "./pages/ranger/ThreatMap";
 import Communications from "./pages/ranger/Communications";
 import RangerAnalytics from "./pages/ranger/Analytics";
 import Announcements from "./pages/ranger/Announcements";
 import Chat from "./pages/ranger/Chat";
 import Collaboration from "./pages/ranger/Collaboration";
+import ThreatMap from "./pages/ranger/ThreatMap";
 
 // Admin Pages
 import UserManagementPage from "./pages/admin/UserManagementPage";
@@ -68,7 +70,11 @@ const App = () => (
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-            <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
+            <Route
+              path="/auth/reset-password/:token"
+              element={<ResetPassword />}
+            />
+            <Route path="/auth/waiting-for-verification" element={<WaitingForVerification />} />
 
             {/* Dashboard Routes */}
             <Route
@@ -188,7 +194,7 @@ const App = () => (
             <Route
               path="/researcher/threat-map"
               element={
-                <RoleGuard allowedRoles={["researcher", "administrator"]}>
+                <RoleGuard allowedRoles={["researcher"]}>
                   <DashboardLayout>
                     <ThreatMap />
                   </DashboardLayout>
@@ -220,7 +226,7 @@ const App = () => (
             <Route
               path="/ranger/threat-map"
               element={
-                <RoleGuard allowedRoles={["ranger", "researcher", "administrator"]}>
+                <RoleGuard allowedRoles={["ranger"]}>
                   <DashboardLayout>
                     <ThreatMap />
                   </DashboardLayout>
@@ -280,7 +286,17 @@ const App = () => (
 
             {/* Admin Routes */}
             <Route
-              path="/admin/users"
+              path="/admin/threat-map"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <ThreatMap />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/user-management"
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
                   <DashboardLayout>
@@ -290,7 +306,7 @@ const App = () => (
               }
             />
             <Route
-              path="/admin/users/:id"
+              path="/admin/user-profile/:userId"
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
                   <DashboardLayout>
@@ -300,7 +316,7 @@ const App = () => (
               }
             />
             <Route
-              path="/admin/settings"
+              path="/admin/system-settings"
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
                   <DashboardLayout>
@@ -359,18 +375,8 @@ const App = () => (
                 </RoleGuard>
               }
             />
-            <Route
-              path="/admin/threat-map"
-              element={
-                <RoleGuard allowedRoles={["administrator"]}>
-                  <DashboardLayout>
-                    <ThreatMap />
-                  </DashboardLayout>
-                </RoleGuard>
-              }
-            />
 
-            {/* Catch-all route */}
+            {/* Not Found Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

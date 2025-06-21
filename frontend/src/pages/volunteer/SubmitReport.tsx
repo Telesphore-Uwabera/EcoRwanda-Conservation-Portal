@@ -130,27 +130,48 @@ export default function SubmitReport() {
     }
   };
 
-  const getCurrentLocation = () => {
+  const getCurrentLocation = async () => {
     setGettingLocation(true);
 
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData((prev) => ({
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+
+        const { latitude, longitude } = position.coords;
+
+        // Reverse geocode to get a location name
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+        const data = await response.json();
+        
+        const locationName = data.display_name || `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
+
+        setFormData((prev) => ({
+          ...prev,
+          location: {
+            name: locationName,
+            lat: latitude,
+            lng: longitude,
+          },
+        }));
+      } catch (error) {
+        console.error("Error getting or geocoding location:", error);
+        // Fallback to setting just coords if geocoding fails
+        if ('coords' in (error as GeolocationPositionError)) {
+           const { latitude, longitude } = (error as GeolocationPosition).coords;
+            setFormData((prev) => ({
             ...prev,
             location: {
-              ...prev.location,
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
+                ...prev.location,
+                lat: latitude,
+                lng: longitude,
             },
-          }));
-          setGettingLocation(false);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          setGettingLocation(false);
-        },
-      );
+            }));
+        }
+      } finally {
+        setGettingLocation(false);
+      }
     } else {
       setGettingLocation(false);
     }
@@ -173,7 +194,7 @@ export default function SubmitReport() {
       const reportData = {
         ...formData,
         photos: photos.map((file) => file.name),
-        submittedBy: user?.id,
+        submittedBy: user?._id,
         submittedAt: new Date().toISOString(),
         status: "pending",
       };
