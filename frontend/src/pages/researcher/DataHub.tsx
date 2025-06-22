@@ -156,6 +156,10 @@ export default function DataHub() {
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [requestMessage, setRequestMessage] = useState("");
 
+  // Add state for selectedPaper and showPaperDialog
+  const [selectedPaper, setSelectedPaper] = useState<ResearchPaper | null>(null);
+  const [showPaperDialog, setShowPaperDialog] = useState(false);
+
   // Helper to parse date to ISO
   function parseDateToISO(dateStr: string | undefined): string | undefined {
     if (!dateStr) return undefined;
@@ -766,7 +770,7 @@ export default function DataHub() {
                               </Badge>
                             )}
                           </div>
-                          <Button size="sm" className="mt-3">
+                          <Button size="sm" className="mt-3" onClick={() => { setSelectedPaper(paper); setShowPaperDialog(true); }}>
                             View Details
                           </Button>
                         </CardContent>
@@ -1079,6 +1083,26 @@ export default function DataHub() {
                     </Button>
                   </div>
                 )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Research Paper Details Dialog */}
+        <Dialog open={showPaperDialog} onOpenChange={setShowPaperDialog}>
+          <DialogContent className="max-w-lg w-full">
+            {selectedPaper && (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{selectedPaper.title}</DialogTitle>
+                  <DialogDescription>{selectedPaper.abstract}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-2 mt-2">
+                  <div><b>Authors:</b> {selectedPaper.authors?.join(', ')}</div>
+                  <div><b>Category:</b> {selectedPaper.category}</div>
+                  <div><b>Access Level:</b> {selectedPaper.accessLevel?.replace('_', ' ')}</div>
+                  <div><b>Published:</b> {selectedPaper.publicationDate ? new Date(selectedPaper.publicationDate).toLocaleString() : 'N/A'}</div>
+                </div>
               </>
             )}
           </DialogContent>

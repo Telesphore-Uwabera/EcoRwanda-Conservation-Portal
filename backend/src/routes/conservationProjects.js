@@ -10,12 +10,26 @@ const {
   getAvailableProjects,
   publishResearchPaper
 } = require('../controllers/conservationProjectController');
+const ConservationProject = require('../models/ConservationProject');
 
 // Get all conservation projects
 router.get('/', authenticateToken, getAllProjects);
 
 // Get available projects
 router.get('/available', authenticateToken, getAvailableProjects);
+
+// Get publications
+router.get('/publications', async (req, res) => {
+  try {
+    console.log("Fetching publications...");
+    const publications = await ConservationProject.find({ status: { $in: ['completed', 'published'] } }).sort({ publicationDate: -1, createdAt: -1 });
+    console.log("Found publications:", publications);
+    res.json({ success: true, data: publications });
+  } catch (err) {
+    console.error('Error in /publications:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch publications.' });
+  }
+});
 
 // Get a single project
 router.get('/:id', authenticateToken, getProjectById);

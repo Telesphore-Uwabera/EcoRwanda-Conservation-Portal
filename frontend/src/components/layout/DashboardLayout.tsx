@@ -87,6 +87,12 @@ const navigationItems: NavigationItem[] = [
     icon: Briefcase,
     roles: ["volunteer"],
   },
+  {
+    label: "Publications",
+    href: "/volunteer/Publications",
+    icon: FileText,
+    roles: ["volunteer"],
+  },
 
   // Researcher Navigation
   {
@@ -119,6 +125,12 @@ const navigationItems: NavigationItem[] = [
     icon: Map,
     roles: ["researcher"],
   },
+  {
+    label: "Publications",
+    href: "/researcher/Publications",
+    icon: FileText,
+    roles: ["researcher"],
+  },
 
   // Ranger Navigation
   {
@@ -149,6 +161,12 @@ const navigationItems: NavigationItem[] = [
     label: "Communications",
     href: "/ranger/communications",
     icon: MessageSquare,
+    roles: ["ranger"],
+  },
+  {
+    label: "Publications",
+    href: "/ranger/Publications",
+    icon: FileText,
     roles: ["ranger"],
   },
 
@@ -187,6 +205,12 @@ const navigationItems: NavigationItem[] = [
     label: "System Settings",
     href: "/admin/system-settings",
     icon: Settings,
+    roles: ["administrator"],
+  },
+  {
+    label: "Publications",
+    href: "/admin/Publications",
+    icon: FileText,
     roles: ["administrator"],
   },
 ];

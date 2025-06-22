@@ -2,6 +2,7 @@ const ResearchProject = require('../models/ResearchProject');
 const WildlifeReport = require('../models/WildlifeReport'); // Potentially used for collaboration requests related to reports
 const User = require('../models/User');
 const VolunteerRequest = require('../models/VolunteerRequest'); // Import the new model
+const ConservationProject = require('../models/ConservationProject');
 
 const getResearcherDashboardData = async (req, res) => {
   try {
@@ -16,7 +17,7 @@ const getResearcherDashboardData = async (req, res) => {
     // Fetch count of active research projects led by this researcher
     const activeProjectsCount = await ResearchProject.countDocuments({
       leadResearcher: userId,
-      status: { $in: ['active', 'data_collection', 'analysis'] },
+      status: { $in: ['active', 'data_collection', 'planning'] },
     });
 
     // Count unique volunteer collaborators (e.g., from projects)
@@ -51,12 +52,6 @@ const getResearcherDashboardData = async (req, res) => {
       status: { $in: ['active', 'data_collection', 'analysis'] },
     }).populate('leadResearcher', 'firstName lastName').limit(5);
 
-    // Fetch recent publications (completed projects)
-    const recentPublications = await ResearchProject.find({
-      leadResearcher: userId,
-      status: { $in: ['completed', 'published'] },
-    }).sort({ updatedAt: -1 }).limit(5);
-
     // Get collaboration requests (volunteer requests for their projects)
     const collaborationRequestsData = await VolunteerRequest.find({
       requestedBy: userId,
@@ -74,7 +69,6 @@ const getResearcherDashboardData = async (req, res) => {
       success: true,
       stats,
       activeProjects,
-      recentPublications,
       collaborationRequests,
     });
 

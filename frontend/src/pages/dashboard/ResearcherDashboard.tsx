@@ -311,42 +311,6 @@ export default function ResearcherDashboard() {
             </CardContent>
           </Card>
 
-          {/* Recent Publications */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-blue-600" />
-                Recent Publications
-              </CardTitle>
-              <CardDescription>
-                Your latest published research findings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {(!recentPublications || recentPublications.length === 0) ? (
-                <div className="text-center text-gray-400 py-10 flex flex-col items-center justify-center">
-                  <FileText className="h-10 w-10 mb-2" />
-                  <h4 className="font-semibold">No recent publications found.</h4>
-                  <p className="text-sm">This section will display your published research.</p>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {recentPublications.map((pub) => (
-                    <div key={pub._id} className="p-3 rounded-lg border bg-white flex justify-between items-center">
-                      <div>
-                        <Link to={`/researcher/projects/${pub._id}`} className="font-semibold text-gray-800 hover:underline">{pub.title}</Link>
-                        <div className="text-sm text-gray-500 space-x-4">
-                          <span>{formatDate(pub.updatedAt || pub.createdAt)}</span>
-                        </div>
-                      </div>
-                      <Badge variant="outline">{pub.status}</Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Collaboration Requests */}
           <Card>
             <CardHeader>

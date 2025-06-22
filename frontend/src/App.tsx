@@ -31,6 +31,7 @@ import ViewProjects from "./pages/volunteer/ViewProjects";
 import VolunteerRequests from "./pages/volunteer/VolunteerRequests";
 import VolunteerRequestDetails from "./pages/volunteer/VolunteerRequestDetails";
 import MyApplications from "./pages/volunteer/MyApplications";
+import VolunteerPublications from "./pages/volunteer/Publications";
 
 // Researcher Pages
 import PublishFindings from "./pages/researcher/PublishFindings";
@@ -47,6 +48,7 @@ import Announcements from "./pages/ranger/Announcements";
 import Chat from "./pages/ranger/Chat";
 import Collaboration from "./pages/ranger/Collaboration";
 import ThreatMap from "./pages/ranger/ThreatMap";
+import RangerPublications from "./pages/ranger/Publications";
 
 // Admin Pages
 import UserManagementPage from "./pages/admin/UserManagementPage";
@@ -57,6 +59,7 @@ import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminChat from "./pages/admin/Chat";
 import AdminCommunications from "./pages/admin/Communications";
 import AdminCollaboration from "./pages/admin/Collaboration";
+import AdminPublications from "./pages/admin/Publications";
 
 const queryClient = new QueryClient();
 
@@ -178,6 +181,16 @@ const App = () => (
                 <RoleGuard allowedRoles={["volunteer"]}>
                   <DashboardLayout>
                     <MyApplications />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/volunteer/Publications"
+              element={
+                <RoleGuard allowedRoles={["volunteer"]}>
+                  <DashboardLayout>
+                    <VolunteerPublications />
                   </DashboardLayout>
                 </RoleGuard>
               }
@@ -316,6 +329,16 @@ const App = () => (
                 </RoleGuard>
               }
             />
+            <Route
+              path="/ranger/Publications"
+              element={
+                <RoleGuard allowedRoles={["ranger"]}>
+                  <DashboardLayout>
+                    <RangerPublications />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
 
             {/* Admin Routes */}
             <Route
@@ -414,6 +437,16 @@ const App = () => (
                 <RoleGuard allowedRoles={["administrator"]}>
                   <DashboardLayout>
                     <UserProfileViewPage />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/Publications"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <AdminPublications />
                   </DashboardLayout>
                 </RoleGuard>
               }
