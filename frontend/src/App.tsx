@@ -319,16 +319,6 @@ const App = () => (
 
             {/* Admin Routes */}
             <Route
-              path="/admin/threat-map"
-              element={
-                <RoleGuard allowedRoles={["administrator"]}>
-                  <DashboardLayout>
-                    <ThreatMap />
-                  </DashboardLayout>
-                </RoleGuard>
-              }
-            />
-            <Route
               path="/admin/user-management"
               element={
                 <RoleGuard allowedRoles={["administrator"]}>
@@ -404,6 +394,26 @@ const App = () => (
                 <RoleGuard allowedRoles={["administrator"]}>
                   <DashboardLayout>
                     <AdminCollaboration />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/threat-map"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <ThreatMap />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/users/:id"
+              element={
+                <RoleGuard allowedRoles={["administrator"]}>
+                  <DashboardLayout>
+                    <UserProfileViewPage />
                   </DashboardLayout>
                 </RoleGuard>
               }

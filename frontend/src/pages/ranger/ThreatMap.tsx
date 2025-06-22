@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/config/api";
-import { Map as MapIcon, AlertTriangle, Filter } from "lucide-react";
+import { Map as MapIcon, Filter } from "lucide-react";
 
 // Define an interface for a single wildlife report
 interface WildlifeReport {
@@ -47,7 +43,8 @@ const categoryColors: { [key: string]: string } = {
 };
 
 // Create custom colored icons for the map pins
-const getIcon = (color: string) => {
+const getIcon = (L: any, color: string) => {
+  if (!L) return null;
   return new L.Icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
     shadowUrl:
@@ -67,15 +64,27 @@ export default function ThreatMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  const [mapCenter, setMapCenter] = useState<L.LatLngTuple>([-1.9441, 29.8739]);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([-1.9441, 29.8739]);
 
-  // State to hold the dynamically imported Leaflet components
-  const [leafletComponents, setLeafletComponents] = useState<any>(null);
+  // Use refs to hold the dynamically imported libraries
+  const leafletRef = useRef<any>({
+    MapContainer: null,
+    TileLayer: null,
+    Marker: null,
+    Popup: null,
+    useMap: null,
+    L: null,
+  });
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    // Dynamically import react-leaflet only on the client side
-    import("react-leaflet").then((components) => {
-      setLeafletComponents(components);
+    // Dynamically import libraries only on the client side
+    Promise.all([
+      import("react-leaflet"),
+      import("leaflet"),
+    ]).then(([{ MapContainer, TileLayer, Marker, Popup, useMap }, L]) => {
+      leafletRef.current = { MapContainer, TileLayer, Marker, Popup, useMap, L: L.default };
+      setMapReady(true);
     });
   }, []);
 
@@ -126,15 +135,23 @@ export default function ThreatMap() {
     }
   }, [categoryFilter, statusFilter, reports]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Loading reports...</div>;
   if (error) return <div>{error}</div>;
 
-  // Destructure the components once they are loaded
-  const { MapContainer, TileLayer, Marker, Popup, useMap } = leafletComponents || {};
+  // Destructure the components from the ref
+  const { MapContainer, TileLayer, Marker, Popup, useMap, L } = leafletRef.current;
+
+  // Render nothing until the map is ready
+  if (!mapReady || !MapContainer) {
+    return (
+      <div style={{ height: "600px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        Loading Map...
+      </div>
+    );
+  }
 
   // useMap requires to be a child of MapContainer, so we create a helper component
-  const ChangeView = ({ center, zoom }: { center: L.LatLngTuple; zoom: number }) => {
-    if (!useMap) return null;
+  const ChangeView = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
     const map = useMap();
     useEffect(() => {
       map.setView(center, zoom);
@@ -142,20 +159,12 @@ export default function ThreatMap() {
     return null;
   };
 
-  if (!leafletComponents) {
-    return (
-      <div style={{ height: "600px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        Loading Map...
-        </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <MapIcon /> Threat Map
-          </h1>
+        </h1>
         <div className="flex items-center gap-2">
           <Filter className="h-5 w-5" />
           <Select onValueChange={setCategoryFilter} defaultValue="all">
@@ -167,7 +176,7 @@ export default function ThreatMap() {
               {Object.keys(categoryColors).map((cat) => (
                 <SelectItem key={cat} value={cat}>
                   {cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, " ")}
-              </SelectItem>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -185,9 +194,9 @@ export default function ThreatMap() {
             </SelectContent>
           </Select>
         </div>
-                </div>
+      </div>
 
-          <Card>
+      <Card>
         <CardContent className="p-0">
           <MapContainer
             center={mapCenter}
@@ -203,7 +212,7 @@ export default function ThreatMap() {
               <Marker
                 key={report._id}
                 position={[report.location.lat, report.location.lng]}
-                icon={getIcon(categoryColors[report.category] || "gray")}
+                icon={getIcon(L, categoryColors[report.category] || "gray")}
               >
                 <Popup>
                   <div className="font-bold">{report.title}</div>
@@ -211,13 +220,13 @@ export default function ThreatMap() {
                   <Badge>{report.category}</Badge>
                   <div className="text-xs text-gray-500 mt-2">
                     {new Date(report.createdAt).toLocaleString()}
-                </div>
+                  </div>
                 </Popup>
               </Marker>
             ))}
           </MapContainer>
-            </CardContent>
-          </Card>
-        </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
