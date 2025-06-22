@@ -660,11 +660,9 @@ const AdminDashboard: React.FC = () => {
               <RecentActivityFeed />
             </CardContent>
           </Card>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* User Growth & Distribution */}
-          <Card className="col-span-1 lg:col-span-2">
+          <Card className="bg-white rounded-xl shadow-md p-6">
             <CardHeader>
               <CardTitle>User Growth & Distribution</CardTitle>
             </CardHeader>
@@ -684,38 +682,6 @@ const AdminDashboard: React.FC = () => {
                   <Bar dataKey="count" fill="#8884d8" name="Total Users" />
                 </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* System Status */}
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>System Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* System Status content */}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          {/* Recent Activities */}
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Recent Activities</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Recent Activities content */}
-            </CardContent>
-          </Card>
-
-          {/* System Alerts */}
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>System Alerts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* System Alerts content */}
             </CardContent>
           </Card>
         </div>
