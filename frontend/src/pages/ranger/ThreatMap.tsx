@@ -41,10 +41,10 @@ const categoryColors: { [key: string]: string } = {
 };
 
 const urgencyColors: { [key: string]: string } = {
-  critical: "bg-black text-white",
-  high: "bg-red-600 text-white",
-  medium: "bg-yellow-500 text-white",
-  low: "bg-green-600 text-white",
+  critical: "#000000",
+  high: "#dc2626",
+  medium: "#f59e42",
+  low: "#16a34a",
 };
 
 export default function ThreatMap() {
@@ -214,7 +214,15 @@ export default function ThreatMap() {
       </Card>
       {/* Map in Card */}
       <Card className="mb-4 shadow-lg rounded-lg overflow-hidden">
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative">
+          {/* Map Legend */}
+          <div className="absolute top-4 right-4 z-10 bg-white bg-opacity-90 rounded shadow p-2 flex flex-col gap-1 border">
+            <div className="font-semibold text-xs mb-1">Legend</div>
+            <div className="flex items-center gap-2 text-xs"><span style={{display:'inline-block',width:16,height:16,background:urgencyColors.critical,borderRadius:'50%'}}></span> Critical</div>
+            <div className="flex items-center gap-2 text-xs"><span style={{display:'inline-block',width:16,height:16,background:urgencyColors.high,borderRadius:'50%'}}></span> High</div>
+            <div className="flex items-center gap-2 text-xs"><span style={{display:'inline-block',width:16,height:16,background:urgencyColors.medium,borderRadius:'50%'}}></span> Medium</div>
+            <div className="flex items-center gap-2 text-xs"><span style={{display:'inline-block',width:16,height:16,background:urgencyColors.low,borderRadius:'50%'}}></span> Low</div>
+          </div>
           <div style={{ height: '500px', width: '100%' }}>
             <ReactMapGL
               longitude={mapCenter[0]}
@@ -236,7 +244,13 @@ export default function ThreatMap() {
                     e.originalEvent.stopPropagation();
                     setSelectedReport(report);
                   }}
-                />
+                >
+                  {/* Color-coded SVG pin */}
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill={urgencyColors[report.urgency] || '#888'} stroke="#fff" strokeWidth="2" />
+                    <circle cx="12" cy="12" r="5" fill="#fff" />
+                  </svg>
+                </Marker>
               ))}
               {selectedReport && (
                 <Popup
