@@ -653,7 +653,7 @@ export default function RequestVolunteers() {
                         {selectedApplication.portfolioLink} <ExternalLink className="h-4 w-4" />
                       </a>
                     </div>
-                  )}
+          )}
                   <div>
                     <h4 className="font-semibold mb-2">Status</h4>
                     <Badge variant={
@@ -675,7 +675,7 @@ export default function RequestVolunteers() {
                       <Button onClick={() => handleApplicationAction(selectedApplication._id, 'accept')} disabled={isHandlingApplication}>
                         {isHandlingApplication && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Accept Application
-                      </Button>
+                        </Button>
                     </>
                   )}
               </DialogFooter>

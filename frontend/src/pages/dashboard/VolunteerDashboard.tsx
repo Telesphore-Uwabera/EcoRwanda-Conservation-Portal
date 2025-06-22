@@ -304,7 +304,7 @@ export default function VolunteerDashboard() {
                       <div>
                         <h4 className="font-semibold">{project.title}</h4>
                         <p className="text-sm text-gray-500 flex items-center gap-2"><MapPin className="h-4 w-4" /> {project.location.name}</p>
-                      </div>
+                    </div>
                       <Button asChild size="sm" variant="outline">
                         <Link to={`/volunteer/request/${project._id}`}>View</Link>
                       </Button>

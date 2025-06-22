@@ -231,11 +231,11 @@ export default function PublishFindings() {
                   <Button type="submit" disabled={isSubmitting} className="w-full">
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Project
-                  </Button>
+                </Button>
                 </form>
                 </CardContent>
               </Card>
-          </div>
+                  </div>
 
           <div>
               <Card>
@@ -270,7 +270,7 @@ export default function PublishFindings() {
                 </CardContent>
               </Card>
           </div>
-        </div>
+              </div>
       </div>
     </DashboardLayout>
   );

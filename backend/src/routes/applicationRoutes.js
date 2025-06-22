@@ -9,3 +9,4 @@ const { authenticateToken } = require('../middleware/auth');
 router.get('/my-applications', authenticateToken, getMyApplications);
 
 module.exports = router;
+ 

@@ -160,17 +160,17 @@ export default function SubmitReport() {
         // Fallback to setting just coords if geocoding fails
         if ('coords' in (error as GeolocationPositionError)) {
            const { latitude, longitude } = (error as GeolocationPosition).coords;
-            setFormData((prev) => ({
+          setFormData((prev) => ({
             ...prev,
             location: {
-                ...prev.location,
+              ...prev.location,
                 lat: latitude,
                 lng: longitude,
             },
-            }));
+          }));
         }
       } finally {
-        setGettingLocation(false);
+          setGettingLocation(false);
       }
     } else {
       setGettingLocation(false);

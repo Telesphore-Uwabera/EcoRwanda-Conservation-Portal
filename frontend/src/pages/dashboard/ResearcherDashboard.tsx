@@ -117,7 +117,13 @@ export default function ResearcherDashboard() {
         setStats(data.stats);
         setActiveProjects(data.activeProjects);
         setRecentPublications(data.recentPublications);
-        setCollaborationRequests(data.collaborationRequests);
+
+        // Fetch collaboration requests from the reliable endpoint used on the requests page
+        const requestsResponse = await api.get(`/volunteer-requests?requestedBy=${user._id}&populate=applications`);
+        if (requestsResponse.data.success) {
+            setCollaborationRequests(requestsResponse.data.data);
+        }
+
       } catch (err) {
         console.error('Error fetching researcher dashboard data:', err);
         setError('Failed to load dashboard data. Please try again later.');
@@ -317,45 +323,11 @@ export default function ResearcherDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(!recentPublications || recentPublications.length === 0) ? (
-                <div className="text-center text-gray-500 py-10">
-                  <p>No recent publications found.</p>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {recentPublications.map((publication) => (
-                    <Card key={publication._id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-lg font-medium flex items-center gap-2">
-                          {publication.title}
-                        </CardTitle>
-                        <Badge className={getStatusColor(publication.status)}>
-                          {publication.status.replace("_", " ")}
-                        </Badge>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Users className="h-4 w-4" /> Lead Researcher: {publication.leadResearcher?.firstName} {publication.leadResearcher?.lastName}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Calendar className="h-4 w-4" /> Published Date: {formatDate(publication.updatedAt)}
-                        </p>
-                        <p className="text-sm text-gray-700 mt-2">
-                          {publication.description}
-                        </p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            Downloads: 0 {/* Placeholder for actual downloads if we track it in future */}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            Citations: 0 {/* Placeholder for actual citations */}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              <div className="text-center text-gray-400 py-10 flex flex-col items-center justify-center">
+                  <FileText className="h-10 w-10 mb-2" />
+                  <h4 className="font-semibold">Coming Soon</h4>
+                  <p className="text-sm">This section will display your published research.</p>
+              </div>
             </CardContent>
           </Card>
 
@@ -373,13 +345,13 @@ export default function ResearcherDashboard() {
             <CardContent>
               {collaborationRequests && collaborationRequests.length > 0 ? (
                 <div className="space-y-4">
-                  {collaborationRequests.map((req: any) => (
+                  {collaborationRequests.slice(0, 5).map((req: any) => (
                     <div key={req._id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
                       <div>
                         <Link to="/researcher/request-volunteers" className="font-semibold text-gray-800 hover:underline">
                           {req.title}
                         </Link>
-                        <p className="text-sm text-gray-500">{req.applicants.length} Applicants</p>
+                        <p className="text-sm text-gray-500">{req.applications.length} Applicants</p>
                       </div>
                       <Badge variant={req.status === 'open' ? 'default' : 'secondary'}>{req.status}</Badge>
                     </div>
