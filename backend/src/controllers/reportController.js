@@ -1,5 +1,6 @@
 const WildlifeReport = require('../models/WildlifeReport');
 const mongoose = require('mongoose');
+const { logActivity } = require('../utils/activityLogger');
 
 // Get all reports
 exports.getAllReports = async (req, res) => {
@@ -56,7 +57,13 @@ exports.getReportById = async (req, res) => {
 // Create a new report
 exports.createReport = async (req, res) => {
   try {
-    const report = await WildlifeReport.create({ ...req.body, submittedBy: req.user.id });
+    const reportData = { ...req.body, submittedBy: req.user.id };
+    const report = await WildlifeReport.create(reportData);
+
+    // Log the activity
+    const message = `A new '${report.category}' report with '${report.urgency}' urgency was submitted by ${req.user.firstName}.`;
+    await logActivity(message, req.user.id, `/ranger/verify-reports/${report._id}`);
+
     res.status(201).json({ success: true, data: report });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server Error' });
@@ -66,18 +73,27 @@ exports.createReport = async (req, res) => {
 // Update a report by ID
 exports.updateReport = async (req, res) => {
   try {
-    const { status, ...rest } = req.body;
+    const { status, verificationNotes, ...rest } = req.body;
     const report = await WildlifeReport.findById(req.params.id);
-    if (!report) return res.status(404).json({ success: false, error: 'Report not found' });
+
+    if (!report) {
+      return res.status(404).json({ success: false, error: 'Report not found' });
+    }
+
     if (status) {
+      // Log the status change activity
+      const message = `Report status updated to '${status}' by a ranger.`;
+      await logActivity(message, req.user.id, `/ranger/verify-reports/${report._id}`);
+
       report.status = status;
-      // Optionally, handle verifiedBy/verifiedAt for 'verified' status
+      report.verificationNotes = verificationNotes || report.verificationNotes;
+
       if (status === 'verified' && req.user) {
         report.verifiedBy = req.user.id;
         report.verifiedAt = Date.now();
       }
     }
-    // Update other fields if needed
+
     Object.assign(report, rest);
     await report.save();
     res.status(200).json({ success: true, data: report });

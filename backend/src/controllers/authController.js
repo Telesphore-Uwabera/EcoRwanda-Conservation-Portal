@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const crypto = require('crypto'); // Import crypto module
 const sendEmail = require('../utils/sendEmail'); // Import the sendEmail utility
+const { logActivity } = require('../utils/activityLogger');
 // You might need a nodemailer transporter setup here or in a separate utility
 // const sendEmail = require('../utils/sendEmail'); // Assuming a utility to send emails
 
@@ -31,6 +32,9 @@ exports.register = async (req, res) => {
     });
 
     await user.save();
+
+    // Log the activity
+    await logActivity(`New user '${user.firstName} ${user.lastName}' registered as a ${user.role}.`, user._id, `/admin/user-management/view/${user._id}`);
 
     // Generate JWT token
     const token = jwt.sign(

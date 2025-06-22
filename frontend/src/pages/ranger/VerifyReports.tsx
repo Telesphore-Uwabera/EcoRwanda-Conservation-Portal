@@ -360,6 +360,7 @@ export default function VerifyReports() {
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="verified">Verified</SelectItem>
                         <SelectItem value="investigating">Investigating</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
                         <SelectItem value="rejected">Rejected</SelectItem>
                       </SelectContent>
                     </Select>

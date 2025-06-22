@@ -45,6 +45,7 @@ const collaborationRoutes = require('./routes/collaboration');
 const volunteerRequestsRoutes = require('./routes/volunteerRequests');
 const conservationProjectsRoutes = require('./routes/conservationProjects');
 const applicationRoutes = require('./routes/applicationRoutes');
+const activityRoutes = require('./routes/activities');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -66,6 +67,9 @@ app.use('/api/collaboration', collaborationRoutes);
 app.use('/api/volunteer-requests', volunteerRequestsRoutes);
 app.use('/api/conservation-projects', conservationProjectsRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/user-management', userManagementRoutes);
+app.use('/api/system-settings', systemSettingsRoutes);
+app.use('/api/activities', activityRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {

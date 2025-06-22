@@ -48,6 +48,7 @@ import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from 'date-fns';
 
 interface PendingVerification {
   id: string;
@@ -131,6 +132,78 @@ interface DashboardStats {
   };
   totalPatrols: number;
 }
+
+interface Activity {
+  _id: string;
+  message: string;
+  user?: {
+    firstName: string;
+    lastName: string;
+    role: string;
+  };
+  link?: string;
+  createdAt: string;
+}
+
+const RecentActivityFeed = () => {
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await api.get('/activities');
+        if (res.data.success) {
+          setActivities(res.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch activities:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActivities();
+  }, []);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Activity Feed</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p>Loading activities...</p>
+        ) : activities.length === 0 ? (
+          <div className="text-center text-gray-500 py-4">
+            <p>No recent activities.</p>
+          </div>
+        ) : (
+          <ul className="space-y-4">
+            {activities.map(activity => (
+              <li key={activity._id} className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold">
+                  {activity.user ? activity.user.firstName.charAt(0) + activity.user.lastName.charAt(0) : 'SYS'}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm">
+                    {activity.link ? (
+                      <Link to={activity.link} className="hover:underline">{activity.message}</Link>
+                    ) : (
+                      activity.message
+                    )}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -584,37 +657,7 @@ const AdminDashboard: React.FC = () => {
               <CardDescription className="text-gray-600">Latest events and actions within the portal</CardDescription>
             </CardHeader>
             <CardContent>
-              {stats.recentActivities.length > 0 ? (
-                <ul className="space-y-4">
-                  {stats.recentActivities
-                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                    .slice(0, 5) // Display only the 5 most recent activities
-                    .map((activity, index) => (
-                      <li key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg shadow-sm">
-                        <div className="flex-shrink-0 mt-1">
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div className="flex-grow">
-                          <h3 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
-                            {activity.title}
-                            <Badge className={getStatusColor(activity.status)}>{activity.status}</Badge>
-                          </h3>
-                          <p className="text-gray-700 text-base">{activity.description}</p>
-                          <div className="flex items-center text-gray-500 text-sm mt-1">
-                            <Clock className="h-4 w-4 mr-1" />
-                            <span>{new Date(activity.createdAt).toLocaleString()}</span>
-                            {activity.user && <span className="ml-auto">By: {activity.user}</span>}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                </ul>
-              ) : (
-                <div className="text-center py-10 text-gray-500 text-lg">
-                  <Activity className="h-8 w-8 mx-auto mb-4" />
-                  No recent activities.
-                </div>
-              )}
+              <RecentActivityFeed />
             </CardContent>
           </Card>
         </div>
