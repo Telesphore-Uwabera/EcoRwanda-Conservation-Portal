@@ -1,5 +1,5 @@
+const mongoose = require('mongoose');
 const Patrol = require('../models/Patrol');
-const { authenticateToken } = require('../middleware/auth');
 
 // Get all patrols for the logged-in ranger
 exports.getPatrols = async (req, res) => {
@@ -296,4 +296,61 @@ exports.exportPatrols = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error exporting patrols' });
   }
+};
+
+exports.getPatrolAnalytics = async (req, res) => {
+    try {
+        const rangerId = req.user.id;
+
+        // Patrol Status Distribution
+        const statusDistribution = await Patrol.aggregate([
+            { $match: { ranger: new mongoose.Types.ObjectId(rangerId) } },
+            { $group: { _id: '$status', count: { $sum: 1 } } }
+        ]);
+
+        const statusData = statusDistribution.reduce((acc, item) => {
+            acc[item._id] = item.count;
+            return acc;
+        }, { scheduled: 0, in_progress: 0, completed: 0, cancelled: 0 });
+
+        // Patrols over the last 6 months
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        const monthlyPatrols = await Patrol.aggregate([
+            { $match: { ranger: new mongoose.Types.ObjectId(rangerId), patrolDate: { $gte: sixMonthsAgo } } },
+            {
+                $group: {
+                    _id: { year: { $year: "$patrolDate" }, month: { $month: "$patrolDate" } },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } }
+        ]);
+        
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthlyData = monthlyPatrols.map(item => ({
+            name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
+            count: item.count
+        }));
+
+        // General stats
+        const totalPatrols = await Patrol.countDocuments({ ranger: rangerId });
+        const totalIncidents = await Patrol.aggregate([
+            { $match: { ranger: new mongoose.Types.ObjectId(rangerId) } },
+            { $project: { incidentsCount: { $size: { "$ifNull": ["$incidents", []] } } } },
+            { $group: { _id: null, total: { $sum: "$incidentsCount" } } }
+        ]);
+
+        res.status(200).json({
+            statusDistribution: statusData,
+            monthlyPatrols: monthlyData,
+            totalPatrols,
+            totalIncidents: totalIncidents.length > 0 ? totalIncidents[0].total : 0,
+        });
+
+    } catch (error) {
+        console.error('Error fetching patrol analytics:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
 }; 

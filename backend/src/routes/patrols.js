@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, isRanger } = require('../middleware/auth');
 const patrolController = require('../controllers/patrolController');
 
 // Export patrols (must be before any :id route)
@@ -9,10 +9,10 @@ router.get('/export', authenticateToken, patrolController.exportPatrols);
 router.get('/stats', authenticateToken, patrolController.getPatrolStats);
 
 // Get all patrols
-router.get('/', authenticateToken, patrolController.getPatrols);
+router.get('/', authenticateToken, isRanger, patrolController.getPatrols);
 
 // Create a new patrol
-router.post('/', authenticateToken, patrolController.createPatrol);
+router.post('/', authenticateToken, isRanger, patrolController.createPatrol);
 
 // Get single patrol
 router.get('/:id', authenticateToken, patrolController.getPatrol);
@@ -28,5 +28,8 @@ router.patch('/:id/status', authenticateToken, patrolController.updatePatrolStat
 
 // Add findings to a patrol
 router.patch('/:id/findings', authenticateToken, patrolController.addFindings);
+
+// Add a new route for patrol analytics
+router.get('/analytics', authenticateToken, isRanger, patrolController.getPatrolAnalytics);
 
 module.exports = router; 

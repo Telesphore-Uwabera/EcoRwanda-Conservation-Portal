@@ -5,6 +5,7 @@ const WildlifeReport = require('../models/WildlifeReport');
 const Volunteer = require('../models/Volunteer');
 const Researcher = require('../models/Researcher');
 const Ranger = require('../models/Ranger');
+const Patrol = require('../models/Patrol');
 
 exports.getDashboardStats = async (req, res) => {
     try {
@@ -24,8 +25,8 @@ exports.getDashboardStats = async (req, res) => {
         const totalProjects = await ResearchProject.countDocuments() + await ConservationProject.countDocuments();
         console.log('totalProjects:', totalProjects);
 
-        const researchStudies = await ResearchProject.countDocuments();
-        console.log('researchStudies:', researchStudies);
+        const totalScheduledPatrols = await Patrol.countDocuments({ status: 'scheduled' });
+        console.log('totalScheduledPatrols:', totalScheduledPatrols);
 
         const conservationAreas = await ConservationProject.countDocuments();
         console.log('conservationAreas:', conservationAreas);
@@ -72,7 +73,7 @@ exports.getDashboardStats = async (req, res) => {
                 userDistribution,
             },
             totalProjects,
-            researchStudies,
+            totalScheduledPatrols,
             conservationAreas,
             totalParkRangers,
             recentActivities,

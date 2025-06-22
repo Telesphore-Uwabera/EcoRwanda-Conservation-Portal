@@ -34,10 +34,20 @@ import {
   FlaskConical,
   TreePine,
   Map,
+  BookCheck,
+  ShieldCheck,
+  UserX,
+  Trees,
+  Footprints,
+  Users2,
+  XCircle,
+  Building,
+  User,
 } from "lucide-react";
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert"; // Renamed to avoid conflict
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useNavigate } from "react-router-dom";
 
 interface PendingVerification {
   id: string;
@@ -119,11 +129,13 @@ interface DashboardStats {
     investigating?: string;
     resolved?: string;
   };
+  totalScheduledPatrols: number;
 }
 
-export default function AdminDashboard() {
+const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const isOnline = useOfflineStatus();
+  const navigate = useNavigate();
 
   const [stats, setStats] = useState<DashboardStats>({
     totalProjects: 0,
@@ -149,6 +161,7 @@ export default function AdminDashboard() {
     researchStatus: [],
     conservationStatus: [],
     recentActivities: [],
+    totalScheduledPatrols: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -271,6 +284,98 @@ export default function AdminDashboard() {
     });
   };
 
+  const statCards = [
+    {
+      title: "Total Users",
+      value: stats.userStats.totalUsers,
+      icon: Users,
+      color: "text-blue-500",
+      bgColor: "bg-blue-100",
+    },
+    {
+      title: "Verified Users",
+      value: stats.userStats.verifiedUsers,
+      icon: UserCheck,
+      color: "text-green-500",
+      bgColor: "bg-green-100",
+    },
+    {
+      title: "Unverified Users",
+      value: stats.userStats.totalUsers - stats.userStats.verifiedUsers,
+      icon: UserX,
+      color: "text-red-500",
+      bgColor: "bg-red-100",
+    },
+    {
+      title: "Total Projects",
+      value: stats.totalProjects,
+      icon: ClipboardList,
+      color: "text-purple-500",
+      bgColor: "bg-purple-100",
+    },
+    {
+      title: "Total Scheduled Patrols",
+      value: stats.totalScheduledPatrols,
+      icon: Footprints,
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-100",
+    },
+    {
+      title: "Conservation Areas",
+      value: stats.conservationAreas,
+      icon: Trees,
+      color: "text-teal-500",
+      bgColor: "bg-teal-100",
+    },
+    {
+      title: "Park Rangers",
+      value: stats.totalParkRangers,
+      icon: User,
+      color: "text-orange-500",
+      bgColor: "bg-orange-100",
+    },
+    {
+      title: "Total Reports",
+      value: stats.totalReports,
+      icon: FileText,
+      color: "text-indigo-500",
+      bgColor: "bg-indigo-100",
+    },
+  ];
+
+  const QuickActionButton = ({ icon: Icon, label, path, className }: { icon: React.ElementType, label: string, path: string, className?: string }) => (
+    <Button
+      variant="outline"
+      className={`flex-1 min-w-[200px] bg-white hover:bg-gray-50 transition-all duration-200 ease-in-out transform hover:scale-105 ${className}`}
+      onClick={() => navigate(path)}
+    >
+      <Icon className="h-5 w-5 mr-3" />
+      <span className="font-semibold">{label}</span>
+    </Button>
+  );
+
+  const getReportStatusAlert = () => {
+    const statuses = [
+      { status: 'pending', count: stats.pendingReports, date: stats.latestReportDates.pending, color: "amber" },
+      { status: 'investigating', count: stats.investigatingReports, date: stats.latestReportDates.investigating, color: "blue" },
+    ];
+
+    const mostCritical = statuses.sort((a, b) => (b.date && a.date ? new Date(b.date).getTime() - new Date(a.date).getTime() : 0))[0];
+    
+    if (mostCritical && mostCritical.count > 0) {
+      return (
+        <AlertDialog variant="destructive">
+           <AlertTriangle className={`h-4 w-4 text-${mostCritical.color}-500`} />
+          <AlertTitle>Action Required</AlertTitle>
+          <AlertDescription>
+            {mostCritical.count} report(s) are currently {mostCritical.status}. Please review them promptly.
+          </AlertDescription>
+        </AlertDialog>
+      );
+    }
+    return null;
+  };
+
   return (
     <DashboardLayout>
       <div>
@@ -289,93 +394,20 @@ export default function AdminDashboard() {
 
           {/* Stats Cards */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="bg-white rounded-xl shadow-md p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Total Users</CardTitle>
-                <Users className="h-5 w-5 text-blue-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.userStats.totalUsers}
-                <Users className="h-8 w-8 text-blue-600" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Verified Users</CardTitle>
-                <UserCheck className="h-5 w-5 text-green-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.userStats.verifiedUsers}
-                <CheckCircle className="h-8 w-8 text-green-600" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Unverified Users</CardTitle>
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.userStats.totalUsers - stats.userStats.verifiedUsers}
-                <AlertTriangle className="h-8 w-8 text-amber-600" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Total Projects</CardTitle>
-                <FolderOpen className="h-5 w-5 text-amber-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.totalProjects}
-                <FolderOpen className="h-8 w-8 text-amber-600" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Total Reports</CardTitle>
-                <FileText className="h-5 w-5 text-purple-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.totalReports}
-                <FileText className="h-8 w-8 text-purple-600" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Research Studies</CardTitle>
-                <FlaskConical className="h-5 w-5 text-cyan-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.researchStudies}
-                <FlaskConical className="h-8 w-8 text-cyan-600" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Conservation Areas</CardTitle>
-                <TreePine className="h-5 w-5 text-lime-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.conservationAreas}
-                <TreePine className="h-8 w-8 text-lime-600" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white rounded-xl shadow-md p-6">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Park Rangers</CardTitle>
-                <Shield className="h-5 w-5 text-orange-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.totalParkRangers}
-                <Shield className="h-8 w-8 text-orange-600" />
-              </CardContent>
-            </Card>
+            {statCards.map((card, index) => {
+              const Icon = card.icon; // Assign the component to a variable with a capitalized name
+              return (
+                <Card key={index} className={`bg-${card.bgColor} rounded-xl shadow-md p-6`}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-medium text-gray-700">{card.title}</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-${card.color} text-2xl font-bold`}>{card.value}</span>
+                      <span className="text-gray-500"><Icon className="h-5 w-5" /></span>
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
+            })}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -386,30 +418,10 @@ export default function AdminDashboard() {
                 <CardDescription>Manage your platform efficiently</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button asChild>
-                  <Link to="/admin/users" className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    <span>User Management</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/admin/analytics" className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    <span>View Analytics</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/admin/threat-map" className="flex items-center gap-2">
-                    <Map className="h-5 w-5" />
-                    <span>Threat Map</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/admin/settings" className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    <span>System Settings</span>
-                  </Link>
-                </Button>
+                <QuickActionButton icon={Users2} label="User Management" path="/admin/user-management" />
+                <QuickActionButton icon={ClipboardList} label="View Analytics" path="/admin/analytics" />
+                <QuickActionButton icon={Map} label="Threat Map" path="/admin/threat-map" />
+                <QuickActionButton icon={Settings} label="System Settings" path="/admin/system-settings" />
               </CardContent>
             </Card>
           </div>
@@ -667,4 +679,6 @@ export default function AdminDashboard() {
       </div>
     </DashboardLayout>
   );
-}
+};
+
+export default AdminDashboard;
