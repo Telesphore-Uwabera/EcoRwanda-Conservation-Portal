@@ -25,8 +25,8 @@ exports.getDashboardStats = async (req, res) => {
         const totalProjects = await ResearchProject.countDocuments() + await ConservationProject.countDocuments();
         console.log('totalProjects:', totalProjects);
 
-        const totalScheduledPatrols = await Patrol.countDocuments({ status: 'scheduled' });
-        console.log('totalScheduledPatrols:', totalScheduledPatrols);
+        const totalPatrols = await Patrol.countDocuments();
+        console.log('totalPatrols:', totalPatrols);
 
         const conservationAreas = await ConservationProject.countDocuments();
         console.log('conservationAreas:', conservationAreas);
@@ -73,7 +73,7 @@ exports.getDashboardStats = async (req, res) => {
                 userDistribution,
             },
             totalProjects,
-            totalScheduledPatrols,
+            totalPatrols,
             conservationAreas,
             totalParkRangers,
             recentActivities,

@@ -129,7 +129,7 @@ interface DashboardStats {
     investigating?: string;
     resolved?: string;
   };
-  totalScheduledPatrols: number;
+  totalPatrols: number;
 }
 
 const AdminDashboard: React.FC = () => {
@@ -161,7 +161,7 @@ const AdminDashboard: React.FC = () => {
     researchStatus: [],
     conservationStatus: [],
     recentActivities: [],
-    totalScheduledPatrols: 0,
+    totalPatrols: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -314,8 +314,8 @@ const AdminDashboard: React.FC = () => {
       bgColor: "bg-purple-100",
     },
     {
-      title: "Total Scheduled Patrols",
-      value: stats.totalScheduledPatrols,
+      title: "Total Patrols",
+      value: stats.totalPatrols,
       icon: Footprints,
       color: "text-yellow-500",
       bgColor: "bg-yellow-100",

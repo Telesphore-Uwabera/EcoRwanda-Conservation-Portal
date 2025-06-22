@@ -87,7 +87,7 @@ export default function PatrolData() {
 
   const fetchPatrolData = useCallback(async () => {
     if (!user) return;
-    setLoading(true);
+      setLoading(true);
     setError(null);
     try {
       const [patrolsRes, statsRes] = await Promise.all([
@@ -96,13 +96,13 @@ export default function PatrolData() {
       ]);
       setPatrols(patrolsRes.data.patrols || []);
       setStats(statsRes.data);
-    } catch (err) {
+      } catch (err) {
       setError('Failed to fetch patrol data. Please try again.');
-      console.error('Error fetching patrol data:', err);
+        console.error('Error fetching patrol data:', err);
       toast.error('Failed to fetch patrol data.');
-    } finally {
-      setLoading(false);
-    }
+      } finally {
+        setLoading(false);
+      }
   }, [user]);
 
   useEffect(() => {
@@ -251,51 +251,51 @@ export default function PatrolData() {
               <TabsTrigger value="scheduled">Scheduled ({scheduledPatrols.length})</TabsTrigger>
             </TabsList>
             <div className="flex flex-wrap items-center gap-2">
-              <Input
+            <Input
                 placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full sm:w-auto md:w-64"
-              />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+            />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
-                <SelectContent>
+            <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={dateFilter} onValueChange={setDateFilter}>
                 <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Date" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                </SelectContent>
-              </Select>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+            </SelectContent>
+          </Select>
               <Button asChild variant="outline">
                 <Link to="/ranger/analytics"><TrendingUp className="mr-2 h-4 w-4" />View Analytics</Link>
               </Button>
-            </div>
-          </div>
+        </div>
+                  </div>
           <TabsContent value="recent">
              {loading ? <div className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" /></div> : recentPatrols.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {recentPatrols.map((patrol) => (
+                    {recentPatrols.map((patrol) => (
                   <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="cursor-pointer hover:shadow-md transition-shadow">
                     <CardHeader>
                       <CardTitle className="flex justify-between items-start">
                         <span className="font-bold">{patrol.route}</span>
                         <Badge className={getStatusInfo(patrol.status).color}>{getStatusInfo(patrol.status).text}</Badge>
-                      </CardTitle>
+                          </CardTitle>
                       <CardDescription>
                         <Users className="inline-block h-4 w-4 mr-1" /> 
                         {patrol.ranger.firstName} {patrol.ranger.lastName}
                       </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
+                        </CardHeader>
+                        <CardContent className="space-y-2">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Calendar className="mr-2 h-4 w-4" />
                         <span>{formatDate(patrol.patrolDate)} at {patrol.startTime || 'N/A'}</span>
@@ -304,10 +304,10 @@ export default function PatrolData() {
                         <Badge className={getPriorityInfo(patrol.priority).color} variant="outline">{getPriorityInfo(patrol.priority).text}</Badge>
                       )}
                       <p className="text-sm truncate pt-2">{patrol.findings || "No findings recorded yet."}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
             ) : <div className="text-center py-12 text-gray-500">No recent patrols found.</div>}
           </TabsContent>
           <TabsContent value="scheduled">
@@ -315,24 +315,24 @@ export default function PatrolData() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {scheduledPatrols.map((patrol) => (
                   <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardHeader>
+              <CardHeader>
                       <CardTitle className="flex justify-between items-start">
                         <span className="font-bold">{patrol.route}</span>
                         <Badge className={getPriorityInfo(patrol.priority).color} variant="outline">{getPriorityInfo(patrol.priority).text}</Badge>
-                      </CardTitle>
+                          </CardTitle>
                       <CardDescription>Scheduled for: {formatDate(patrol.patrolDate)} at {patrol.startTime}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
+                        </CardHeader>
+                        <CardContent className="space-y-2">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Users className="mr-2 h-4 w-4" /> 
                         Assigned to: {patrol.ranger.firstName} {patrol.ranger.lastName}
                       </div>
                       <p className="text-sm font-semibold pt-2">Objectives:</p>
                       <p className="text-sm line-clamp-2">{patrol.objectives?.join(', ') || 'N/A'}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
             ) : <div className="text-center py-12 text-gray-500">No scheduled patrols found.</div>}
           </TabsContent>
         </Tabs>
