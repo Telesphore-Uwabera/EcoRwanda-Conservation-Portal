@@ -11,7 +11,8 @@ const authenticateToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log('Decoded JWT:', decoded);
-    req.user = { ...decoded, _id: decoded._id || decoded.id };
+    const userId = decoded._id || decoded.id;
+    req.user = { ...decoded, _id: userId, id: userId };
     console.log('req.user set by middleware:', req.user);
     next();
   } catch (error) {

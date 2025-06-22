@@ -327,7 +327,7 @@ export default function ResearcherDashboard() {
                   <FileText className="h-10 w-10 mb-2" />
                   <h4 className="font-semibold">Coming Soon</h4>
                   <p className="text-sm">This section will display your published research.</p>
-              </div>
+                </div>
             </CardContent>
           </Card>
 

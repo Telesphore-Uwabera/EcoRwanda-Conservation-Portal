@@ -5,7 +5,7 @@ const VolunteerRequest = require('../models/VolunteerRequest'); // Import the ne
 
 const getResearcherDashboardData = async (req, res) => {
   try {
-    const userId = req.user.userId; // Assuming userId is available from authentication middleware
+    const userId = req.user._id; // Assuming userId is available from authentication middleware
 
     // Fetch count of published findings by this researcher (assuming published means completed projects)
     const publishedFindingsCount = await ResearchProject.countDocuments({
@@ -86,7 +86,7 @@ const getDashboardData = async (req, res) => {
     const researcherId = req.user._id;
 
     // Fetch active projects
-    const activeProjects = await ResearchProject.find({ 
+    const activeProjects = await ResearchProject.find({
       leadResearcher: researcherId,
       status: { $in: ['planning', 'in-progress', 'on-hold'] }
     }).sort({ createdAt: -1 }).limit(5);
@@ -111,9 +111,9 @@ const getDashboardData = async (req, res) => {
     res.json({
       success: true,
       stats,
-      activeProjects,
-      recentPublications,
-      collaborationRequests,
+        activeProjects,
+        recentPublications,
+        collaborationRequests,
     });
   } catch (error) {
     console.error('Error fetching researcher dashboard data:', error);

@@ -271,12 +271,12 @@ exports.handleApplication = async (req, res) => {
 
     await application.save();
 
-    // Notify the volunteer
-    await sendNotification({
+      // Notify the volunteer
+      await sendNotification({
       recipients: [application.applicant],
       title: `Application ${application.status}`,
       message: `Your application for "${request.title}" has been ${application.status}.`,
-      type: 'application_status',
+        type: 'application_status',
       link: `/my-applications`, // Future link for volunteer to see all their applications
     });
 

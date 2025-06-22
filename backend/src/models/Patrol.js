@@ -14,7 +14,7 @@ const patrolSchema = new mongoose.Schema({
     required: true
   },
   estimatedDuration: {
-    type: Number,
+    type: Number, // Duration in hours
     required: true
   },
   priority: {
@@ -44,11 +44,11 @@ const patrolSchema = new mongoose.Schema({
   findings: {
     type: String
   },
-  duration: {
-    type: String
+  actualDuration: {
+    type: Number // Actual duration in hours
   },
   endTime: {
-    type: String
+    type: Date
   },
   createdAt: {
     type: Date,
