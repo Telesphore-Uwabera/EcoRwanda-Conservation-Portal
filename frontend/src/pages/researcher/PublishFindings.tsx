@@ -139,9 +139,9 @@ export default function PublishFindings() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <BookOpen className="h-8 w-8 text-emerald-600" />
-              My Research Projects
+              Research Proposals
           </h1>
-            <p className="text-gray-600 mt-1">Create new research projects and manage existing ones.</p>
+            <p className="text-gray-600 mt-1">Create new research proposals and manage existing ones.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -149,9 +149,9 @@ export default function PublishFindings() {
               <Card>
                 <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Plus /> Create a New Research Project
+                    <Plus /> Create a New Research Proposal
                 </CardTitle>
-                <CardDescription>Fill out the details below to register a new project.</CardDescription>
+                <CardDescription>Fill out the details below to register a new proposal.</CardDescription>
                 </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
