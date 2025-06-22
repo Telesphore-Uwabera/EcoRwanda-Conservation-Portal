@@ -125,12 +125,6 @@ const navigationItems: NavigationItem[] = [
     icon: Map,
     roles: ["researcher"],
   },
-  {
-    label: "Publications",
-    href: "/researcher/Publications",
-    icon: FileText,
-    roles: ["researcher"],
-  },
 
   // Ranger Navigation
   {
