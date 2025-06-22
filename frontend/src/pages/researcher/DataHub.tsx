@@ -160,6 +160,10 @@ export default function DataHub() {
   const [selectedPaper, setSelectedPaper] = useState<ResearchPaper | null>(null);
   const [showPaperDialog, setShowPaperDialog] = useState(false);
 
+  // New state for requesting access to a research paper
+  const [requestingPaperId, setRequestingPaperId] = useState<string | null>(null);
+  const [requestPaperMessage, setRequestPaperMessage] = useState("");
+
   // Helper to parse date to ISO
   function parseDateToISO(dateStr: string | undefined): string | undefined {
     if (!dateStr) return undefined;
@@ -770,6 +774,45 @@ export default function DataHub() {
                               </Badge>
                             )}
                           </div>
+                          {paper.accessLevel === 'open' ? (
+                            <div className="text-gray-800 mb-2">{paper.abstract || 'No abstract provided.'}</div>
+                          ) : paper.accessLevel === 'restricted' ? (
+                            <div className="text-red-600 font-semibold mb-2">Access Restricted</div>
+                          ) : (
+                            <div className="mb-2">
+                              <div className="text-amber-700 font-semibold mb-2">Access available upon request</div>
+                              {requestingPaperId === paper._id ? (
+                                <form
+                                  onSubmit={e => {
+                                    e.preventDefault();
+                                    toast.success('Access request sent!');
+                                    setRequestingPaperId(null);
+                                    setRequestPaperMessage("");
+                                  }}
+                                  className="flex flex-col gap-2"
+                                >
+                                  <textarea
+                                    className="border rounded p-2"
+                                    placeholder="Enter your request message"
+                                    value={requestPaperMessage}
+                                    onChange={e => setRequestPaperMessage(e.target.value)}
+                                    required
+                                  />
+                                  <div className="flex gap-2">
+                                    <button type="submit" className="bg-emerald-600 text-white px-3 py-1 rounded">Send Request</button>
+                                    <button type="button" className="bg-gray-200 px-3 py-1 rounded" onClick={() => setRequestingPaperId(null)}>Cancel</button>
+                                  </div>
+                                </form>
+                              ) : (
+                                <button
+                                  className="bg-amber-600 text-white px-3 py-1 rounded"
+                                  onClick={() => setRequestingPaperId(paper._id)}
+                                >
+                                  Request Access
+                                </button>
+                              )}
+                            </div>
+                          )}
                           <Button size="sm" className="mt-3" onClick={() => { setSelectedPaper(paper); setShowPaperDialog(true); }}>
                             View Details
                           </Button>

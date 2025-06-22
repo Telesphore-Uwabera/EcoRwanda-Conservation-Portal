@@ -3,6 +3,7 @@ import api from '@/config/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Download, Calendar, Users } from 'lucide-react';
+import { toast } from "sonner";
 
 interface Publication {
   _id: string;
@@ -12,12 +13,15 @@ interface Publication {
   abstract?: string;
   category?: string;
   downloads?: number;
+  accessLevel: string;
 }
 
 export default function Publications() {
   const [publications, setPublications] = useState<Publication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [requestingId, setRequestingId] = useState<string | null>(null);
+  const [requestMessage, setRequestMessage] = useState("");
 
   useEffect(() => {
     const fetchPublications = async () => {
@@ -72,7 +76,45 @@ export default function Publications() {
                     </Badge>
                   )}
                 </div>
-                <div className="text-gray-800 mb-2">{pub.abstract || 'No abstract provided.'}</div>
+                {pub.accessLevel === 'open' ? (
+                  <div className="text-gray-800 mb-2">{pub.abstract || 'No abstract provided.'}</div>
+                ) : pub.accessLevel === 'restricted' ? (
+                  <div className="text-red-600 font-semibold mb-2">Access Restricted</div>
+                ) : (
+                  <div className="mb-2">
+                    <div className="text-amber-700 font-semibold mb-2">Access available upon request</div>
+                    {requestingId === pub._id ? (
+                      <form
+                        onSubmit={e => {
+                          e.preventDefault();
+                          toast.success('Access request sent!');
+                          setRequestingId(null);
+                          setRequestMessage("");
+                        }}
+                        className="flex flex-col gap-2"
+                      >
+                        <textarea
+                          className="border rounded p-2"
+                          placeholder="Enter your request message"
+                          value={requestMessage}
+                          onChange={e => setRequestMessage(e.target.value)}
+                          required
+                        />
+                        <div className="flex gap-2">
+                          <button type="submit" className="bg-emerald-600 text-white px-3 py-1 rounded">Send Request</button>
+                          <button type="button" className="bg-gray-200 px-3 py-1 rounded" onClick={() => setRequestingId(null)}>Cancel</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        className="bg-amber-600 text-white px-3 py-1 rounded"
+                        onClick={() => setRequestingId(pub._id)}
+                      >
+                        Request Access
+                      </button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
