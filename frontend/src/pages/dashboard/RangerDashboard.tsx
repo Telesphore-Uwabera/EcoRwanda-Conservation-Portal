@@ -34,12 +34,16 @@ import {
   Trash2,
   Eye,
   RefreshCw,
+  Plus,
+  Calendar,
+  Play,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartContainer } from '@/components/ui/chart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'react-hot-toast';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { PatrolDialog } from '@/components/patrol/PatrolDialog';
 
 interface Report {
   _id: string;
@@ -61,6 +65,10 @@ interface RangerStats {
   patrolsCompleted: number;
   threatsDetected: number;
   responseTime: string;
+  totalPatrols: number;
+  activePatrols: number;
+  scheduledPatrols: number;
+  completedToday: number;
 }
 
 interface UrgentAlert {
@@ -91,6 +99,9 @@ interface PatrolDetail {
   duration: string;
   findings: string;
   ranger: string;
+  patrolDate: string;
+  startTime: string;
+  priority: string;
 }
 
 export default function RangerDashboard() {
@@ -103,6 +114,10 @@ export default function RangerDashboard() {
     patrolsCompleted: 0,
     threatsDetected: 0,
     responseTime: "N/A",
+    totalPatrols: 0,
+    activePatrols: 0,
+    scheduledPatrols: 0,
+    completedToday: 0,
   });
   const [urgentAlerts, setUrgentAlerts] = useState<UrgentAlert[]>([]);
   const [pendingReports, setPendingReports] = useState<PendingReport[]>([]);
@@ -112,6 +127,11 @@ export default function RangerDashboard() {
   const [patrolsByDay, setPatrolsByDay] = useState<{ _id: string; count: number }[]>([]);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Patrol dialog states
+  const [patrolDialogOpen, setPatrolDialogOpen] = useState(false);
+  const [patrolDialogMode, setPatrolDialogMode] = useState<"new" | "schedule" | "edit">("new");
+  const [selectedPatrol, setSelectedPatrol] = useState<PatrolDetail | null>(null);
 
   const fetchDashboardData = async () => {
     try {
@@ -203,7 +223,19 @@ export default function RangerDashboard() {
   // Download patrol data as JSON
   const handleDownload = async () => {
     try {
-      const res = await api.get('/patrols/export', { responseType: 'blob' });
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
+      }
+      
+      const res = await api.get('/patrols/export', { 
+        responseType: 'blob',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -215,6 +247,20 @@ export default function RangerDashboard() {
     } catch (err) {
       toast.error('Failed to download patrol data');
     }
+  };
+
+  // Handle patrol dialog
+  const handlePatrolDialog = (mode: "new" | "schedule" | "edit", patrol?: PatrolDetail) => {
+    setPatrolDialogMode(mode);
+    setSelectedPatrol(patrol || null);
+    setPatrolDialogOpen(true);
+  };
+
+  const handlePatrolSuccess = () => {
+    fetchDashboardData();
+    toast.success(patrolDialogMode === "new" ? "Patrol started successfully!" : 
+                  patrolDialogMode === "schedule" ? "Patrol scheduled successfully!" : 
+                  "Patrol updated successfully!");
   };
 
   return (
@@ -249,6 +295,78 @@ export default function RangerDashboard() {
           </Button>
         </div>
 
+        {/* Patrol Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Patrols</CardTitle>
+              <Binoculars className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalPatrols}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Patrols</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.activePatrols}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.completedToday}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.scheduledPatrols}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Patrol Management */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Activity className="h-6 w-6 text-indigo-600" />
+            Patrol Management
+          </h2>
+          <p className="text-gray-600">Start new patrols or schedule future patrols</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              onClick={() => handlePatrolDialog("new")}
+              className="h-16 bg-green-600 hover:bg-green-700 flex flex-col gap-1 items-center justify-center"
+            >
+              <Play className="h-6 w-6" />
+              <span>Start New Patrol</span>
+            </Button>
+            <Button 
+              onClick={() => handlePatrolDialog("schedule")}
+              variant="outline" 
+              className="h-16 border-blue-300 text-blue-700 hover:bg-blue-50 flex flex-col gap-1 items-center justify-center"
+            >
+              <Calendar className="h-6 w-6" />
+              <span>Schedule Patrol</span>
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+              <Link to="/ranger/patrol-data" className="flex flex-col gap-1 items-center justify-center">
+                <Binoculars className="h-6 w-6" />
+                <span>View All Patrols</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
+
         {/* Urgent Alerts */}
         {urgentAlerts.length > 0 && (
           <Alert className="border-red-200 bg-red-50">
@@ -270,7 +388,7 @@ export default function RangerDashboard() {
         {/* Ranger Tools */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Activity className="h-6 w-6 text-indigo-600" />
+            <Shield className="h-6 w-6 text-indigo-600" />
             Ranger Tools
           </h2>
           <p className="text-gray-600">Access your ranger and patrol management tools</p>
@@ -354,6 +472,15 @@ export default function RangerDashboard() {
             </div>
           )}
         </div>
+
+        {/* Patrol Dialog */}
+        <PatrolDialog
+          open={patrolDialogOpen}
+          onOpenChange={setPatrolDialogOpen}
+          mode={patrolDialogMode}
+          patrol={selectedPatrol}
+          onSuccess={handlePatrolSuccess}
+        />
       </div>
     </DashboardLayout>
   );

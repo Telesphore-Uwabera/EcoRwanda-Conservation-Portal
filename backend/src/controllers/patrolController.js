@@ -4,8 +4,9 @@ const Patrol = require('../models/Patrol');
 // Get all patrols for the logged-in ranger
 exports.getPatrols = async (req, res) => {
   try {
+    const rangerId = new mongoose.Types.ObjectId(req.user.id);
     // Find patrols assigned to the logged-in ranger
-    const patrolsRaw = await Patrol.find({ ranger: req.user._id })
+    const patrolsRaw = await Patrol.find({ ranger: rangerId })
       .populate('ranger', 'firstName lastName email')
       .sort({ patrolDate: -1 });
     
@@ -35,8 +36,8 @@ exports.getPatrols = async (req, res) => {
       notes: patrol.notes || '',
       createdAt: patrol.createdAt
         ? (typeof patrol.createdAt === 'number'
-            ? new Date(patrol.createdAt).toISOString()
-            : new Date(patrol.createdAt).toISOString())
+            ? new Date(patrol.createdAt).getTime()
+            : new Date(patrol.createdAt).getTime())
         : '',
     }));
     
@@ -58,7 +59,7 @@ exports.createPatrol = async (req, res) => {
     console.log('req.user in createPatrol:', req.user);
     const patrolData = {
       ...req.body,
-      ranger: req.user._id // Get ranger ID from authenticated user
+      ranger: req.user.id // Get ranger ID from authenticated user
     };
     
     const patrol = new Patrol(patrolData);
@@ -82,7 +83,7 @@ exports.getPatrol = async (req, res) => {
   try {
     const patrol = await Patrol.findOne({
       _id: req.params.id,
-      ranger: req.user._id
+      ranger: new mongoose.Types.ObjectId(req.user.id)
     });
 
     if (!patrol) {
@@ -108,7 +109,7 @@ exports.getPatrol = async (req, res) => {
 exports.updatePatrol = async (req, res) => {
   try {
     const patrol = await Patrol.findOneAndUpdate(
-      { _id: req.params.id, ranger: req.user._id },
+      { _id: req.params.id, ranger: new mongoose.Types.ObjectId(req.user.id) },
       req.body,
       { new: true, runValidators: true }
     );
@@ -137,7 +138,7 @@ exports.deletePatrol = async (req, res) => {
   try {
     const patrol = await Patrol.findOneAndDelete({
       _id: req.params.id,
-      ranger: req.user._id
+      ranger: new mongoose.Types.ObjectId(req.user.id)
     });
 
     if (!patrol) {
@@ -175,7 +176,7 @@ exports.updatePatrolStatus = async (req, res) => {
     }
 
     // Only allow the ranger who created the patrol to update its status
-    if (patrol.ranger.toString() !== req.user._id.toString()) {
+    if (patrol.ranger.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: 'Not authorized to update this patrol' });
     }
 
@@ -208,7 +209,7 @@ exports.addFindings = async (req, res) => {
     }
 
     // Only allow the ranger who created the patrol to add findings
-    if (patrol.ranger.toString() !== req.user._id.toString()) {
+    if (patrol.ranger.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: 'Not authorized to update this patrol' });
     }
 
@@ -225,34 +226,58 @@ exports.addFindings = async (req, res) => {
   }
 };
 
-// Utility: Update patrol statuses based on time
+// Utility: Update patrol statuses based on time - IMPROVED LOGIC
 async function autoUpdatePatrolStatuses(userId) {
   const now = new Date();
-  const patrols = await Patrol.find({ status: { $in: ["scheduled", "in_progress"] }, ranger: userId });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const patrols = await Patrol.find({ 
+    status: { $in: ["scheduled", "in_progress"] }, 
+    ranger: new mongoose.Types.ObjectId(userId) 
+  });
+  
   for (const patrol of patrols) {
-    const patrolStart = new Date(patrol.patrolDate + 'T' + (patrol.startTime || '00:00'));
-    const durationHours = Number(patrol.estimatedDuration) || 0;
-    const patrolEnd = new Date(patrolStart.getTime() + durationHours * 60 * 60 * 1000);
-    if (patrol.status === "scheduled" && now >= patrolStart && now < patrolEnd) {
-      patrol.status = "in_progress";
-      await patrol.save();
-    } else if ((patrol.status === "scheduled" || patrol.status === "in_progress") && now >= patrolEnd) {
-      patrol.status = "completed";
-      await patrol.save();
+    try {
+      // Parse patrol date and start time
+      const patrolDate = new Date(patrol.patrolDate);
+      const [hours, minutes] = (patrol.startTime || '00:00').split(':').map(Number);
+      patrolDate.setHours(hours, minutes, 0, 0);
+      
+      // Calculate end time based on estimated duration
+      const durationHours = Number(patrol.estimatedDuration) || 0;
+      const patrolEnd = new Date(patrolDate.getTime() + durationHours * 60 * 60 * 1000);
+      
+      // Update status based on current time
+      if (patrol.status === "scheduled" && now >= patrolDate && now < patrolEnd) {
+        patrol.status = "in_progress";
+        await patrol.save();
+        console.log(`Patrol ${patrol._id} marked as in_progress`);
+      } else if ((patrol.status === "scheduled" || patrol.status === "in_progress") && now >= patrolEnd) {
+        patrol.status = "completed";
+        await patrol.save();
+        console.log(`Patrol ${patrol._id} marked as completed`);
+      }
+    } catch (error) {
+      console.error(`Error updating patrol ${patrol._id}:`, error);
     }
   }
 }
 
-// Get patrol stats for dashboard
+// Get patrol stats for dashboard - IMPROVED LOGIC
 exports.getPatrolStats = async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const rangerId = new mongoose.Types.ObjectId(req.user.id);
+
+    // First, auto-update patrol statuses
+    await autoUpdatePatrolStatuses(req.user.id);
 
     // Find patrols for the logged-in ranger only
-    const allPatrols = await Patrol.find({ ranger: req.user._id });
+    const allPatrols = await Patrol.find({ ranger: rangerId });
 
-    // 1. Calculate stats based on the CURRENT state of patrols BEFORE auto-updating.
+    // Calculate stats based on the UPDATED state of patrols
     const validPatrols = allPatrols.filter(p => {
       try {
         return p.patrolDate && !isNaN(new Date(p.patrolDate).getTime());
@@ -262,22 +287,24 @@ exports.getPatrolStats = async (req, res) => {
     });
 
     const totalCompleted = validPatrols.filter(p => p.status === 'completed').length;
-    const activePatrols = validPatrols.filter(p => ['in_progress', 'scheduled'].includes(p.status)).length;
-    const completedToday = validPatrols.filter(p => 
-      p.status === 'completed' && 
-      new Date(p.patrolDate).toDateString() === today.toDateString()
-    ).length;
+    const activePatrols = validPatrols.filter(p => p.status === 'in_progress').length;
+    const scheduledPatrols = validPatrols.filter(p => p.status === 'scheduled').length;
+    
+    // Calculate completed today - patrols that were completed today
+    const completedToday = validPatrols.filter(p => {
+      if (p.status !== 'completed') return false;
+      const patrolDate = new Date(p.patrolDate);
+      return patrolDate.toDateString() === today.toDateString();
+    }).length;
 
-    // 2. Correctly calculate total patrols. It should be the count of all valid patrols.
+    // Calculate total patrols
     const totalPatrols = validPatrols.length;
     
-    // Now, perform the auto-update. This will not affect the stats we've already calculated.
-    await autoUpdatePatrolStatuses(req.user._id);
-
     res.json({
       totalPatrols,
       completedToday,
       activePatrols,
+      scheduledPatrols,
       patrolsCompleted: totalCompleted
     });
   } catch (error) {
@@ -289,7 +316,7 @@ exports.getPatrolStats = async (req, res) => {
 // Export patrols as JSON
 exports.exportPatrols = async (req, res) => {
   try {
-    const patrols = await Patrol.find({ ranger: req.user._id });
+    const patrols = await Patrol.find({ ranger: new mongoose.Types.ObjectId(req.user.id) });
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', 'attachment; filename=patrols.json');
     res.send(JSON.stringify(patrols, null, 2));
@@ -298,13 +325,17 @@ exports.exportPatrols = async (req, res) => {
   }
 };
 
+// IMPROVED PATROL ANALYTICS
 exports.getPatrolAnalytics = async (req, res) => {
     try {
-        const rangerId = req.user.id;
+        const rangerId = new mongoose.Types.ObjectId(req.user.id);
+
+        // First, auto-update patrol statuses
+        await autoUpdatePatrolStatuses(req.user.id);
 
         // Patrol Status Distribution
         const statusDistribution = await Patrol.aggregate([
-            { $match: { ranger: new mongoose.Types.ObjectId(rangerId) } },
+            { $match: { ranger: rangerId } },
             { $group: { _id: '$status', count: { $sum: 1 } } }
         ]);
 
@@ -318,7 +349,7 @@ exports.getPatrolAnalytics = async (req, res) => {
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
         const monthlyPatrols = await Patrol.aggregate([
-            { $match: { ranger: new mongoose.Types.ObjectId(rangerId), patrolDate: { $gte: sixMonthsAgo } } },
+            { $match: { ranger: rangerId, patrolDate: { $gte: sixMonthsAgo } } },
             {
                 $group: {
                     _id: { year: { $year: "$patrolDate" }, month: { $month: "$patrolDate" } },
@@ -334,23 +365,44 @@ exports.getPatrolAnalytics = async (req, res) => {
             count: item.count
         }));
 
+        // Priority distribution
+        const priorityDistribution = await Patrol.aggregate([
+            { $match: { ranger: rangerId } },
+            { $group: { _id: '$priority', count: { $sum: 1 } } }
+        ]);
+
+        const priorityData = priorityDistribution.reduce((acc, item) => {
+            acc[item._id] = item.count;
+            return acc;
+        }, { high: 0, medium: 0, low: 0 });
+
         // General stats
         const totalPatrols = await Patrol.countDocuments({ ranger: rangerId });
-        const totalIncidents = await Patrol.aggregate([
-            { $match: { ranger: new mongoose.Types.ObjectId(rangerId) } },
-            { $project: { incidentsCount: { $size: { "$ifNull": ["$incidents", []] } } } },
-            { $group: { _id: null, total: { $sum: "$incidentsCount" } } }
+        const totalCompleted = await Patrol.countDocuments({ ranger: rangerId, status: 'completed' });
+        const totalInProgress = await Patrol.countDocuments({ ranger: rangerId, status: 'in_progress' });
+        const totalScheduled = await Patrol.countDocuments({ ranger: rangerId, status: 'scheduled' });
+
+        // Average duration calculation
+        const durationStats = await Patrol.aggregate([
+            { $match: { ranger: rangerId, estimatedDuration: { $exists: true, $ne: null } } },
+            { $group: { _id: null, avgDuration: { $avg: '$estimatedDuration' } } }
         ]);
+
+        const averageDuration = durationStats.length > 0 ? Math.round(durationStats[0].avgDuration) : 0;
 
         res.status(200).json({
             statusDistribution: statusData,
+            priorityDistribution: priorityData,
             monthlyPatrols: monthlyData,
             totalPatrols,
-            totalIncidents: totalIncidents.length > 0 ? totalIncidents[0].total : 0,
+            totalCompleted,
+            totalInProgress,
+            totalScheduled,
+            averageDuration,
         });
 
     } catch (error) {
         console.error('Error fetching patrol analytics:', error);
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: 'Server Error', error: error.message });
     }
 }; 

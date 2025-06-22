@@ -39,14 +39,16 @@ import {
   Download,
   Filter,
   MessageSquare,
+  Play,
 } from "lucide-react";
 import api from "@/config/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PatrolDialog } from "@/components/patrol/PatrolDialog";
 import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 interface Patrol {
-  _id: string;
+  id: string;
   route: string;
   status: 'in_progress' | 'scheduled' | 'completed' | 'cancelled';
   duration?: string;
@@ -81,33 +83,42 @@ export default function PatrolData() {
   const [patrols, setPatrols] = useState<Patrol[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showNewPatrolDialog, setShowNewPatrolDialog] = useState(false);
-  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
-  const [editPatrol, setEditPatrol] = useState<Patrol | null>(null);
+  
+  // Patrol dialog states
+  const [patrolDialogOpen, setPatrolDialogOpen] = useState(false);
+  const [patrolDialogMode, setPatrolDialogMode] = useState<"new" | "schedule" | "edit">("new");
+  const [selectedPatrol, setSelectedPatrol] = useState<Patrol | null>(null);
 
-    const fetchPatrols = async () => {
-      setLoading(true);
+  const fetchPatrols = async () => {
+    setLoading(true);
     setError(null);
     try {
-        const response = await api.get('/patrols', {
-          headers: {
-          Authorization: `Bearer ${user?.token}`,
-          },
-        });
-        setPatrols(response.data.patrols || []);
-      } catch (err) {
-        setError('Failed to fetch patrol data.');
-        console.error('Error fetching patrol data:', err);
-      } finally {
-        setLoading(false);
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
       }
-    };
+      
+      const response = await api.get('/patrols', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPatrols(response.data.patrols || []);
+    } catch (err) {
+      setError('Failed to fetch patrol data.');
+      console.error('Error fetching patrol data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (user?.token) {
+    if (user) {
       fetchPatrols();
     }
-  }, [user?.token]);
+  }, [user]);
 
   const patrolStats = useMemo(() => {
     const today = new Date();
@@ -201,20 +212,46 @@ export default function PatrolData() {
     </Card>
   );
 
-  const handleEditPatrol = (patrol) => {
-    setEditPatrol(patrol);
-    if(patrol.status === 'scheduled') {
-        setShowScheduleDialog(true);
-    } else {
-        setShowNewPatrolDialog(true);
-    }
-  }
+  const handlePatrolDialog = (mode: "new" | "schedule" | "edit", patrol?: Patrol) => {
+    setPatrolDialogMode(mode);
+    setSelectedPatrol(patrol || null);
+    setPatrolDialogOpen(true);
+  };
 
-  const handleDialogClose = () => {
-    setEditPatrol(null);
-    setShowNewPatrolDialog(false);
-    setShowScheduleDialog(false);
-  }
+  const handlePatrolSuccess = () => {
+    fetchPatrols();
+    toast.success(patrolDialogMode === "new" ? "Patrol started successfully!" : 
+                  patrolDialogMode === "schedule" ? "Patrol scheduled successfully!" : 
+                  "Patrol updated successfully!");
+  };
+
+  const handleDownload = async () => {
+    try {
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
+      }
+      
+      const res = await api.get('/patrols/export', { 
+        responseType: 'blob',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'patrols.json');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      toast.success('Patrol data downloaded!');
+    } catch (err) {
+      toast.error('Failed to download patrol data');
+    }
+  };
 
   if (loading) {
     return (
@@ -247,11 +284,14 @@ export default function PatrolData() {
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">Patrol Operations</h2>
           <div className="flex items-center space-x-2">
-            <Button onClick={() => { setEditPatrol(null); setShowNewPatrolDialog(true); }}>
-              <Plus className="mr-2 h-4 w-4" /> Start New Patrol
+            <Button onClick={() => handlePatrolDialog("new")}>
+              <Play className="mr-2 h-4 w-4" /> Start New Patrol
             </Button>
-            <Button variant="outline" onClick={() => { setEditPatrol(null); setShowScheduleDialog(true); }}>
+            <Button variant="outline" onClick={() => handlePatrolDialog("schedule")}>
               <Calendar className="mr-2 h-4 w-4" /> Schedule Patrol
+            </Button>
+            <Button variant="outline" onClick={handleDownload}>
+              <Download className="mr-2 h-4 w-4" /> Export Data
             </Button>
           </div>
         </div>
@@ -275,102 +315,112 @@ export default function PatrolData() {
           </TabsList>
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-            <Input
-              placeholder="Search patrols by route, ranger, or findings..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              <Input
+                placeholder="Search patrols by route, ranger, or findings..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-80"
-            />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+              />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
+                </SelectTrigger>
+                <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger className="w-[180px]">
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by date" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">This Week</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="week">This Week</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline"><Link to="/ranger/analytics"><TrendingUp className="mr-2 h-4 w-4" /> View Analytics</Link></Button>
-                  </div>
-                  </div>
+              <Button variant="outline">
+                <Link to="/ranger/analytics">
+                  <TrendingUp className="mr-2 h-4 w-4" /> View Analytics
+                </Link>
+              </Button>
+            </div>
+          </div>
           <TabsContent value="recent">
             {recentPatrols.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {recentPatrols.map((patrol) => (
-                  <Card key={patrol._id} onClick={() => handleEditPatrol(patrol)} className="cursor-pointer hover:shadow-md">
+                {recentPatrols.map((patrol) => (
+                  <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="cursor-pointer hover:shadow-md">
                     <CardHeader>
                       <CardTitle className="flex justify-between items-center">
                         {patrol.route}
                         <Badge className={getStatusColor(patrol.status)}>{patrol.status.replace('_', ' ')}</Badge>
-                          </CardTitle>
+                      </CardTitle>
                       <CardDescription>
                         <Users className="inline-block h-4 w-4 mr-1" /> 
                         {patrol.ranger.firstName} {patrol.ranger.lastName}
                       </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
+                    </CardHeader>
+                    <CardContent className="space-y-2">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Calendar className="mr-2 h-4 w-4" />
                         <span>{formatDate(patrol.patrolDate)}</span>
                       </div>
+                      {patrol.priority && (
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Badge className={getPriorityColor(patrol.priority)} variant="outline">
+                            {patrol.priority}
+                          </Badge>
+                        </div>
+                      )}
                       <p className="text-sm truncate">{patrol.findings || "No findings recorded yet."}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             ) : <p>No recent patrols found.</p>}
           </TabsContent>
           <TabsContent value="scheduled">
-             {scheduledPatrols.length > 0 ? (
+            {scheduledPatrols.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {scheduledPatrols.map((patrol) => (
-                  <Card key={patrol._id} onClick={() => handleEditPatrol(patrol)} className="cursor-pointer hover:shadow-md">
-              <CardHeader>
+                  <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="cursor-pointer hover:shadow-md">
+                    <CardHeader>
                       <CardTitle className="flex justify-between items-center">
-                          {patrol.route}
-                          <Badge className={getPriorityColor(patrol.priority)}>{patrol.priority}</Badge>
-                          </CardTitle>
+                        {patrol.route}
+                        <Badge className={getPriorityColor(patrol.priority)}>{patrol.priority}</Badge>
+                      </CardTitle>
                       <CardDescription>Scheduled for: {formatDate(patrol.patrolDate)} at {patrol.startTime}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
+                    </CardHeader>
+                    <CardContent className="space-y-2">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Users className="mr-2 h-4 w-4" /> 
                         <span>Assigned to: {patrol.ranger.firstName} {patrol.ranger.lastName}</span>
                       </div>
                       <p className="text-sm">Objectives: {patrol.objectives?.join(', ') || 'N/A'}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-             ) : <p>No scheduled patrols found.</p>}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : <p>No scheduled patrols found.</p>}
           </TabsContent>
         </Tabs>
       </div>
       
-      {(showNewPatrolDialog || showScheduleDialog) && (
+      {/* Patrol Dialog */}
       <PatrolDialog
-          isOpen={showNewPatrolDialog || showScheduleDialog}
-          onClose={handleDialogClose}
-          onPatrolSaved={fetchPatrols}
-        patrol={editPatrol}
-          isScheduling={showScheduleDialog}
+        open={patrolDialogOpen}
+        onOpenChange={setPatrolDialogOpen}
+        mode={patrolDialogMode}
+        patrol={selectedPatrol}
+        onSuccess={handlePatrolSuccess}
       />
-      )}
     </DashboardLayout>
   );
 }

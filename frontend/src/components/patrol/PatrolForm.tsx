@@ -39,7 +39,13 @@ const patrolFormSchema = z.object({
     required_error: "Patrol date is required",
   }),
   startTime: z.string().min(1, "Start time is required"),
-  estimatedDuration: z.string().min(1, "Estimated duration is required"),
+  estimatedDuration: z.string().min(1, "Estimated duration is required").refine(
+    (val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num > 0;
+    },
+    "Duration must be a positive number"
+  ),
   priority: z.enum(["high", "medium", "low"], {
     required_error: "Priority is required",
   }),
@@ -69,7 +75,7 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
           route: patrol.route || "",
           patrolDate: patrol.patrolDate ? new Date(patrol.patrolDate) : new Date(),
           startTime: patrol.startTime || "",
-          estimatedDuration: patrol.estimatedDuration || "",
+          estimatedDuration: patrol.estimatedDuration ? patrol.estimatedDuration.toString() : "",
           priority: patrol.priority || "medium",
           objectives: patrol.objectives ? patrol.objectives.join(", ") : "",
           equipment: patrol.equipment ? patrol.equipment.join(", ") : "",
@@ -100,9 +106,10 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
       const patrolData = {
         ...data,
         status: mode === "new" ? "in_progress" : mode === "schedule" ? "scheduled" : patrol.status,
-        objectives: data.objectives.split(",").map(obj => obj.trim()),
-        equipment: data.equipment.split(",").map(eq => eq.trim()),
+        objectives: data.objectives.split(",").map(obj => obj.trim()).filter(obj => obj.length > 0),
+        equipment: data.equipment.split(",").map(eq => eq.trim()).filter(eq => eq.length > 0),
         patrolDate: data.patrolDate.toISOString().split('T')[0],
+        estimatedDuration: parseFloat(data.estimatedDuration),
       };
 
       if (mode === "edit" && patrol && patrol.id) {
@@ -223,7 +230,6 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
-                        // Allow any date to be selected (no minDate, maxDate, or disabled logic)
                         mode="single"
                         selected={field.value}
                         onSelect={(date) => {
@@ -268,14 +274,20 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
                 name="estimatedDuration"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base">Duration</FormLabel>
+                    <FormLabel className="text-base">Duration (hours)</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="e.g., 4 hours" 
+                        type="number"
+                        min="0.5"
+                        step="0.5"
+                        placeholder="e.g., 4" 
                         {...field} 
                         className="h-12 text-base"
                       />
                     </FormControl>
+                    <FormDescription>
+                      Estimated duration in hours
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -22,6 +22,7 @@ const getAnalytics = async (req, res) => {
     const pendingReports = await WildlifeReport.countDocuments({ status: 'pending' });
 
     const totalPatrols = await Patrol.countDocuments();
+    const completedPatrols = await Patrol.countDocuments({ status: 'completed' });
 
     const activeConservationProjects = await ConservationProject.countDocuments({ status: 'active' });
     const completedConservationProjects = await ConservationProject.countDocuments({ status: 'completed' });
@@ -51,6 +52,7 @@ const getAnalytics = async (req, res) => {
         verifiedReportsThisMonth: verifiedReportsThisMonth,
         pendingReports: pendingReports,
         totalPatrols: totalPatrols,
+        completedPatrols: completedPatrols,
       },
       projectStats: {
         activeProjects: activeConservationProjects + activeResearchProjects,

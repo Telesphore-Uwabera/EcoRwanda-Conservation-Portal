@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -26,47 +26,142 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
 } from "recharts";
-import { Patrol } from "@/types/patrol";
+import api from "@/config/api";
+import { useToast } from "@/components/ui/use-toast";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
-interface PatrolAnalyticsProps {
-  patrols: Patrol[];
+interface PatrolAnalyticsData {
+  statusDistribution: {
+    scheduled: number;
+    in_progress: number;
+    completed: number;
+    cancelled: number;
+  };
+  priorityDistribution: {
+    high: number;
+    medium: number;
+    low: number;
+  };
+  monthlyPatrols: Array<{
+    name: string;
+    count: number;
+  }>;
+  totalPatrols: number;
+  totalCompleted: number;
+  totalInProgress: number;
+  totalScheduled: number;
+  averageDuration: number;
 }
 
-export function PatrolAnalytics({ patrols }: PatrolAnalyticsProps) {
-  const [timeRange, setTimeRange] = React.useState("month");
+export function PatrolAnalytics() {
+  const [timeRange, setTimeRange] = useState("month");
+  const [analyticsData, setAnalyticsData] = useState<PatrolAnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  // Calculate statistics
-  const totalPatrols = patrols.length;
-  const completedPatrols = patrols.filter(p => p.status === "completed").length;
-  const inProgressPatrols = patrols.filter(p => p.status === "in_progress").length;
-  const scheduledPatrols = patrols.filter(p => p.status === "scheduled").length;
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
+      }
+
+      const response = await api.get('/patrols/analytics', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setAnalyticsData(response.data);
+    } catch (err) {
+      console.error('Error fetching patrol analytics:', err);
+      setError('Failed to load analytics data');
+      toast({
+        title: "Error",
+        description: "Failed to load patrol analytics",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [timeRange]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Patrol Analytics</h2>
+          <div className="w-[180px] h-10 bg-gray-200 animate-pulse rounded"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="h-4 bg-gray-200 animate-pulse rounded w-20"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-gray-200 animate-pulse rounded w-16"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !analyticsData) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Patrol Analytics</h2>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">Last Week</SelectItem>
+              <SelectItem value="month">Last Month</SelectItem>
+              <SelectItem value="year">Last Year</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Card>
+          <CardContent className="flex items-center justify-center h-64">
+            <p className="text-gray-500">Failed to load analytics data</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Prepare data for status distribution pie chart
   const statusData = [
-    { name: "Completed", value: completedPatrols },
-    { name: "In Progress", value: inProgressPatrols },
-    { name: "Scheduled", value: scheduledPatrols },
-  ];
+    { name: "Scheduled", value: analyticsData.statusDistribution.scheduled },
+    { name: "In Progress", value: analyticsData.statusDistribution.in_progress },
+    { name: "Completed", value: analyticsData.statusDistribution.completed },
+    { name: "Cancelled", value: analyticsData.statusDistribution.cancelled },
+  ].filter(item => item.value > 0);
 
-  // Prepare data for patrols by priority bar chart
+  // Prepare data for priority distribution bar chart
   const priorityData = [
-    { name: "High", value: patrols.filter(p => p.priority === "high").length },
-    { name: "Medium", value: patrols.filter(p => p.priority === "medium").length },
-    { name: "Low", value: patrols.filter(p => p.priority === "low").length },
-  ];
-
-  // Calculate average duration
-  const totalDuration = patrols.reduce((sum, patrol) => {
-    if (patrol.duration) {
-      const hours = parseInt(patrol.duration);
-      return sum + (isNaN(hours) ? 0 : hours);
-    }
-    return sum;
-  }, 0);
-  const averageDuration = totalPatrols > 0 ? (totalDuration / totalPatrols).toFixed(1) : 0;
+    { name: "High", value: analyticsData.priorityDistribution.high },
+    { name: "Medium", value: analyticsData.priorityDistribution.medium },
+    { name: "Low", value: analyticsData.priorityDistribution.low },
+  ].filter(item => item.value > 0);
 
   return (
     <div className="space-y-6">
@@ -91,7 +186,7 @@ export function PatrolAnalytics({ patrols }: PatrolAnalyticsProps) {
             <CardTitle className="text-sm font-medium">Total Patrols</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalPatrols}</div>
+            <div className="text-2xl font-bold">{analyticsData.totalPatrols}</div>
           </CardContent>
         </Card>
         <Card>
@@ -99,7 +194,7 @@ export function PatrolAnalytics({ patrols }: PatrolAnalyticsProps) {
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedPatrols}</div>
+            <div className="text-2xl font-bold">{analyticsData.totalCompleted}</div>
           </CardContent>
         </Card>
         <Card>
@@ -107,7 +202,7 @@ export function PatrolAnalytics({ patrols }: PatrolAnalyticsProps) {
             <CardTitle className="text-sm font-medium">In Progress</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inProgressPatrols}</div>
+            <div className="text-2xl font-bold">{analyticsData.totalInProgress}</div>
           </CardContent>
         </Card>
         <Card>
@@ -115,64 +210,103 @@ export function PatrolAnalytics({ patrols }: PatrolAnalyticsProps) {
             <CardTitle className="text-sm font-medium">Avg. Duration</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageDuration}h</div>
+            <div className="text-2xl font-bold">{analyticsData.averageDuration}h</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Patrol Status Distribution</CardTitle>
-            <CardDescription>Distribution of patrols by status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="status" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="status">Status Distribution</TabsTrigger>
+          <TabsTrigger value="priority">Priority Distribution</TabsTrigger>
+          <TabsTrigger value="trends">Monthly Trends</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Patrols by Priority</CardTitle>
-            <CardDescription>Number of patrols by priority level</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={priorityData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="value" fill="#8884d8" name="Number of Patrols" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="status" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Patrol Status Distribution</CardTitle>
+              <CardDescription>Distribution of patrols by current status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="priority" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Patrols by Priority</CardTitle>
+              <CardDescription>Number of patrols by priority level</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={priorityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#8884d8" name="Number of Patrols" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="trends" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Monthly Patrol Trends</CardTitle>
+              <CardDescription>Patrol activity over the last 6 months</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={analyticsData.monthlyPatrols}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="count" 
+                      stroke="#8884d8" 
+                      strokeWidth={2}
+                      name="Number of Patrols"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

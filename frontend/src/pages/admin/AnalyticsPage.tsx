@@ -6,6 +6,7 @@ import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 import { useOfflineStatus } from '@/lib/offline';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/config/api';
+import Analytics from './Analytics';
 
 interface AnalyticsStats {
   userStats: {
@@ -68,11 +69,11 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout>
-      <div className="">
+      <div className="container mx-auto p-4">
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Header */}
-        <div className="space-y-2">
+        <div className="space-y-2 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <BarChart2 className="h-8 w-8 text-blue-600" />
             System Analytics
@@ -86,57 +87,7 @@ export default function AnalyticsPage() {
         {error && <p className="text-red-500">Error: {error}</p>}
 
         {!loading && !error && stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                <Users className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.userStats.totalUsers.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Verified Reports This Month</CardTitle>
-                <FolderOpen className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.activityStats.verifiedReportsThisMonth.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-                <FolderOpen className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.projectStats.activeProjects.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Reports</CardTitle>
-                <Clock className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.activityStats.pendingReports.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Completed Patrols</CardTitle>
-                <Zap className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.activityStats.completedPatrols.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-          </div>
+          <Analytics analytics={stats} />
         )}
       </div>
     </DashboardLayout>

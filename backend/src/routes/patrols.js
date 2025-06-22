@@ -7,6 +7,8 @@ const patrolController = require('../controllers/patrolController');
 router.get('/export', authenticateToken, patrolController.exportPatrols);
 // Get patrol stats (must be before any :id route)
 router.get('/stats', authenticateToken, patrolController.getPatrolStats);
+// Add a new route for patrol analytics (must be before any :id route)
+router.get('/analytics', authenticateToken, isRanger, patrolController.getPatrolAnalytics);
 
 // Get all patrols
 router.get('/', authenticateToken, isRanger, patrolController.getPatrols);
@@ -28,8 +30,5 @@ router.patch('/:id/status', authenticateToken, patrolController.updatePatrolStat
 
 // Add findings to a patrol
 router.patch('/:id/findings', authenticateToken, patrolController.addFindings);
-
-// Add a new route for patrol analytics
-router.get('/analytics', authenticateToken, isRanger, patrolController.getPatrolAnalytics);
 
 module.exports = router; 
