@@ -1,10 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import "leaflet/dist/leaflet.css";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import React, { useEffect, useState } from 'react';
+import ReactMapGL, { Marker, Popup } from 'react-map-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -31,6 +28,7 @@ interface WildlifeReport {
     name: string;
   };
   createdAt: string;
+  submittedBy?: { firstName?: string };
 }
 
 // Define colors for each threat category for consistent styling
@@ -42,18 +40,10 @@ const categoryColors: { [key: string]: string } = {
   other: "gray",
 };
 
-// Create custom colored icons for the map pins
-const getIcon = (L: any, color: string) => {
-  if (!L) return null;
-  return new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-    shadowUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
+const urgencyColors: { [key: string]: string } = {
+  high: "bg-red-600 text-white",
+  medium: "bg-yellow-500 text-white",
+  low: "bg-green-600 text-white",
 };
 
 export default function ThreatMap() {
@@ -64,29 +54,7 @@ export default function ThreatMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  const [mapCenter, setMapCenter] = useState<[number, number]>([-1.9441, 29.8739]);
-
-  // Use refs to hold the dynamically imported libraries
-  const leafletRef = useRef<any>({
-    MapContainer: null,
-    TileLayer: null,
-    Marker: null,
-    Popup: null,
-    useMap: null,
-    L: null,
-  });
-  const [mapReady, setMapReady] = useState(false);
-
-  useEffect(() => {
-    // Dynamically import libraries only on the client side
-    Promise.all([
-      import("react-leaflet"),
-      import("leaflet"),
-    ]).then(([{ MapContainer, TileLayer, Marker, Popup, useMap }, L]) => {
-      leafletRef.current = { MapContainer, TileLayer, Marker, Popup, useMap, L: L.default };
-      setMapReady(true);
-    });
-  }, []);
+  const [selectedReport, setSelectedReport] = useState<WildlifeReport | null>(null);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -126,105 +94,189 @@ export default function ThreatMap() {
     }
 
     setFilteredReports(newFilteredReports);
-
-    if (newFilteredReports.length > 0) {
-      const { lat, lng } = newFilteredReports[0].location;
-      setMapCenter([lat, lng]);
-    } else {
-      setMapCenter([-1.9441, 29.8739]); // Reset to default if no reports
-    }
   }, [categoryFilter, statusFilter, reports]);
 
   if (loading) return <div>Loading reports...</div>;
   if (error) return <div>{error}</div>;
 
-  // Destructure the components from the ref
-  const { MapContainer, TileLayer, Marker, Popup, useMap, L } = leafletRef.current;
+  // Summary calculations
+  const totalThreats = filteredReports.length;
+  const threatsByCategory = Object.keys(categoryColors).map(cat => ({
+    category: cat,
+    count: filteredReports.filter(r => r.category === cat).length,
+  }));
+  const threatsByUrgency = ["high", "medium", "low"].map(urg => ({
+    urgency: urg,
+    count: filteredReports.filter(r => r.urgency === urg).length,
+  }));
 
-  // Render nothing until the map is ready
-  if (!mapReady || !MapContainer) {
-    return (
-      <div style={{ height: "600px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        Loading Map...
-      </div>
-    );
-  }
-
-  // useMap requires to be a child of MapContainer, so we create a helper component
-  const ChangeView = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
-    const map = useMap();
-    useEffect(() => {
-      map.setView(center, zoom);
-    }, [center, zoom, map]);
-    return null;
-  };
+  // Default map center
+  const mapCenter = filteredReports.length > 0
+    ? [filteredReports[0].location.lng, filteredReports[0].location.lat]
+    : [29.8739, -1.9441];
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <MapIcon /> Threat Map
-        </h1>
-        <div className="flex items-center gap-2">
-          <Filter className="h-5 w-5" />
-          <Select onValueChange={setCategoryFilter} defaultValue="all">
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {Object.keys(categoryColors).map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, " ")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select onValueChange={setStatusFilter} defaultValue="all">
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="verified">Verified</SelectItem>
-              <SelectItem value="investigating">Investigating</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="space-y-6 p-4 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold flex items-center gap-2 mb-2">
+        <MapIcon /> Threat Map
+      </h1>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Threats</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalThreats}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>By Category</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {threatsByCategory.map(({ category, count }) => (
+              <Badge key={category} className="capitalize" style={{ background: categoryColors[category], color: 'white' }}>{category.replace(/_/g, ' ')}: {count}</Badge>
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>By Severity</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {threatsByUrgency.map(({ urgency, count }) => (
+              <Badge key={urgency} className={urgencyColors[urgency] + ' capitalize'}>{urgency}: {count}</Badge>
+            ))}
+          </CardContent>
+        </Card>
       </div>
-
-      <Card>
+      {/* Filters */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-4 flex-wrap">
+          <div>
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="border rounded px-2 py-1 w-48">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {Object.keys(categoryColors).map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Status</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="border rounded px-2 py-1 w-48">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="verified">Verified</SelectItem>
+                <SelectItem value="investigating">Investigating</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+      {/* Map in Card */}
+      <Card className="mb-4 shadow-lg rounded-lg overflow-hidden">
         <CardContent className="p-0">
-          <MapContainer
-            center={mapCenter}
-            zoom={8}
-            style={{ height: "600px", width: "100%" }}
-          >
-            <ChangeView center={mapCenter} zoom={filteredReports.length > 0 ? 10 : 8} />
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            {filteredReports.map((report) => (
-              <Marker
-                key={report._id}
-                position={[report.location.lat, report.location.lng]}
-                icon={getIcon(L, categoryColors[report.category] || "gray")}
-              >
-                <Popup>
-                  <div className="font-bold">{report.title}</div>
-                  <p>{report.description}</p>
-                  <Badge>{report.category}</Badge>
-                  <div className="text-xs text-gray-500 mt-2">
-                    {new Date(report.createdAt).toLocaleString()}
+          <div style={{ height: '500px', width: '100%' }}>
+            <ReactMapGL
+              longitude={mapCenter[0]}
+              latitude={mapCenter[1]}
+              zoom={8}
+              width="100%"
+              height="500px"
+              mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+              onViewportChange={() => {}}
+            >
+              {filteredReports.map(report => (
+                <Marker
+                  key={report._id}
+                  longitude={report.location.lng}
+                  latitude={report.location.lat}
+                  offsetLeft={-12}
+                  offsetTop={-24}
+                  onClick={e => {
+                    e.originalEvent.stopPropagation();
+                    setSelectedReport(report);
+                  }}
+                />
+              ))}
+              {selectedReport && (
+                <Popup
+                  longitude={selectedReport.location.lng}
+                  latitude={selectedReport.location.lat}
+                  onClose={() => setSelectedReport(null)}
+                  closeOnClick={false}
+                >
+                  <div className="space-y-1">
+                    <div className="font-bold">{selectedReport.category}</div>
+                    <Badge>{selectedReport.urgency}</Badge>
+                    <div><b>Location:</b> {selectedReport.location.name}</div>
+                    <div><b>Date:</b> {selectedReport.createdAt ? new Date(selectedReport.createdAt).toLocaleDateString() : 'N/A'}</div>
+                    <div><b>Reporter:</b> {selectedReport.submittedBy?.firstName || 'Unknown'}</div>
+                    <div className="text-sm text-gray-700">{selectedReport.description}</div>
                   </div>
                 </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+              )}
+            </ReactMapGL>
+          </div>
+        </CardContent>
+      </Card>
+      {/* Threats List/Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Threats List</CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto p-0">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-3 py-2 text-left">Type</th>
+                <th className="px-3 py-2 text-left">Severity</th>
+                <th className="px-3 py-2 text-left">Status</th>
+                <th className="px-3 py-2 text-left">Location</th>
+                <th className="px-3 py-2 text-left">Date</th>
+                <th className="px-3 py-2 text-left">Reporter</th>
+                <th className="px-3 py-2 text-left">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredReports.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-4 text-gray-500">No threats found.</td>
+                </tr>
+              )}
+              {filteredReports.map(report => (
+                <tr key={report._id} className="border-b hover:bg-gray-50">
+                  <td className="px-3 py-2 capitalize">
+                    <Badge className="capitalize" style={{ background: categoryColors[report.category], color: 'white' }}>{report.category.replace(/_/g, ' ')}</Badge>
+                  </td>
+                  <td className="px-3 py-2">
+                    <Badge className={urgencyColors[report.urgency] + ' capitalize'}>{report.urgency}</Badge>
+                  </td>
+                  <td className="px-3 py-2 capitalize">{report.status}</td>
+                  <td className="px-3 py-2">{report.location.name}</td>
+                  <td className="px-3 py-2">{new Date(report.createdAt).toLocaleDateString()}</td>
+                  <td className="px-3 py-2">{report.submittedBy?.firstName || 'Unknown'}</td>
+                  <td className="px-3 py-2 max-w-xs truncate" title={report.description}>{report.description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </CardContent>
       </Card>
     </div>
