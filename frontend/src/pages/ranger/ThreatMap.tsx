@@ -41,6 +41,7 @@ const categoryColors: { [key: string]: string } = {
 };
 
 const urgencyColors: { [key: string]: string } = {
+  critical: "bg-black text-white",
   high: "bg-red-600 text-white",
   medium: "bg-yellow-500 text-white",
   low: "bg-green-600 text-white",
@@ -112,7 +113,7 @@ export default function ThreatMap() {
     category: cat,
     count: filteredReports.filter(r => r.category === cat).length,
   }));
-  const threatsByUrgency = ["high", "medium", "low"].map(urg => ({
+  const threatsByUrgency = ["critical", "high", "medium", "low"].map(urg => ({
     urgency: urg,
     count: filteredReports.filter(r => r.urgency === urg).length,
   }));
@@ -202,6 +203,7 @@ export default function ThreatMap() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Severities</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
