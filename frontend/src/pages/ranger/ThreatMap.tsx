@@ -51,6 +51,7 @@ export default function ThreatMap() {
   const [filteredReports, setFilteredReports] = useState<WildlifeReport[]>([]);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [urgencyFilter, setUrgencyFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -93,8 +94,14 @@ export default function ThreatMap() {
       );
     }
 
+    if (urgencyFilter !== "all") {
+      newFilteredReports = newFilteredReports.filter(
+        (report) => report.urgency === urgencyFilter
+      );
+    }
+
     setFilteredReports(newFilteredReports);
-  }, [categoryFilter, statusFilter, reports]);
+  }, [categoryFilter, statusFilter, urgencyFilter, reports]);
 
   if (loading) return <div>Loading reports...</div>;
   if (error) return <div>{error}</div>;
@@ -184,6 +191,20 @@ export default function ThreatMap() {
                 <SelectItem value="investigating">Investigating</SelectItem>
                 <SelectItem value="resolved">Resolved</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Severity</label>
+            <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+              <SelectTrigger className="border rounded px-2 py-1 w-48">
+                <SelectValue placeholder="All Severities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Severities</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
               </SelectContent>
             </Select>
           </div>
