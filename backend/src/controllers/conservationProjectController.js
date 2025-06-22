@@ -164,4 +164,73 @@ exports.deleteProject = async (req, res) => {
     console.error('Error in deleteProject:', error);
     res.status(500).json({ success: false, error: 'Server Error' });
   }
+};
+
+// Publish a research paper as a completed conservation project
+exports.publishResearchPaper = async (req, res) => {
+  console.log('REQ.BODY:', req.body);
+  try {
+    const {
+      title,
+      description,
+      organization,
+      location,
+      abstract,
+      authors,
+      publicationDate,
+      startDate,
+      endDate,
+      accessLevel,
+      category,
+      images,
+      doi,
+      methodology,
+      fundingSource,
+      ethicalApproval,
+      publicationLink,
+      contributors,
+      references,
+      keywords,
+      supplementaryFiles,
+      datasets
+    } = req.body;
+
+    if (!title || !description || !organization || !location || !abstract || !authors || !publicationDate || !category) {
+      return res.status(400).json({ success: false, error: 'Missing required fields.' });
+    }
+
+    const project = await ConservationProject.create({
+      title,
+      description,
+      organization,
+      location,
+      abstract,
+      authors,
+      publicationDate,
+      startDate,
+      endDate,
+      accessLevel: accessLevel || 'open',
+      category,
+      images: images || [],
+      status: 'completed',
+      createdBy: req.user._id,
+      requiredVolunteers: 1, // default value
+      currentVolunteers: 0,
+      datasets: datasets || [],
+      references: references || [],
+      supplementaryFiles: supplementaryFiles || [],
+      keywords: keywords || [],
+      doi: doi || '',
+      methodology: methodology || '',
+      fundingSource: fundingSource || '',
+      ethicalApproval: ethicalApproval || '',
+      publicationLink: publicationLink || '',
+      contributors: contributors || [],
+    });
+
+    res.status(201).json({ success: true, data: project });
+  } catch (error) {
+    console.error('Error in publishResearchPaper:', error);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
 }; 

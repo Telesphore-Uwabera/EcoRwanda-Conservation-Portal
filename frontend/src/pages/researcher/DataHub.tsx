@@ -156,6 +156,22 @@ export default function DataHub() {
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [requestMessage, setRequestMessage] = useState("");
 
+  // Helper to parse date to ISO
+  function parseDateToISO(dateStr: string | undefined): string | undefined {
+    if (!dateStr) return undefined;
+    // If already in YYYY-MM-DD, just return new Date().toISOString()
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return new Date(dateStr).toISOString();
+    }
+    // If in DD/MM/YYYY, convert to YYYY-MM-DD
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+      const [day, month, year] = dateStr.split('/');
+      return new Date(`${year}-${month}-${day}`).toISOString();
+    }
+    // Fallback: try Date constructor
+    return new Date(dateStr).toISOString();
+  }
+
   // Helper to fetch and update all DataHub data (summary, datasets, papers)
   const fetchDataHubData = async () => {
     try {
@@ -235,10 +251,17 @@ export default function DataHub() {
         userObj = JSON.parse(storedUser);
         token = userObj.token;
       }
+      // Debug log for publicationForm state
+      console.log('publicationForm:', publicationForm);
+      alert(JSON.stringify(publicationForm, null, 2));
+      // Log raw date values
+      console.log('Raw startDate:', publicationForm.startDate);
+      console.log('Raw endDate:', publicationForm.endDate);
+      // Convert startDate and endDate to ISO format using helper
       const payload = {
         ...publicationForm,
-        startDate: publicationForm.startDate ? new Date(publicationForm.startDate).toISOString() : undefined,
-        endDate: publicationForm.endDate ? new Date(publicationForm.endDate).toISOString() : undefined,
+        startDate: parseDateToISO(publicationForm.startDate),
+        endDate: parseDateToISO(publicationForm.endDate),
         authors: authors.filter(a => a.trim()),
         contributors: contributors.filter(c => c.name.trim() && c.role.trim()),
         references: references.filter(r => r.trim()),
@@ -528,7 +551,7 @@ export default function DataHub() {
               <div className="flex items-center gap-2">
                 <Database className="h-5 w-5 text-purple-600" />
                 <span className="text-2xl font-bold text-purple-900">
-                  {stats.datasetsAvailable.toLocaleString()}
+                  {typeof stats.datasetsAvailable === 'number' ? stats.datasetsAvailable.toLocaleString() : 'N/A'}
                 </span>
               </div>
             </CardContent>
@@ -540,7 +563,7 @@ export default function DataHub() {
                 <FileText className="h-8 w-8 text-emerald-600" />
                 <div>
                   <p className="text-2xl font-bold text-emerald-900">
-                    {stats.researchPapers.toLocaleString()}
+                    {typeof stats.researchPapers === 'number' ? stats.researchPapers.toLocaleString() : 'N/A'}
                   </p>
                   <p className="text-sm text-emerald-700">Research Papers</p>
                 </div>
@@ -554,7 +577,7 @@ export default function DataHub() {
                 <Users className="h-8 w-8 text-purple-600" />
                 <div>
                   <p className="text-2xl font-bold text-purple-900">
-                    {stats.contributingResearchers.toLocaleString()}
+                    {typeof stats.contributingResearchers === 'number' ? stats.contributingResearchers.toLocaleString() : 'N/A'}
                   </p>
                   <p className="text-sm text-purple-700">
                     Total Contributors
@@ -663,9 +686,9 @@ export default function DataHub() {
                             </Badge>
                             <Badge variant="outline" className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              Published: {formatDate(dataset.createdAt)}
+                              Published: {dataset.createdAt ? new Date(dataset.createdAt).toLocaleString() : 'N/A'}
                             </Badge>
-                            {dataset.accessLevel === 'open' && (
+                            {typeof dataset.downloads === 'number' && (
                               <Badge variant="outline" className="flex items-center gap-1">
                                 <Download className="h-3 w-3" />
                                 {dataset.downloads.toLocaleString()} Downloads
@@ -734,12 +757,14 @@ export default function DataHub() {
                             </Badge>
                             <Badge variant="outline" className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              Published: {formatDate(paper.publicationDate)}
+                              Published: {paper.publicationDate ? new Date(paper.publicationDate).toLocaleString() : 'N/A'}
                             </Badge>
-                            <Badge variant="outline" className="flex items-center gap-1">
-                              <Download className="h-3 w-3" />
-                              {paper.downloads.toLocaleString()} Downloads
-                            </Badge>
+                            {typeof paper.downloads === 'number' && (
+                              <Badge variant="outline" className="flex items-center gap-1">
+                                <Download className="h-3 w-3" />
+                                {paper.downloads.toLocaleString()} Downloads
+                              </Badge>
+                            )}
                           </div>
                           <Button size="sm" className="mt-3">
                             View Details
@@ -1025,7 +1050,7 @@ export default function DataHub() {
                   <div><b>Location:</b> {selectedDataset.location?.name}</div>
                   <div><b>Tags:</b> {selectedDataset.tags?.join(', ')}</div>
                   <div><b>Access Level:</b> {selectedDataset.accessLevel.replace('_', ' ')}</div>
-                  <div><b>Published:</b> {formatDate(selectedDataset.createdAt)}</div>
+                  <div><b>Published:</b> {selectedDataset.createdAt ? new Date(selectedDataset.createdAt).toLocaleString() : 'N/A'}</div>
                   {selectedDataset.owner && (
                     <div><b>Publisher:</b> {selectedDataset.owner.name} ({selectedDataset.owner.email})</div>
                   )}

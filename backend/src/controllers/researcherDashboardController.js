@@ -51,8 +51,11 @@ const getResearcherDashboardData = async (req, res) => {
       status: { $in: ['active', 'data_collection', 'analysis'] },
     }).populate('leadResearcher', 'firstName lastName').limit(5);
 
-    // This is a placeholder, as we don't have a publications model yet
-    const recentPublications = [];
+    // Fetch recent publications (completed projects)
+    const recentPublications = await ResearchProject.find({
+      leadResearcher: userId,
+      status: { $in: ['completed', 'published'] },
+    }).sort({ updatedAt: -1 }).limit(5);
 
     // Get collaboration requests (volunteer requests for their projects)
     const collaborationRequestsData = await VolunteerRequest.find({

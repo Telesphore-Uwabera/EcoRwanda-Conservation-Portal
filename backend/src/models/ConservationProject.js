@@ -75,6 +75,29 @@ const ConservationProjectSchema = new mongoose.Schema({
     type: String,
     trim: true,
   }],
+  // Research publication fields
+  abstract: {
+    type: String,
+    trim: true,
+  },
+  authors: [{
+    type: String,
+    trim: true,
+  }],
+  contributors: [{
+    name: { type: String, required: true },
+    role: { type: String, required: true },
+    email: { type: String },
+  }],
+  publicationDate: {
+    type: Date,
+  },
+  accessLevel: {
+    type: String,
+    enum: ['open', 'restricted', 'upon_request'],
+    default: 'open',
+  },
+  datasets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Dataset' }],
 }, {
   timestamps: true,
 });

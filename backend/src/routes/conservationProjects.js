@@ -7,7 +7,8 @@ const {
   createProject,
   updateProject,
   deleteProject,
-  getAvailableProjects
+  getAvailableProjects,
+  publishResearchPaper
 } = require('../controllers/conservationProjectController');
 
 // Get all conservation projects
@@ -27,5 +28,8 @@ router.put('/:id', authenticateToken, updateProject);
 
 // Delete a project
 router.delete('/:id', authenticateToken, deleteProject);
+
+// Publish a research paper as a completed conservation project
+router.post('/publish', authenticateToken, publishResearchPaper);
 
 module.exports = router; 
