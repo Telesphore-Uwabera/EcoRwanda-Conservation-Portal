@@ -154,7 +154,7 @@ export default function ThreatMap() {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {threatsByUrgency.map(({ urgency, count }) => (
-              <Badge key={urgency} className={urgencyColors[urgency] + ' capitalize'}>{urgency}: {count}</Badge>
+              <Badge key={urgency} className="capitalize" style={{ background: urgencyColors[urgency], color: '#fff' }}>{urgency}: {count}</Badge>
             ))}
           </CardContent>
         </Card>
@@ -303,7 +303,7 @@ export default function ThreatMap() {
                     <Badge className="capitalize" style={{ background: categoryColors[report.category], color: 'white' }}>{report.category.replace(/_/g, ' ')}</Badge>
                   </td>
                   <td className="px-3 py-2">
-                    <Badge className={urgencyColors[report.urgency] + ' capitalize'}>{report.urgency}</Badge>
+                    <Badge className="capitalize" style={{ background: urgencyColors[report.urgency], color: '#fff' }}>{report.urgency}</Badge>
                   </td>
                   <td className="px-3 py-2 capitalize">{report.status}</td>
                   <td className="px-3 py-2">{report.location.name}</td>
