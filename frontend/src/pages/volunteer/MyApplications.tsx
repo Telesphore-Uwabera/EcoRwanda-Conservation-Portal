@@ -29,7 +29,7 @@ export default function MyApplications() {
         setLoading(true);
         const response = await api.get('/applications/my-applications');
         if (response.data.success) {
-          setApplications(response.data.data);
+          setApplications(Array.isArray(response.data.data) ? response.data.data : []);
         } else {
           setError(response.data.error || 'Failed to fetch your applications.');
         }
@@ -79,7 +79,7 @@ export default function MyApplications() {
       );
     }
 
-    if (applications.length === 0) {
+    if (!Array.isArray(applications) || applications.length === 0) {
       return (
         <div className="text-center py-16">
             <Inbox className="mx-auto h-12 w-12 text-gray-400" />
@@ -93,7 +93,9 @@ export default function MyApplications() {
       <Card>
         <CardContent className="p-0">
             <ul className="divide-y divide-gray-200">
-                {applications.map((app) => (
+                {Array.isArray(applications) && applications
+                  .filter(app => app && app._id && app.volunteerRequest && app.volunteerRequest._id)
+                  .map((app) => (
                     <li key={app._id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                         <div className="mb-2 sm:mb-0">
                             <Link to={`/volunteer/request/${app.volunteerRequest._id}`} className="font-semibold text-lg hover:underline">
