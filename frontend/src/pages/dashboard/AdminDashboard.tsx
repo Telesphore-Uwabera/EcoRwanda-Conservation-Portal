@@ -186,10 +186,9 @@ const RecentActivityFeed = () => {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm">
-                    {activity.link ? (
-                      <Link to={activity.link} className="hover:underline">{activity.message}</Link>
-                    ) : (
-                      activity.message
+                    {activity.message}
+                    {activity.user && (
+                      <> by <span className="font-semibold">{activity.user.firstName} {activity.user.lastName}</span></>
                     )}
                   </p>
                   <p className="text-xs text-gray-500">
