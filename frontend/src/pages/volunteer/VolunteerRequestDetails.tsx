@@ -158,7 +158,7 @@ export default function VolunteerRequestDetails() {
   return (
     <DashboardLayout>
       <div className="container mx-auto p-4 md:p-6">
-        <Link to="/volunteer/view-projects" className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4">
+        <Link to="/volunteer/projects" className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4">
           <ArrowLeft className="h-4 w-4" />
           Back to all opportunities
         </Link>
