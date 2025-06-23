@@ -202,7 +202,8 @@ exports.applyToRequest = async (req, res) => {
     });
 
     // Email to volunteer confirming submission
-    await sendEmail({
+    try {
+      await sendEmail({
         to: req.user.email,
         subject: 'Application Received!',
         html: `
@@ -210,7 +211,11 @@ exports.applyToRequest = async (req, res) => {
             <p>We have successfully received your application for the volunteer opportunity: <strong>${request.title}</strong>.</p>
             <p>The research team will review it shortly. You can check the status of your application on your dashboard.</p>
         `,
-    });
+      });
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+      // Continue without failing the whole request
+    }
 
     res.status(201).json({ success: true, data: newApplication });
   } catch (error) {
@@ -218,7 +223,9 @@ exports.applyToRequest = async (req, res) => {
     if (error.code === 11000) { // Mongo duplicate key error
         return res.status(400).json({ success: false, error: 'You have already applied for this opportunity.' });
     }
-    res.status(500).json({ success: false, error: 'Server Error during application.' });
+    // Return detailed error in development, generic in production
+    const isDev = process.env.NODE_ENV === 'development';
+    res.status(500).json({ success: false, error: isDev ? (error.message || error.toString()) : 'Server Error during application.' });
   }
 };
 
@@ -283,18 +290,23 @@ exports.handleApplication = async (req, res) => {
     // Email to volunteer about their application status
     const applicant = await User.findById(application.applicant);
     if (applicant) {
+      try {
         await sendEmail({
-            to: applicant.email,
-            subject: `Update on your application for ${request.title}`,
-            html: `
-                <h1>Application ${application.status}</h1>
-                <p>Hi ${applicant.firstName},</p>
-                <p>This is an update on your application for the volunteer opportunity: <strong>${request.title}</strong>.</p>
-                <p>Your application has been <strong>${application.status}</strong>.</p>
-                ${application.status === 'accepted' ? '<p>Congratulations! The research team will be in touch with the next steps.</p>' : '<p>Thank you for your interest. We encourage you to apply for other opportunities in the future.</p>'}
-                <p>You can view all your applications on your dashboard.</p>
-            `,
+          to: applicant.email,
+          subject: `Update on your application for ${request.title}`,
+          html: `
+              <h1>Application ${application.status}</h1>
+              <p>Hi ${applicant.firstName},</p>
+              <p>This is an update on your application for the volunteer opportunity: <strong>${request.title}</strong>.</p>
+              <p>Your application has been <strong>${application.status}</strong>.</p>
+              ${application.status === 'accepted' ? '<p>Congratulations! The research team will be in touch with the next steps.</p>' : '<p>Thank you for your interest. We encourage you to apply for other opportunities in the future.</p>'}
+              <p>You can view all your applications on your dashboard.</p>
+          `,
         });
+      } catch (emailError) {
+        console.error('Failed to send status update email:', emailError);
+        // Continue without failing the whole request
+      }
     }
 
     res.status(200).json({ success: true, data: application });
