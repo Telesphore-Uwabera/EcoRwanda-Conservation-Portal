@@ -125,6 +125,12 @@ const navigationItems: NavigationItem[] = [
     icon: Map,
     roles: ["researcher"],
   },
+  {
+    label: "Research Analytics",
+    href: "/researcher/analytics",
+    icon: BarChart3,
+    roles: ["researcher"],
+  },
 
   // Ranger Navigation
   {

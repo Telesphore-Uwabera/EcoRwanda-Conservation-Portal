@@ -60,9 +60,9 @@ exports.createReport = async (req, res) => {
     const reportData = { ...req.body, submittedBy: req.user.id };
     const report = await WildlifeReport.create(reportData);
 
-    // Log the activity
-    const message = `A new '${report.category}' report with '${report.urgency}' urgency was submitted by ${req.user.firstName}.`;
-    await logActivity(message, req.user.id, `/ranger/verify-reports/${report._id}`);
+    // Log the activity (generic message, no 'by ...')
+    const message = `A new '${report.category}' report with '${report.urgency}' urgency was submitted.`;
+    await logActivity(message, req.user.id, `/ranger/verify-reports?reportId=${report._id}`);
 
     res.status(201).json({ success: true, data: report });
   } catch (error) {
