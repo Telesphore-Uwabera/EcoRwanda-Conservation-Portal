@@ -449,243 +449,241 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div>
-        <div className="space-y-6">
-          <OfflineIndicator isOnline={isOnline} />
+    <div>
+      <div className="space-y-6">
+        <OfflineIndicator isOnline={isOnline} />
 
-          {/* Header */}
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Administrator Dashboard 📊
-            </h1>
-            <p className="text-gray-600">
-              Overview of key metrics and recent activities across the EcoRwanda Conservation Portal.
-            </p>
-          </div>
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Administrator Dashboard 📊
+          </h1>
+          <p className="text-gray-600">
+            Overview of key metrics and recent activities across the EcoRwanda Conservation Portal.
+          </p>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {statCards.map((card, index) => {
-              const Icon = card.icon; // Assign the component to a variable with a capitalized name
-              return (
-                <Card key={index} className={`bg-${card.bgColor} rounded-xl shadow-md p-6`}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium text-gray-700">{card.title}</CardTitle>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-${card.color} text-2xl font-bold`}>{card.value}</span>
-                      <span className="text-gray-500"><Icon className="h-5 w-5" /></span>
-                    </div>
-                  </CardHeader>
-                </Card>
-              );
-            })}
-          </div>
+        {/* Stats Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {statCards.map((card, index) => {
+            const Icon = card.icon; // Assign the component to a variable with a capitalized name
+            return (
+              <Card key={index} className={`bg-${card.bgColor} rounded-xl shadow-md p-6`}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-lg font-medium text-gray-700">{card.title}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-${card.color} text-2xl font-bold`}>{card.value}</span>
+                    <span className="text-gray-500"><Icon className="h-5 w-5" /></span>
+                  </div>
+                </CardHeader>
+              </Card>
+            );
+          })}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Quick Actions */}
-            <Card className="col-span-1 md:col-span-2 lg:col-span-4">
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Manage your platform efficiently</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <QuickActionButton icon={Users2} label="User Management" path="/admin/user-management" />
-                <QuickActionButton icon={ClipboardList} label="View Analytics" path="/admin/analytics" />
-                <QuickActionButton icon={Map} label="Threat Map" path="/admin/threat-map" />
-                <QuickActionButton icon={Settings} label="System Settings" path="/admin/system-settings" />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Report Status Cards - Consistent Styling with Other Stat Cards */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5 mt-6">
-            {/* Pending Reports */}
-            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Pending Reports</CardTitle>
-                <Clock className="h-5 w-5 text-amber-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.pendingReports ?? 0}
-                <Clock className="h-8 w-8 text-amber-600" />
-              </CardContent>
-            </Card>
-            {/* Verified Reports */}
-            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Verified Reports</CardTitle>
-                <CheckCircle className="h-5 w-5 text-emerald-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.verifiedReports ?? 0}
-                <CheckCircle className="h-8 w-8 text-emerald-600" />
-              </CardContent>
-            </Card>
-            {/* Rejected Reports */}
-            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Rejected Reports</CardTitle>
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.rejectedReports ?? 0}
-                <AlertTriangle className="h-8 w-8 text-red-600" />
-              </CardContent>
-            </Card>
-            {/* Investigating Reports */}
-            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Investigating Reports</CardTitle>
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.investigatingReports ?? 0}
-                <AlertTriangle className="h-8 w-8 text-amber-600" />
-              </CardContent>
-            </Card>
-            {/* Resolved Reports */}
-            <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium text-gray-700">Resolved Reports</CardTitle>
-                <CheckCircle className="h-5 w-5 text-blue-500" />
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
-                {stats.resolvedReports ?? 0}
-                <CheckCircle className="h-8 w-8 text-blue-600" />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* User Verification Status Chart */}
-          <Card className="bg-white rounded-xl shadow-md p-6">
-            <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
-              <CardTitle className="text-2xl font-bold text-gray-800">User Verification Status</CardTitle>
-              <CardDescription className="text-gray-600">Overview of user verification process</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={[
-                  { name: 'Verified', count: stats.userStats?.verifiedUsers || 0 },
-                  { name: 'Pending', count: (stats.userStats?.totalUsers || 0) - (stats.userStats?.verifiedUsers || 0) },
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#10B981" />
-                </BarChart>
-              </ResponsiveContainer>
-              <div className="mt-4 flex justify-center gap-8">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-emerald-600"></span>
-                  Verified: {stats.userStats?.verifiedUsers || 0}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-amber-600"></span>
-                  Pending: {(stats.userStats?.totalUsers || 0) - (stats.userStats?.verifiedUsers || 0)}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* User Distribution Pie Chart */}
-          <Card className="bg-white rounded-xl shadow-md p-6">
-            <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
-              <CardTitle className="text-2xl font-bold text-gray-800">User Role Distribution</CardTitle>
-              <CardDescription className="text-gray-600">Breakdown of users by role across the portal</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Volunteers', value: stats.userStats.userDistribution.volunteers },
-                      { name: 'Researchers', value: stats.userStats.userDistribution.researchers },
-                      { name: 'Rangers', value: stats.userStats.userDistribution.rangers },
-                      { name: 'Administrators', value: stats.userStats.userDistribution.administrators },
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                  >
-                    <Cell fill="#00C49F" /> {/* Green for Volunteers */}
-                    <Cell fill="#0088FE" /> {/* Blue for Researchers */}
-                    <Cell fill="#FFBB28" /> {/* Yellow for Rangers */}
-                    <Cell fill="#FF8042" /> {/* Orange for Administrators */}
-                  </Pie>
-                  <Tooltip formatter={(value: number, name: string) => [`${value} users`, name]} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 text-center text-gray-700">
-                <p className="text-lg font-semibold">Total Users: {stats.userStats.totalUsers}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Project Status Overview Chart */}
-          <Card className="bg-white rounded-xl shadow-md p-6">
-            <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
-              <CardTitle className="text-2xl font-bold text-gray-800">Project Status Overview</CardTitle>
-              <CardDescription className="text-gray-600">Distribution of project statuses across the portal</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={stats.projectStatus}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="_id" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Recent Activity Feed */}
-          <Card className="bg-white rounded-xl shadow-md p-6">
-            <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
-              <CardTitle className="text-2xl font-bold text-gray-800">Recent Activity Feed</CardTitle>
-              <CardDescription className="text-gray-600">Latest events and actions within the portal</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RecentActivityFeed />
-            </CardContent>
-          </Card>
-
-          {/* User Growth & Distribution */}
-          <Card className="bg-white rounded-xl shadow-md p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Quick Actions */}
+          <Card className="col-span-1 md:col-span-2 lg:col-span-4">
             <CardHeader>
-              <CardTitle>User Growth & Distribution</CardTitle>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Manage your platform efficiently</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={[
-                  { name: 'Volunteers', count: stats.userStats.userDistribution.volunteers, growth: 0 },
-                  { name: 'Researchers', count: stats.userStats.userDistribution.researchers, growth: 0 },
-                  { name: 'Rangers', count: stats.userStats.userDistribution.rangers, growth: 0 },
-                  { name: 'Admins', count: stats.userStats.userDistribution.administrators, growth: 0 },
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#8884d8" name="Total Users" />
-                </BarChart>
-              </ResponsiveContainer>
+            <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <QuickActionButton icon={Users2} label="User Management" path="/admin/user-management" />
+              <QuickActionButton icon={ClipboardList} label="View Analytics" path="/admin/analytics" />
+              <QuickActionButton icon={Map} label="Threat Map" path="/admin/threat-map" />
+              <QuickActionButton icon={Settings} label="System Settings" path="/admin/system-settings" />
             </CardContent>
           </Card>
         </div>
+
+        {/* Report Status Cards - Consistent Styling with Other Stat Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5 mt-6">
+          {/* Pending Reports */}
+          <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium text-gray-700">Pending Reports</CardTitle>
+              <Clock className="h-5 w-5 text-amber-500" />
+            </CardHeader>
+            <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+              {stats.pendingReports ?? 0}
+              <Clock className="h-8 w-8 text-amber-600" />
+            </CardContent>
+          </Card>
+          {/* Verified Reports */}
+          <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium text-gray-700">Verified Reports</CardTitle>
+              <CheckCircle className="h-5 w-5 text-emerald-500" />
+            </CardHeader>
+            <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+              {stats.verifiedReports ?? 0}
+              <CheckCircle className="h-8 w-8 text-emerald-600" />
+            </CardContent>
+          </Card>
+          {/* Rejected Reports */}
+          <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium text-gray-700">Rejected Reports</CardTitle>
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            </CardHeader>
+            <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+              {stats.rejectedReports ?? 0}
+              <AlertTriangle className="h-8 w-8 text-red-600" />
+            </CardContent>
+          </Card>
+          {/* Investigating Reports */}
+          <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium text-gray-700">Investigating Reports</CardTitle>
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+            </CardHeader>
+            <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+              {stats.investigatingReports ?? 0}
+              <AlertTriangle className="h-8 w-8 text-amber-600" />
+            </CardContent>
+          </Card>
+          {/* Resolved Reports */}
+          <Card className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium text-gray-700">Resolved Reports</CardTitle>
+              <CheckCircle className="h-5 w-5 text-blue-500" />
+            </CardHeader>
+            <CardContent className="flex items-center justify-between text-2xl font-bold text-gray-900">
+              {stats.resolvedReports ?? 0}
+              <CheckCircle className="h-8 w-8 text-blue-600" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* User Verification Status Chart */}
+        <Card className="bg-white rounded-xl shadow-md p-6">
+          <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
+            <CardTitle className="text-2xl font-bold text-gray-800">User Verification Status</CardTitle>
+            <CardDescription className="text-gray-600">Overview of user verification process</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={[
+                { name: 'Verified', count: stats.userStats?.verifiedUsers || 0 },
+                { name: 'Pending', count: (stats.userStats?.totalUsers || 0) - (stats.userStats?.verifiedUsers || 0) },
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#10B981" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-4 flex justify-center gap-8">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-emerald-600"></span>
+                Verified: {stats.userStats?.verifiedUsers || 0}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-amber-600"></span>
+                Pending: {(stats.userStats?.totalUsers || 0) - (stats.userStats?.verifiedUsers || 0)}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* User Distribution Pie Chart */}
+        <Card className="bg-white rounded-xl shadow-md p-6">
+          <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
+            <CardTitle className="text-2xl font-bold text-gray-800">User Role Distribution</CardTitle>
+            <CardDescription className="text-gray-600">Breakdown of users by role across the portal</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Volunteers', value: stats.userStats.userDistribution.volunteers },
+                    { name: 'Researchers', value: stats.userStats.userDistribution.researchers },
+                    { name: 'Rangers', value: stats.userStats.userDistribution.rangers },
+                    { name: 'Administrators', value: stats.userStats.userDistribution.administrators },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                >
+                  <Cell fill="#00C49F" /> {/* Green for Volunteers */}
+                  <Cell fill="#0088FE" /> {/* Blue for Researchers */}
+                  <Cell fill="#FFBB28" /> {/* Yellow for Rangers */}
+                  <Cell fill="#FF8042" /> {/* Orange for Administrators */}
+                </Pie>
+                <Tooltip formatter={(value: number, name: string) => [`${value} users`, name]} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="mt-4 text-center text-gray-700">
+              <p className="text-lg font-semibold">Total Users: {stats.userStats.totalUsers}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Project Status Overview Chart */}
+        <Card className="bg-white rounded-xl shadow-md p-6">
+          <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
+            <CardTitle className="text-2xl font-bold text-gray-800">Project Status Overview</CardTitle>
+            <CardDescription className="text-gray-600">Distribution of project statuses across the portal</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={stats.projectStatus}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="_id" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity Feed */}
+        <Card className="bg-white rounded-xl shadow-md p-6">
+          <CardHeader className="bg-gray-50 rounded-t-xl p-4 mb-4">
+            <CardTitle className="text-2xl font-bold text-gray-800">Recent Activity Feed</CardTitle>
+            <CardDescription className="text-gray-600">Latest events and actions within the portal</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecentActivityFeed />
+          </CardContent>
+        </Card>
+
+        {/* User Growth & Distribution */}
+        <Card className="bg-white rounded-xl shadow-md p-6">
+          <CardHeader>
+            <CardTitle>User Growth & Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={[
+                { name: 'Volunteers', count: stats.userStats.userDistribution.volunteers, growth: 0 },
+                { name: 'Researchers', count: stats.userStats.userDistribution.researchers, growth: 0 },
+                { name: 'Rangers', count: stats.userStats.userDistribution.rangers, growth: 0 },
+                { name: 'Admins', count: stats.userStats.userDistribution.administrators, growth: 0 },
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#8884d8" name="Total Users" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

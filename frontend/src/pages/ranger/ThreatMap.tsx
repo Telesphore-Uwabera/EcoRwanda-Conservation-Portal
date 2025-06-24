@@ -67,6 +67,7 @@ export default function ThreatMap() {
         });
         setReports(response.data.data);
         setFilteredReports(response.data.data);
+        console.log('Fetched threats on first visit:', response.data.data.length, response.data.data);
       } catch (err) {
         setError("Failed to fetch reports.");
         console.error(err);
@@ -81,6 +82,8 @@ export default function ThreatMap() {
   }, [user]);
 
   useEffect(() => {
+    if (reports.length === 0) return; // Only filter if data is loaded
+
     let newFilteredReports = reports;
 
     if (categoryFilter !== "all") {
@@ -102,6 +105,7 @@ export default function ThreatMap() {
     }
 
     setFilteredReports(newFilteredReports);
+    console.log('Threats after filtering:', newFilteredReports.length, newFilteredReports);
   }, [categoryFilter, statusFilter, urgencyFilter, reports]);
 
   if (loading) return <div>Loading reports...</div>;

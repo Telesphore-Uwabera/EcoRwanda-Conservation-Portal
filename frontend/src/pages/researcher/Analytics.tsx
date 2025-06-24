@@ -84,50 +84,48 @@ export default function Analytics() {
   );
 
   return (
-    <DashboardLayout>
-      <div className="py-8">
-        <OfflineIndicator isOnline={isOnline} />
-        <h1 className="text-3xl font-bold mb-4">Research Analytics</h1>
-        <p className="text-gray-600 mb-6">Analytics and insights about your research projects.</p>
-        {loading && <p>Loading analytics...</p>}
-        {error && (
-          <AlertDialog variant="destructive" className="mb-4">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </AlertDialog>
-        )}
-        {!loading && !error && stats && (
-          <>
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard icon={BookOpen} title="Published Findings" value={stats.publishedFindings} />
-              <StatCard icon={BarChart3} title="Active Projects" value={stats.activeProjects} />
-              <StatCard icon={Users} title="Volunteer Collaborators" value={stats.volunteerCollaborators} />
-              <StatCard icon={Database} title="Datasets Available" value={stats.datasetsAvailable} />
-            </div>
-            {/* Project Status Bar Chart */}
-            {projectStatus.length > 0 && (
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle>Active Project Status Overview</CardTitle>
-                </CardHeader>
-                <CardContent style={{ height: 300 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ReBarChart data={projectStatus}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="status" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="count" fill="#8884d8" name="Projects" />
-                    </ReBarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            )}
-          </>
-        )}
-      </div>
-    </DashboardLayout>
+    <div className="space-y-6 p-4 md:p-8">
+      <OfflineIndicator isOnline={isOnline} />
+      <h1 className="text-3xl font-bold mb-4">Research Analytics</h1>
+      <p className="text-gray-600 mb-6">Analytics and insights about your research projects.</p>
+      {loading && <p>Loading analytics...</p>}
+      {error && (
+        <AlertDialog variant="destructive" className="mb-4">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </AlertDialog>
+      )}
+      {!loading && !error && stats && (
+        <>
+          {/* Stat Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard icon={BookOpen} title="Published Findings" value={stats.publishedFindings} />
+            <StatCard icon={BarChart3} title="Active Projects" value={stats.activeProjects} />
+            <StatCard icon={Users} title="Volunteer Collaborators" value={stats.volunteerCollaborators} />
+            <StatCard icon={Database} title="Datasets Available" value={stats.datasetsAvailable} />
+          </div>
+          {/* Project Status Bar Chart */}
+          {projectStatus.length > 0 && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Active Project Status Overview</CardTitle>
+              </CardHeader>
+              <CardContent style={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ReBarChart data={projectStatus}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="status" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" fill="#8884d8" name="Projects" />
+                  </ReBarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+    </div>
   );
 } 

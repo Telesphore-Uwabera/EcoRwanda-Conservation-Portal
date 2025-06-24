@@ -4,10 +4,8 @@ import { PatrolAnalytics } from "@/components/patrol/PatrolAnalytics";
 
 export default function RangerAnalytics() {
   return (
-    <DashboardLayout>
-      <div className="space-y-6 p-4 md:p-8">
-        <PatrolAnalytics />
-      </div>
-    </DashboardLayout>
+    <div className="space-y-6 p-4 md:p-8">
+      <PatrolAnalytics />
+    </div>
   );
 }

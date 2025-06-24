@@ -19,7 +19,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
@@ -209,19 +208,17 @@ export default function ViewProjects() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto p-4 md:p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Volunteer Opportunities</h1>
-            <p className="text-gray-600">Find and apply for volunteer positions in research projects across Rwanda.</p>
-          </div>
+    <div className="container mx-auto p-4 md:p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Volunteer Opportunities</h1>
+          <p className="text-gray-600">Find and apply for volunteer positions in research projects across Rwanda.</p>
         </div>
-
-        {/* Filter section can be added here later */}
-
-        {renderContent()}
       </div>
-    </DashboardLayout>
+
+      {/* Filter section can be added here later */}
+
+      {renderContent()}
+    </div>
   );
 }

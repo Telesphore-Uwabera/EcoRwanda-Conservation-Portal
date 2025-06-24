@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart2, Users, FolderOpen, Clock, Zap } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 import { useOfflineStatus } from '@/lib/offline';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,28 +67,26 @@ export default function AnalyticsPage() {
   }, [user, isOnline]);
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto p-4">
-        <OfflineIndicator isOnline={isOnline} />
+    <div className="container mx-auto p-4">
+      <OfflineIndicator isOnline={isOnline} />
 
-        {/* Header */}
-        <div className="space-y-2 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <BarChart2 className="h-8 w-8 text-blue-600" />
-            System Analytics
-          </h1>
-          <p className="text-gray-600">
-            Comprehensive insights into user activities, projects, and reports.
-          </p>
-        </div>
-
-        {loading && <p>Loading analytics data...</p>}
-        {error && <p className="text-red-500">Error: {error}</p>}
-
-        {!loading && !error && stats && (
-          <Analytics analytics={stats} />
-        )}
+      {/* Header */}
+      <div className="space-y-2 mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <BarChart2 className="h-8 w-8 text-blue-600" />
+          System Analytics
+        </h1>
+        <p className="text-gray-600">
+          Comprehensive insights into user activities, projects, and reports.
+        </p>
       </div>
-    </DashboardLayout>
+
+      {loading && <p>Loading analytics data...</p>}
+      {error && <p className="text-red-500">Error: {error}</p>}
+
+      {!loading && !error && stats && (
+        <Analytics analytics={stats} />
+      )}
+    </div>
   );
 } 

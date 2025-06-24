@@ -163,8 +163,7 @@ export default function VolunteerDashboard() {
   }
 
   return (
-    <DashboardLayout>
-      <div>
+    <div>
       <OfflineIndicator isOnline={isOnline} />
 
       {/* Quick Actions */}
@@ -326,6 +325,5 @@ export default function VolunteerDashboard() {
         </Card>
       </div>
     </div>
-    </DashboardLayout>
   );
 }

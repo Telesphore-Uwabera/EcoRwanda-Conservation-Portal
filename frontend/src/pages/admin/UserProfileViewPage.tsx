@@ -18,7 +18,6 @@ import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
 import { User } from "@/types/auth";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 const UserProfileViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -97,114 +96,106 @@ const UserProfileViewPage: React.FC = () => {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-          <Loader2 className="h-10 w-10 animate-spin text-gray-500" />
-          <p className="ml-4 text-xl text-gray-700">Loading user profile...</p>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-10 w-10 animate-spin text-gray-500" />
+        <p className="ml-4 text-xl text-gray-700">Loading user profile...</p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout>
-        <div className="p-4 text-center text-red-600 font-semibold">
-          <p>{error}</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back to User Management
-          </Button>
-        </div>
-      </DashboardLayout>
+      <div className="p-4 text-center text-red-600 font-semibold">
+        <p>{error}</p>
+        <Button onClick={() => navigate(-1)} className="mt-4">
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to User Management
+        </Button>
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <DashboardLayout>
-        <div className="p-4 text-center text-gray-600">
-          <p>User not found.</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back to User Management
-          </Button>
-        </div>
-      </DashboardLayout>
+      <div className="p-4 text-center text-gray-600">
+        <p>User not found.</p>
+        <Button onClick={() => navigate(-1)} className="mt-4">
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to User Management
+        </Button>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <OfflineIndicator isOnline={isOnline} />
-        <Button onClick={() => navigate(-1)} variant="outline" className="mb-6">
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to User Management
-        </Button>
-        <Card className="shadow-lg border border-gray-200">
-          <CardHeader className="bg-gray-50 p-6 rounded-t-lg flex flex-row items-center justify-between">
+    <div className="space-y-6">
+      <OfflineIndicator isOnline={isOnline} />
+      <Button onClick={() => navigate(-1)} variant="outline" className="mb-6">
+        <ArrowLeft className="h-4 w-4 mr-2" /> Back to User Management
+      </Button>
+      <Card className="shadow-lg border border-gray-200">
+        <CardHeader className="bg-gray-50 p-6 rounded-t-lg flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-3xl font-bold text-gray-900">
+              User Profile: {user.firstName} {user.lastName}
+            </CardTitle>
+            <CardDescription className="text-gray-600 mt-2">
+              Detailed view of {user.firstName}'s account information.
+            </CardDescription>
+          </div>
+          <Badge
+            className={`px-4 py-2 rounded-full text-sm font-semibold ${getRoleColor(user.role)}`}
+          >
+            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+          </Badge>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <CardTitle className="text-3xl font-bold text-gray-900">
-                User Profile: {user.firstName} {user.lastName}
-              </CardTitle>
-              <CardDescription className="text-gray-600 mt-2">
-                Detailed view of {user.firstName}'s account information.
-              </CardDescription>
+              <h3 className="text-lg font-semibold text-gray-700">Email:</h3>
+              <p className="text-gray-900 text-lg">{user.email}</p>
             </div>
-            <Badge
-              className={`px-4 py-2 rounded-full text-sm font-semibold ${getRoleColor(user.role)}`}
-            >
-              {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-            </Badge>
-          </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-700">Email:</h3>
-                <p className="text-gray-900 text-lg">{user.email}</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-700">Registered On:</h3>
-                <p className="text-gray-900 text-lg">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-
-            {(user.location || user.organization) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {user.location && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-700">Location:</h3>
-                    <p className="text-gray-900 text-lg">{user.location}</p>
-                  </div>
-                )}
-                {user.organization && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-700">Organization:</h3>
-                    <p className="text-gray-900 text-lg">{user.organization}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm">
-              <div className="flex items-center gap-3">
-                <Label htmlFor="verification-status" className="text-base">Verification Status:</Label>
-                <Switch
-                  id="verification-status"
-                  checked={user.verified}
-                  onCheckedChange={handleToggleVerification}
-                  disabled={togglingVerification}
-                />
-                {togglingVerification && <Loader2 className="h-5 w-5 animate-spin text-blue-500" />}
-              </div>
-              <p className="text-sm text-gray-600">
-                {user.verified ? "This user's account is verified." : "This user's account is currently pending verification."}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700">Registered On:</h3>
+              <p className="text-gray-900 text-lg">
+                {new Date(user.createdAt).toLocaleDateString()}
               </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </DashboardLayout>
+          </div>
+
+          {(user.location || user.organization) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {user.location && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700">Location:</h3>
+                  <p className="text-gray-900 text-lg">{user.location}</p>
+                </div>
+              )}
+              {user.organization && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700">Organization:</h3>
+                  <p className="text-gray-900 text-lg">{user.organization}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm">
+            <div className="flex items-center gap-3">
+              <Label htmlFor="verification-status" className="text-base">Verification Status:</Label>
+              <Switch
+                id="verification-status"
+                checked={user.verified}
+                onCheckedChange={handleToggleVerification}
+                disabled={togglingVerification}
+              />
+              {togglingVerification && <Loader2 className="h-5 w-5 animate-spin text-blue-500" />}
+            </div>
+            <p className="text-sm text-gray-600">
+              {user.verified ? "This user's account is verified." : "This user's account is currently pending verification."}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
