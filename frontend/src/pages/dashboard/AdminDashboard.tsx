@@ -448,6 +448,24 @@ const AdminDashboard: React.FC = () => {
     return null;
   };
 
+  // Color maps for charts
+  const verificationStatusColors = {
+    Verified: '#10B981', // emerald
+    Pending: '#F59E42', // amber
+  };
+  const userRoleColors = [
+    '#00C49F', // Volunteers (green)
+    '#0088FE', // Researchers (blue)
+    '#FFBB28', // Rangers (yellow)
+    '#FF8042', // Admins (orange)
+  ];
+  const projectStatusColors = {
+    planning: '#6366F1', // indigo
+    'in progress': '#F59E42', // amber
+    completed: '#10B981', // emerald
+    cancelled: '#EF4444', // red
+  };
+
   return (
     <div>
       <div className="space-y-6">
@@ -573,7 +591,10 @@ const AdminDashboard: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="count" fill="#10B981" />
+                <Bar dataKey="count">
+                  <Cell key="Verified" fill={verificationStatusColors['Verified']} />
+                  <Cell key="Pending" fill={verificationStatusColors['Pending']} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-4 flex justify-center gap-8">
@@ -613,10 +634,9 @@ const AdminDashboard: React.FC = () => {
                   dataKey="value"
                   label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                 >
-                  <Cell fill="#00C49F" /> {/* Green for Volunteers */}
-                  <Cell fill="#0088FE" /> {/* Blue for Researchers */}
-                  <Cell fill="#FFBB28" /> {/* Yellow for Rangers */}
-                  <Cell fill="#FF8042" /> {/* Orange for Administrators */}
+                  {userRoleColors.map((color, idx) => (
+                    <Cell key={color} fill={color} />
+                  ))}
                 </Pie>
                 <Tooltip formatter={(value: number, name: string) => [`${value} users`, name]} />
                 <Legend />
@@ -642,7 +662,11 @@ const AdminDashboard: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="count" fill="#8884d8" />
+                <Bar dataKey="count">
+                  {stats.projectStatus.map((item, idx) => (
+                    <Cell key={item._id} fill={projectStatusColors[item._id?.toLowerCase()] || '#8884d8'} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -677,7 +701,11 @@ const AdminDashboard: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="count" fill="#8884d8" name="Total Users" />
+                <Bar dataKey="count" name="Total Users">
+                  {userRoleColors.map((color, idx) => (
+                    <Cell key={color} fill={color} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

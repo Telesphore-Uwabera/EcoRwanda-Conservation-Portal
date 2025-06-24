@@ -163,6 +163,18 @@ export function PatrolAnalytics() {
     { name: "Low", value: analyticsData.priorityDistribution.low },
   ].filter(item => item.value > 0);
 
+  const patrolStatusColors = {
+    Scheduled: '#6366F1', // indigo
+    'In Progress': '#F59E42', // amber
+    Completed: '#10B981', // emerald
+    Cancelled: '#EF4444', // red
+  };
+  const patrolPriorityColors = {
+    High: '#EF4444', // red
+    Medium: '#F59E42', // amber
+    Low: '#10B981', // emerald
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -244,7 +256,7 @@ export function PatrolAnalytics() {
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
                       {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={patrolStatusColors[entry.name] || '#8884d8'} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -270,7 +282,11 @@ export function PatrolAnalytics() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="value" fill="#8884d8" name="Number of Patrols" />
+                    <Bar dataKey="value" name="Number of Patrols">
+                      {priorityData.map((entry, idx) => (
+                        <Cell key={`cell-${idx}`} fill={patrolPriorityColors[entry.name] || '#8884d8'} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>

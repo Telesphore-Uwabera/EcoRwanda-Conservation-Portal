@@ -6,7 +6,7 @@ import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import api from "@/config/api";
-import { BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 
 interface ResearcherStats {
   publishedFindings: number;
@@ -19,6 +19,13 @@ interface ProjectStatus {
   status: string;
   count: number;
 }
+
+const projectStatusColors = {
+  planning: '#6366F1', // indigo
+  'in progress': '#F59E42', // amber
+  completed: '#10B981', // emerald
+  cancelled: '#EF4444', // red
+};
 
 export default function Analytics() {
   const isOnline = useOfflineStatus();
@@ -118,7 +125,11 @@ export default function Analytics() {
                     <YAxis allowDecimals={false} />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="count" fill="#8884d8" name="Projects" />
+                    <Bar dataKey="count" name="Projects">
+                      {projectStatus.map((item, idx) => (
+                        <Cell key={item.status} fill={projectStatusColors[item.status?.toLowerCase()] || '#8884d8'} />
+                      ))}
+                    </Bar>
                   </ReBarChart>
                 </ResponsiveContainer>
               </CardContent>
