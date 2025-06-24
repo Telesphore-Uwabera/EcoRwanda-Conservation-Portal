@@ -253,9 +253,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   console.log('Current user role:', user.role);
 
-  const userNavItems = navigationItems.filter((item) =>
+  const userNavItemsRaw = navigationItems.filter((item) =>
     item.roles.includes(user.role),
   );
+
+  // Sort alphabetically by label, but keep the dashboard page first
+  let userNavItems = userNavItemsRaw;
+  const dashboardLabels = {
+    administrator: "Admin Dashboard",
+    ranger: "Ranger Dashboard",
+    volunteer: "Volunteer Dashboard",
+    researcher: "Research Dashboard",
+  };
+  const dashboardLabel = dashboardLabels[user.role] || "";
+  const dashboardItem = userNavItemsRaw.find((item) => item.label === dashboardLabel);
+  const otherItems = userNavItemsRaw.filter((item) => item.label !== dashboardLabel);
+  otherItems.sort((a, b) => a.label.localeCompare(b.label));
+  userNavItems = dashboardItem ? [dashboardItem, ...otherItems] : otherItems;
 
   console.log('Filtered navigation items:', userNavItems);
 
