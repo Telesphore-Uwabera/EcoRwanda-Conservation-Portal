@@ -48,7 +48,7 @@ import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format, isToday, isYesterday, differenceInHours, parseISO } from 'date-fns';
 
 interface PendingVerification {
   id: string;
@@ -148,6 +148,7 @@ interface Activity {
 const RecentActivityFeed = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPast, setShowPast] = useState(false);
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -165,6 +166,53 @@ const RecentActivityFeed = () => {
     fetchActivities();
   }, []);
 
+  // Group activities by date
+  const groupByDate = (activityList: Activity[]) => {
+    const groups: { [date: string]: Activity[] } = {};
+    activityList.forEach(activity => {
+      const date = format(parseISO(activity.createdAt), 'yyyy-MM-dd');
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(activity);
+    });
+    // Sort groups by date descending
+    return Object.entries(groups).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  };
+
+  // Split activities into recent (last 24h) and past
+  const now = new Date();
+  const recent = activities.filter(a => differenceInHours(now, new Date(a.createdAt)) < 24);
+  const past = activities.filter(a => differenceInHours(now, new Date(a.createdAt)) >= 24);
+
+  const renderGroups = (grouped: [string, Activity[]][]) => (
+    <ul className="space-y-4">
+      {grouped.map(([date, acts]) => (
+        <React.Fragment key={date}>
+          <li className="border-b pt-2 pb-1 mb-2 text-xs font-semibold text-gray-500">
+            {isToday(parseISO(date)) ? 'Today' : isYesterday(parseISO(date)) ? 'Yesterday' : format(parseISO(date), 'MMMM d, yyyy')}
+          </li>
+          {acts.map(activity => (
+            <li key={activity._id} className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold">
+                {activity.user ? activity.user.firstName.charAt(0) + activity.user.lastName.charAt(0) : 'SYS'}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm">
+                  {activity.message}
+                  {activity.user && (
+                    <> by <span className="font-semibold">{activity.user.firstName} {activity.user.lastName}</span></>
+                  )}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                </p>
+              </div>
+            </li>
+          ))}
+        </React.Fragment>
+      ))}
+    </ul>
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -178,26 +226,17 @@ const RecentActivityFeed = () => {
             <p>No recent activities.</p>
           </div>
         ) : (
-          <ul className="space-y-4">
-            {activities.map(activity => (
-              <li key={activity._id} className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold">
-                  {activity.user ? activity.user.firstName.charAt(0) + activity.user.lastName.charAt(0) : 'SYS'}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm">
-                    {activity.message}
-                    {activity.user && (
-                      <> by <span className="font-semibold">{activity.user.firstName} {activity.user.lastName}</span></>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            {renderGroups(groupByDate(recent))}
+            {past.length > 0 && !showPast && (
+              <div className="flex justify-center mt-4">
+                <Button variant="outline" size="sm" onClick={() => setShowPast(true)}>
+                  Show Past Activities
+                </Button>
+              </div>
+            )}
+            {showPast && renderGroups(groupByDate(past))}
+          </>
         )}
       </CardContent>
     </Card>

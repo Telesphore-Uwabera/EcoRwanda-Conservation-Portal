@@ -177,162 +177,162 @@ export default function ResearcherDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading researcher dashboard...</p>
-      </div>
+        <div className="flex items-center justify-center min-h-screen">
+          <p>Loading researcher dashboard...</p>
+        </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4">
-        <AlertDialog variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </AlertDialog>
-      </div>
+        <div className="p-4">
+          <AlertDialog variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </AlertDialog>
+        </div>
     );
   }
 
   return (
-    <div>
-      <OfflineIndicator isOnline={isOnline} />
+      <div>
+        <OfflineIndicator isOnline={isOnline} />
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-blue-600" />
-            Research Tools
-          </CardTitle>
-          <CardDescription>
-            Access your research and collaboration tools
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button asChild className="h-16 bg-blue-600 hover:bg-blue-700">
-              <Link to="/researcher/publish" className="flex flex-col gap-1 items-center justify-center">
-                <BookOpen className="h-6 w-6" />
-                <span>Research Proposals</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-            >
-              <Link to="/researcher/data-hub" className="flex flex-col gap-1 items-center justify-center">
-                <Database className="h-6 w-6" />
-                <span>Data Hub</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-16 border-amber-300 text-amber-700 hover:bg-amber-50"
-            >
-              <Link to="/researcher/request-volunteers" className="flex flex-col gap-1 items-center justify-center">
-                <Users className="h-6 w-6" />
-                <span>Request Help</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-16 border-purple-300 text-purple-700 hover:bg-purple-50"
-            >
-              <Link to="/researcher/analytics" className="flex flex-col gap-1 items-center justify-center">
-                <BarChart3 className="h-6 w-6" />
-                <span>View Analytics</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-16 border-red-300 text-red-700 hover:bg-red-50"
-            >
-              <Link to="/researcher/threat-map" className="flex flex-col gap-1 items-center justify-center">
-                <Map className="h-6 w-6" />
-                <span>Threat Map</span>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Research Projects and Publications */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Active Projects */}
+        {/* Quick Actions */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Microscope className="h-5 w-5 text-emerald-600" />
-              Active Projects
+              <Globe className="h-5 w-5 text-blue-600" />
+              Research Tools
             </CardTitle>
             <CardDescription>
-              Your ongoing research initiatives
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {(!activeProjects || activeProjects.length === 0) ? (
-              <div className="text-center text-gray-500 py-10">
-                <p>No active projects found.</p>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {activeProjects.map((project) => (
-                  <div key={project._id} className="p-3 rounded-lg border bg-white flex justify-between items-center">
-                    <div>
-                      <Link to={`/researcher/projects/${project._id}`} className="font-semibold text-gray-800 hover:underline">{project.title}</Link>
-                      <div className="text-sm text-gray-500 space-x-4">
-                        <span>Lead: {project.leadResearcher?.firstName || 'N/A'}</span>
-                        <span>Location: {project.location?.name || 'TBD'}</span>
-                      </div>
-                    </div>
-                    <Badge variant="outline">{project.status}</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Collaboration Requests */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-amber-600" />
-              Collaboration Requests
-            </CardTitle>
-            <CardDescription>
-              Requests for volunteer assistance in your research
+              Access your research and collaboration tools
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {collaborationRequests && collaborationRequests.length > 0 ? (
-              <div className="space-y-4">
-                {collaborationRequests.slice(0, 5).map((req: any) => (
-                  <div key={req._id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
-                    <div>
-                      <Link to="/researcher/request-volunteers" className="font-semibold text-gray-800 hover:underline">
-                        {req.title}
-                      </Link>
-                      <p className="text-sm text-gray-500">{req.applications.length} Applicants</p>
-                    </div>
-                    <Badge variant={req.status === 'open' ? 'default' : 'secondary'}>{req.status}</Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-4">
-                <p>No active collaboration requests found.</p>
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Button asChild className="h-16 bg-blue-600 hover:bg-blue-700">
+                <Link to="/researcher/publish" className="flex flex-col gap-1 items-center justify-center">
+                  <BookOpen className="h-6 w-6" />
+                  <span>Research Proposals</span>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              >
+                <Link to="/researcher/data-hub" className="flex flex-col gap-1 items-center justify-center">
+                  <Database className="h-6 w-6" />
+                  <span>Data Hub</span>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-16 border-amber-300 text-amber-700 hover:bg-amber-50"
+              >
+                <Link to="/researcher/request-volunteers" className="flex flex-col gap-1 items-center justify-center">
+                  <Users className="h-6 w-6" />
+                  <span>Request Help</span>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-16 border-purple-300 text-purple-700 hover:bg-purple-50"
+              >
+                <Link to="/researcher/analytics" className="flex flex-col gap-1 items-center justify-center">
+                  <BarChart3 className="h-6 w-6" />
+                  <span>View Analytics</span>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-16 border-red-300 text-red-700 hover:bg-red-50"
+              >
+                <Link to="/researcher/threat-map" className="flex flex-col gap-1 items-center justify-center">
+                  <Map className="h-6 w-6" />
+                  <span>Threat Map</span>
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Research Projects and Publications */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Active Projects */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Microscope className="h-5 w-5 text-emerald-600" />
+                Active Projects
+              </CardTitle>
+              <CardDescription>
+                Your ongoing research initiatives
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(!activeProjects || activeProjects.length === 0) ? (
+                <div className="text-center text-gray-500 py-10">
+                  <p>No active projects found.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {activeProjects.map((project) => (
+                    <div key={project._id} className="p-3 rounded-lg border bg-white flex justify-between items-center">
+                      <div>
+                        <Link to={`/researcher/projects/${project._id}`} className="font-semibold text-gray-800 hover:underline">{project.title}</Link>
+                        <div className="text-sm text-gray-500 space-x-4">
+                          <span>Lead: {project.leadResearcher?.firstName || 'N/A'}</span>
+                          <span>Location: {project.location?.name || 'TBD'}</span>
+                        </div>
+                      </div>
+                      <Badge variant="outline">{project.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Collaboration Requests */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-amber-600" />
+                Collaboration Requests
+              </CardTitle>
+              <CardDescription>
+                Requests for volunteer assistance in your research
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {collaborationRequests && collaborationRequests.length > 0 ? (
+                <div className="space-y-4">
+                  {collaborationRequests.slice(0, 5).map((req: any) => (
+                    <div key={req._id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
+                      <div>
+                        <Link to="/researcher/request-volunteers" className="font-semibold text-gray-800 hover:underline">
+                          {req.title}
+                        </Link>
+                        <p className="text-sm text-gray-500">{req.applications.length} Applicants</p>
+                      </div>
+                      <Badge variant={req.status === 'open' ? 'default' : 'secondary'}>{req.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-4">
+                  <p>No active collaboration requests found.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
   );
 }

@@ -67,26 +67,26 @@ export default function AnalyticsPage() {
   }, [user, isOnline]);
 
   return (
-    <div className="container mx-auto p-4">
-      <OfflineIndicator isOnline={isOnline} />
+      <div className="container mx-auto p-4">
+        <OfflineIndicator isOnline={isOnline} />
 
-      {/* Header */}
-      <div className="space-y-2 mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <BarChart2 className="h-8 w-8 text-blue-600" />
-          System Analytics
-        </h1>
-        <p className="text-gray-600">
-          Comprehensive insights into user activities, projects, and reports.
-        </p>
+        {/* Header */}
+        <div className="space-y-2 mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <BarChart2 className="h-8 w-8 text-blue-600" />
+            System Analytics
+          </h1>
+          <p className="text-gray-600">
+            Comprehensive insights into user activities, projects, and reports.
+          </p>
+        </div>
+
+        {loading && <p>Loading analytics data...</p>}
+        {error && <p className="text-red-500">Error: {error}</p>}
+
+        {!loading && !error && stats && (
+          <Analytics analytics={stats} />
+        )}
       </div>
-
-      {loading && <p>Loading analytics data...</p>}
-      {error && <p className="text-red-500">Error: {error}</p>}
-
-      {!loading && !error && stats && (
-        <Analytics analytics={stats} />
-      )}
-    </div>
   );
 } 

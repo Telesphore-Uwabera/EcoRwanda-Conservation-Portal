@@ -194,182 +194,182 @@ const MyReports = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <OfflineIndicator isOnline={isOnline} />
+      <div className="container mx-auto p-4">
+        <OfflineIndicator isOnline={isOnline} />
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <FileText className="h-6 w-6 text-emerald-600" />
-            My Reports
-          </h1>
-          <p className="text-gray-600">Track the status of your submitted wildlife and conservation reports</p>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <FileText className="h-6 w-6 text-emerald-600" />
+              My Reports
+            </h1>
+            <p className="text-gray-600">Track the status of your submitted wildlife and conservation reports</p>
+          </div>
+            <Link to="/volunteer/submit-report">
+            <Button className="gap-2">
+              <Camera className="h-4 w-4" />
+              Submit New Report
+            </Button>
+            </Link>
         </div>
-          <Link to="/volunteer/submit-report">
-          <Button className="gap-2">
-            <Camera className="h-4 w-4" />
-            Submit New Report
-          </Button>
-          </Link>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-600">Total Reports</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-600">{stats.verified}</div>
-              <div className="text-sm text-gray-600">Verified</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-amber-600">{stats.investigating}</div>
-              <div className="text-sm text-gray-600">Investigating</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-600">{stats.pending}</div>
-              <div className="text-sm text-gray-600">Pending</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search reports by title, description, or location..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+                <div className="text-sm text-gray-600">Total Reports</div>
               </div>
-            </div>
-        <div className="flex gap-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="investigating">Investigating</SelectItem>
-                <SelectItem value="verified">Verified</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-            <SelectTrigger className="w-[180px]">
-              <AlertTriangle className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Filter by urgency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Urgency</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-      </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-emerald-600">{stats.verified}</div>
+                <div className="text-sm text-gray-600">Verified</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-amber-600">{stats.investigating}</div>
+                <div className="text-sm text-gray-600">Investigating</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-600">{stats.pending}</div>
+                <div className="text-sm text-gray-600">Pending</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Reports List */}
-      {loading ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-        </div>
-      ) : error ? (
-        <div className="text-center py-8">
-          <p className="text-red-600">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-            Try Again
-          </Button>
-        </div>
-      ) : filteredReports.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="mb-4">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900">No reports found</h3>
-          <p className="text-gray-600 mt-1">
-            {reports.length === 0
-              ? "You haven't submitted any reports yet"
-              : "No reports match your current filters"}
-          </p>
-          {reports.length === 0 && (
-                    <Link to="/volunteer/submit-report">
-              <Button className="mt-4">Submit Your First Report</Button>
-                    </Link>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredReports.map((report) => (
-            <Card key={report._id} className="overflow-hidden">
-              {report.photos && report.photos.length > 0 && (
-                <div className="h-48 overflow-hidden">
-                  <img
-                    src={report.photos[0]}
-                    alt={report.title}
-                    className="w-full h-full object-cover"
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search reports by title, description, or location..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
                   />
-                      </div>
-              )}
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-lg">{report.title || 'Untitled Report'}</h3>
-                      <Badge className={getStatusColor(report.status)}>
-                        {getStatusIcon(report.status)}
-                        <span className="ml-1">{report.status}</span>
-                      </Badge>
-                    </div>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{report.description}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <Badge variant="outline" className="text-xs">
-                    {report.category}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {report.urgency}
-                  </Badge>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {format(new Date(report.submittedAt), 'PPp')}
-                  </div>
-                  {report.location.name && (
-                    <div className="flex items-center">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      {report.location.name}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+          <div className="flex gap-4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="investigating">Investigating</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+              <SelectTrigger className="w-[180px]">
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by urgency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Urgency</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
         </div>
-        )}
-    </div>
+
+        {/* Reports List */}
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-red-600">{error}</p>
+            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </div>
+        ) : filteredReports.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="mb-4">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">No reports found</h3>
+            <p className="text-gray-600 mt-1">
+              {reports.length === 0
+                ? "You haven't submitted any reports yet"
+                : "No reports match your current filters"}
+            </p>
+            {reports.length === 0 && (
+                      <Link to="/volunteer/submit-report">
+                <Button className="mt-4">Submit Your First Report</Button>
+                      </Link>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredReports.map((report) => (
+              <Card key={report._id} className="overflow-hidden">
+                {report.photos && report.photos.length > 0 && (
+                  <div className="h-48 overflow-hidden">
+                    <img
+                      src={report.photos[0]}
+                      alt={report.title}
+                      className="w-full h-full object-cover"
+                    />
+                        </div>
+                )}
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-lg">{report.title || 'Untitled Report'}</h3>
+                        <Badge className={getStatusColor(report.status)}>
+                          {getStatusIcon(report.status)}
+                          <span className="ml-1">{report.status}</span>
+                        </Badge>
+                      </div>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{report.description}</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Badge variant="outline" className="text-xs">
+                      {report.category}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {report.urgency}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {format(new Date(report.submittedAt), 'PPp')}
+                    </div>
+                    {report.location.name && (
+                      <div className="flex items-center">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {report.location.name}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          )}
+      </div>
   );
 };
 

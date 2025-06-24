@@ -264,222 +264,222 @@ export default function RangerDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      <OfflineIndicator isOnline={isOnline} />
+      <div className="space-y-6">
+        <OfflineIndicator isOnline={isOnline} />
 
-      {/* Download & Analytics Buttons */}
-      <div className="flex gap-4 justify-end">
-        <Button 
-          variant="outline" 
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-        >
-          {isRefreshing ? (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              Refreshing...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Data
-            </>
-          )}
-        </Button>
-        <Button variant="outline" onClick={handleDownload}>
-          Download Patrol Data
-        </Button>
-        <Button asChild variant="outline">
-          <Link to="/ranger/analytics">View Analytics</Link>
-        </Button>
-      </div>
-
-      {/* Patrol Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Patrols</CardTitle>
-            <Binoculars className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPatrols}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Patrols</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activePatrols}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completedToday}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.scheduledPatrols}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Patrol Management */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Activity className="h-6 w-6 text-indigo-600" />
-          Patrol Management
-        </h2>
-        <p className="text-gray-600">Start new patrols or schedule future patrols</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Download & Analytics Buttons */}
+        <div className="flex gap-4 justify-end">
           <Button 
-            onClick={() => handlePatrolDialog("new")}
-            className="h-16 bg-green-600 hover:bg-green-700 flex flex-col gap-1 items-center justify-center"
-          >
-            <Play className="h-6 w-6" />
-            <span>Start New Patrol</span>
-          </Button>
-          <Button 
-            onClick={() => handlePatrolDialog("schedule")}
             variant="outline" 
-            className="h-16 border-blue-300 text-blue-700 hover:bg-blue-50 flex flex-col gap-1 items-center justify-center"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
           >
-            <Calendar className="h-6 w-6" />
-            <span>Schedule Patrol</span>
+            {isRefreshing ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Data
+              </>
+            )}
           </Button>
-          <Button asChild variant="outline" className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
-            <Link to="/ranger/patrol-data" className="flex flex-col gap-1 items-center justify-center">
-              <Binoculars className="h-6 w-6" />
-              <span>View All Patrols</span>
-            </Link>
+          <Button variant="outline" onClick={handleDownload}>
+            Download Patrol Data
           </Button>
-        </div>
-      </div>
-
-      {/* Urgent Alerts */}
-      {urgentAlerts.length > 0 && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription>
-            <div className="flex items-center justify-between">
-              <span className="text-red-800 font-medium">
-                {urgentAlerts.length} urgent situation(s) require immediate
-                attention
-              </span>
-              <Button size="sm" className="bg-red-600 hover:bg-red-700">
-                View Alerts
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Ranger Tools */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Shield className="h-6 w-6 text-indigo-600" />
-          Ranger Tools
-        </h2>
-        <p className="text-gray-600">Access your ranger and patrol management tools</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Button asChild className="h-16 bg-indigo-600 hover:bg-indigo-700">
-            <Link to="/ranger/verify-reports" className="flex flex-col gap-1 items-center justify-center">
-              <UserCheck className="h-6 w-6" />
-              <span>Verify Reports</span>
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
-            <Link to="/ranger/patrol-data" className="flex flex-col gap-1 items-center justify-center">
-              <Binoculars className="h-6 w-6" />
-              <span>Patrol Data</span>
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="h-16 border-blue-300 text-blue-700 hover:bg-blue-50">
-            <Link to="/ranger/threat-map" className="flex flex-col gap-1 items-center justify-center">
-              <Map className="h-6 w-6" />
-              <span>Threat Map</span>
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="h-16 border-purple-300 text-purple-700 hover:bg-purple-50">
-            <Link to="/ranger/communications" className="flex flex-col gap-1 items-center justify-center">
-              <Radio className="h-6 w-6" />
-              <span>Communications</span>
-            </Link>
+          <Button asChild variant="outline">
+            <Link to="/ranger/analytics">View Analytics</Link>
           </Button>
         </div>
-      </div>
 
-      {/* Pending Reports for Verification */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <FileText className="h-6 w-6 text-amber-600" />
-          Pending Reports for Verification
-        </h2>
-        <p className="text-gray-600">Reports submitted by volunteers requiring your review</p>
-        {loading ? (
-          <p>Loading pending reports...</p>
-        ) : error ? (
-          <p className="text-red-500">Error: {error}</p>
-        ) : pendingReports.length === 0 ? (
+        {/* Patrol Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
-            <CardContent className="p-12 text-center text-gray-500">
-              <UserCheck className="h-12 w-12 mx-auto mb-4" />
-              <p>No pending reports found.</p>
-              <p className="text-sm">All clear! You've verified all current submissions.</p>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Patrols</CardTitle>
+              <Binoculars className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalPatrols}</div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {pendingReports.map((report) => (
-              <Card key={report.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 truncate">
-                      {report.title}
-                    </h3>
-                    <Badge className={getPriorityColor(report.urgency)}>
-                      {report.urgency}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                    {report.description}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                    <MapPin className="h-4 w-4" /> {report.location == null ? 'Unknown' : (typeof (report.location as any) === 'object' ? (report.location as any).name ?? 'Unknown' : report.location)}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button asChild size="sm" className="flex-1">
-                      <Link to={`/ranger/verify-reports?reportId=${report.id}`}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Verify Details
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Patrols</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.activePatrols}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.completedToday}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.scheduledPatrols}</div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Patrol Dialog */}
-      <PatrolDialog
-        open={patrolDialogOpen}
-        onOpenChange={setPatrolDialogOpen}
-        mode={patrolDialogMode}
-        patrol={selectedPatrol}
-        onSuccess={handlePatrolSuccess}
-      />
-    </div>
+        {/* Patrol Management */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Activity className="h-6 w-6 text-indigo-600" />
+            Patrol Management
+          </h2>
+          <p className="text-gray-600">Start new patrols or schedule future patrols</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              onClick={() => handlePatrolDialog("new")}
+              className="h-16 bg-green-600 hover:bg-green-700 flex flex-col gap-1 items-center justify-center"
+            >
+              <Play className="h-6 w-6" />
+              <span>Start New Patrol</span>
+            </Button>
+            <Button 
+              onClick={() => handlePatrolDialog("schedule")}
+              variant="outline" 
+              className="h-16 border-blue-300 text-blue-700 hover:bg-blue-50 flex flex-col gap-1 items-center justify-center"
+            >
+              <Calendar className="h-6 w-6" />
+              <span>Schedule Patrol</span>
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+              <Link to="/ranger/patrol-data" className="flex flex-col gap-1 items-center justify-center">
+                <Binoculars className="h-6 w-6" />
+                <span>View All Patrols</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* Urgent Alerts */}
+        {urgentAlerts.length > 0 && (
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <span className="text-red-800 font-medium">
+                  {urgentAlerts.length} urgent situation(s) require immediate
+                  attention
+                </span>
+                <Button size="sm" className="bg-red-600 hover:bg-red-700">
+                  View Alerts
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Ranger Tools */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Shield className="h-6 w-6 text-indigo-600" />
+            Ranger Tools
+          </h2>
+          <p className="text-gray-600">Access your ranger and patrol management tools</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button asChild className="h-16 bg-indigo-600 hover:bg-indigo-700">
+              <Link to="/ranger/verify-reports" className="flex flex-col gap-1 items-center justify-center">
+                <UserCheck className="h-6 w-6" />
+                <span>Verify Reports</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+              <Link to="/ranger/patrol-data" className="flex flex-col gap-1 items-center justify-center">
+                <Binoculars className="h-6 w-6" />
+                <span>Patrol Data</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-blue-300 text-blue-700 hover:bg-blue-50">
+              <Link to="/ranger/threat-map" className="flex flex-col gap-1 items-center justify-center">
+                <Map className="h-6 w-6" />
+                <span>Threat Map</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-16 border-purple-300 text-purple-700 hover:bg-purple-50">
+              <Link to="/ranger/communications" className="flex flex-col gap-1 items-center justify-center">
+                <Radio className="h-6 w-6" />
+                <span>Communications</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* Pending Reports for Verification */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <FileText className="h-6 w-6 text-amber-600" />
+            Pending Reports for Verification
+          </h2>
+          <p className="text-gray-600">Reports submitted by volunteers requiring your review</p>
+          {loading ? (
+            <p>Loading pending reports...</p>
+          ) : error ? (
+            <p className="text-red-500">Error: {error}</p>
+          ) : pendingReports.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center text-gray-500">
+                <UserCheck className="h-12 w-12 mx-auto mb-4" />
+                <p>No pending reports found.</p>
+                <p className="text-sm">All clear! You've verified all current submissions.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pendingReports.map((report) => (
+                <Card key={report.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-gray-900 truncate">
+                        {report.title}
+                      </h3>
+                      <Badge className={getPriorityColor(report.urgency)}>
+                        {report.urgency}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                      {report.description}
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                      <MapPin className="h-4 w-4" /> {report.location == null ? 'Unknown' : (typeof (report.location as any) === 'object' ? (report.location as any).name ?? 'Unknown' : report.location)}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button asChild size="sm" className="flex-1">
+                        <Link to={`/ranger/verify-reports?reportId=${report.id}`}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Verify Details
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Patrol Dialog */}
+        <PatrolDialog
+          open={patrolDialogOpen}
+          onOpenChange={setPatrolDialogOpen}
+          mode={patrolDialogMode}
+          patrol={selectedPatrol}
+          onSuccess={handlePatrolSuccess}
+        />
+      </div>
   );
 }
