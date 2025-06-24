@@ -287,8 +287,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 bg-white w-64 p-4 transform transition-transform duration-300 ease-in-out
-          ${isMobile ? (isSidebarOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0 shadow-lg'}
+        className={`
+          ${isMobile
+            ? 'fixed inset-y-0 left-0 z-40 bg-white w-64 p-4 transform transition-transform duration-300 ease-in-out h-screen overflow-y-auto'
+            : 'relative w-64 flex-shrink-0 bg-white p-4 h-screen overflow-y-auto shadow-lg'}
+          ${isMobile ? (isSidebarOpen ? 'translate-x-0' : '-translate-x-full') : ''}
           ${isMobile && !isSidebarOpen ? 'hidden' : 'block'}
         `}
       >
@@ -362,6 +365,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
       </aside>
 
+      {/* Gap between sidebar and main content */}
+      <div className="w-[7px] min-h-screen bg-transparent" />
+
       {/* Overlay for mobile when sidebar is open */}
       {isMobile && isSidebarOpen && (
         <div
@@ -372,8 +378,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content */}
       <main
-        className={`flex-1 overflow-y-auto ${isMobile ? 'pt-20' : ''}`}
-        style={{ marginLeft: isMobile ? 0 : '8vw', marginRight: 8 }}
+        className={`flex-1 overflow-y-auto transition-all duration-300 ${isMobile ? 'pt-20 mr-[10px]' : 'mr-[10px]'}`}
       >
         {children}
       </main>

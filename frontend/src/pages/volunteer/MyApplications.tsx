@@ -116,14 +116,12 @@ export default function MyApplications() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto p-4 md:p-6">
-        <div className="mb-6">
-            <h1 className="text-3xl font-bold">My Applications</h1>
-            <p className="text-gray-600">Track the status of your volunteer applications.</p>
-        </div>
-        {renderContent()}
+    <div className="container mx-auto p-4 md:p-6">
+      <div className="mb-6">
+          <h1 className="text-3xl font-bold">My Applications</h1>
+          <p className="text-gray-600">Track the status of your volunteer applications.</p>
       </div>
-    </DashboardLayout>
+      {renderContent()}
+    </div>
   );
 } 
