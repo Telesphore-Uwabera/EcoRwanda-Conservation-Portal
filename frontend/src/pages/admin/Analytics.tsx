@@ -69,14 +69,14 @@ const StatCard = ({ icon: Icon, title, value }) => (
       <Icon className="h-4 w-4 text-gray-500" />
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold">{value.toLocaleString()}</div>
+      <div className="text-2xl font-bold">{(value ?? 0).toLocaleString()}</div>
     </CardContent>
   </Card>
 );
 
 const UserStat = ({ label, value }) => (
   <div>
-    <p className="text-2xl font-bold">{value.toLocaleString()}</p>
+    <p className="text-2xl font-bold">{(value ?? 0).toLocaleString()}</p>
     <p className="text-sm text-gray-500">{label}</p>
   </div>
 );
