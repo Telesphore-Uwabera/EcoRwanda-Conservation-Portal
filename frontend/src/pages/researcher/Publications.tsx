@@ -120,7 +120,7 @@ export default function Publications() {
                     End: {pub.endDate ? new Date(pub.endDate).toLocaleDateString() : 'N/A'}
                   </Badge>
                 </div>
-                <div className="mb-2 text-gray-800"><b>Description:</b> {pub.description}</div>
+                <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Description:</b> {pub.description}</div>
                 <div className="mb-2 text-gray-800"><b>Abstract:</b> {pub.abstract}</div>
                 {pub.requirements && <div className="mb-2 text-gray-800"><b>Requirements:</b> {pub.requirements}</div>}
                 {pub.skills && pub.skills.length > 0 && (
