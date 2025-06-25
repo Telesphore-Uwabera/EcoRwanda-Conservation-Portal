@@ -66,7 +66,8 @@ exports.createReport = async (req, res) => {
 
     res.status(201).json({ success: true, data: report });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server Error' });
+    console.error(error); // Log the actual error
+    res.status(500).json({ success: false, error: error.message || 'Server Error' });
   }
 };
 

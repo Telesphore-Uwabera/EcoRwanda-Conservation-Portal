@@ -175,18 +175,21 @@ export default function PatrolData() {
     return groups;
   }, [filteredPatrols]);
 
-  // Compute recent patrols: all patrols created within the last 24 hours
-  const recentPatrols = useMemo(() => {
-    const now = new Date();
-    return patrols.filter((patrol) => {
-      const created = patrol.createdAt ? new Date(patrol.createdAt) : new Date(patrol.patrolDate + 'T' + (patrol.startTime || '00:00'));
-      return differenceInHours(now, created) < 24;
-    });
-  }, [patrols]);
+  // Compute recent patrols: patrols scheduled to start within the next 24 hours (not past)
+  const now = new Date();
+  const recentPatrols = patrols.filter((patrol) => {
+    const start = new Date(patrol.patrolDate + 'T' + (patrol.startTime || '00:00'));
+    return start > now && (start.getTime() - now.getTime()) <= 24 * 60 * 60 * 1000 && patrol.status !== 'cancelled';
+  });
 
-  const scheduledPatrols = useMemo(() => filteredPatrols
-    .filter(patrol => patrol.status === 'scheduled')
-    .sort((a, b) => new Date(a.patrolDate).getTime() - new Date(b.patrolDate).getTime()), [filteredPatrols]);
+  // Scheduled patrols: all future scheduled patrols
+  const scheduledPatrols = patrols.filter((patrol) => {
+    const start = new Date(patrol.patrolDate + 'T' + (patrol.startTime || '00:00'));
+    return start > now && patrol.status === 'scheduled';
+  });
+
+  // Cancelled patrols: status 'cancelled'
+  const cancelledPatrols = patrols.filter((patrol) => patrol.status === 'cancelled');
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -486,9 +489,9 @@ export default function PatrolData() {
           </TabsContent>
           <TabsContent value="scheduled">
             {loading ? <div className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" /></div> :
-              groupedFilteredPatrols.scheduled.length > 0 ? (
+              scheduledPatrols.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {groupedFilteredPatrols.scheduled.map((patrol) => (
+                  {scheduledPatrols.map((patrol) => (
                     <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="cursor-pointer hover:shadow-md transition-shadow">
               <CardHeader>
                       <CardTitle className="flex justify-between items-start">
@@ -516,9 +519,9 @@ export default function PatrolData() {
           </TabsContent>
           <TabsContent value="cancelled">
             {loading ? <div className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" /></div> :
-              groupedFilteredPatrols.cancelled.length > 0 ? (
+              cancelledPatrols.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {groupedFilteredPatrols.cancelled.map((patrol) => (
+                  {cancelledPatrols.map((patrol) => (
                     <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="cursor-pointer hover:shadow-md transition-shadow">
                       <CardHeader>
                         <CardTitle className="flex justify-between items-start">

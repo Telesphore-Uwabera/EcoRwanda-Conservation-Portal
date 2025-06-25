@@ -22,7 +22,19 @@ const WildlifeReportSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['poaching', 'habitat_destruction', 'wildlife_sighting', 'human_wildlife_conflict', 'other'],
+    enum: [
+      'poaching',
+      'habitat_destruction',
+      'wildlife_sighting',
+      'human_wildlife_conflict',
+      'pollution',
+      'invasive_species',
+      'illegal_logging',
+      'fire',
+      'disease_outbreak',
+      'illegal_mining',
+      'other'
+    ],
     required: true,
   },
   urgency: {
