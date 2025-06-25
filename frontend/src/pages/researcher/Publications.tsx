@@ -121,27 +121,29 @@ export default function Publications() {
                   </Badge>
                 </div>
                 <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Description:</b> {pub.description}</div>
-                <div className="mb-2 text-gray-800"><b>Abstract:</b> {pub.abstract}</div>
-                {pub.requirements && <div className="mb-2 text-gray-800"><b>Requirements:</b> {pub.requirements}</div>}
+                <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Abstract:</b> {pub.abstract}</div>
+                {pub.requirements && <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Requirements:</b> {pub.requirements}</div>}
                 {pub.skills && pub.skills.length > 0 && (
-                  <div className="mb-2 text-gray-800"><b>Skills:</b> {pub.skills.join(', ')}</div>
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Skills:</b> {pub.skills.join(', ')}</div>
                 )}
                 {pub.images && pub.images.length > 0 && (
-                  <div className="mb-2 text-gray-800"><b>Images:</b> {pub.images.join(', ')}</div>
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Images:</b> {pub.images.join(', ')}</div>
                 )}
                 {pub.datasets && pub.datasets.length > 0 && (
-                  <div className="mb-2 text-gray-800"><b>Datasets:</b> {pub.datasets.join(', ')}</div>
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Datasets:</b> {pub.datasets.join(', ')}</div>
                 )}
                 {pub.impact && (
-                  <div className="mb-2 text-gray-800">
+                  <div className="mb-2 text-gray-800 whitespace-pre-line">
                     <b>Impact:</b> Trees Planted: {pub.impact.treesPlanted}, Wildlife Protected: {pub.impact.wildlifeProtected}, Area Restored: {pub.impact.areaRestored}
                   </div>
                 )}
                 {pub.contributors && pub.contributors.length > 0 && (
-                  <div className="mb-2 text-gray-800">
+                  <div className="mb-2 text-gray-800 whitespace-pre-line">
                     <b>Contributors:</b> {pub.contributors.map((c: any, idx: number) => `${c.name} (${c.role}${c.email ? ', ' + c.email : ''})`).join('; ')}
                   </div>
                 )}
+                <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Organization:</b> {pub.organization}</div>
+                <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Location:</b> {pub.location}</div>
                 <div className="mb-2 text-gray-800"><b>Created At:</b> {pub.createdAt ? new Date(pub.createdAt).toLocaleString() : 'N/A'}</div>
                 <div className="mb-2 text-gray-800"><b>Updated At:</b> {pub.updatedAt ? new Date(pub.updatedAt).toLocaleString() : 'N/A'}</div>
                 {pub.accessLevel === 'open' ? null : pub.accessLevel === 'restricted' ? (
