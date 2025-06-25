@@ -13,6 +13,8 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/config/api";
 import { Map as MapIcon, Filter } from "lucide-react";
+import { THREAT_CATEGORIES } from "@/components/common/categories";
+import { Input } from "@/components/ui/input";
 
 // Define an interface for a single wildlife report
 interface WildlifeReport {
@@ -57,6 +59,7 @@ export default function ThreatMap() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const [selectedReport, setSelectedReport] = useState<WildlifeReport | null>(null);
+  const [otherCategory, setOtherCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -113,14 +116,18 @@ export default function ThreatMap() {
 
   // Summary calculations
   const totalThreats = filteredReports.length;
-  const threatsByCategory = Object.keys(categoryColors).map(cat => ({
-    category: cat,
-    count: filteredReports.filter(r => r.category === cat).length,
-  }));
-  const threatsByUrgency = ["critical", "high", "medium", "low"].map(urg => ({
-    urgency: urg,
-    count: filteredReports.filter(r => r.urgency === urg).length,
-  }));
+  const threatsByCategory = Object.keys(categoryColors)
+    .map(cat => ({
+      category: cat,
+      count: filteredReports.filter(r => r.category === cat).length,
+    }))
+    .filter(item => item.count > 0);
+  const threatsByUrgency = ["critical", "high", "medium", "low"]
+    .map(urg => ({
+      urgency: urg,
+      count: filteredReports.filter(r => r.urgency === urg).length,
+    }))
+    .filter(item => item.count > 0);
 
   // Default map center
   const mapCenter = filteredReports.length > 0
@@ -175,14 +182,23 @@ export default function ThreatMap() {
               <SelectTrigger className="border rounded px-2 py-1 w-48">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {Object.keys(categoryColors).map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
+              <SelectContent className="max-h-48 overflow-y-auto">
+                <SelectItem value="all" className="text-xs py-1">All Categories</SelectItem>
+                {THREAT_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value} className="text-xs py-1">{cat.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+          {categoryFilter === "other" && (
+            <Input
+              className="mt-2"
+              placeholder="Please specify the category"
+              value={otherCategory || ""}
+              onChange={e => setOtherCategory(e.target.value)}
+              required
+            />
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">Status</label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -322,4 +338,4 @@ export default function ThreatMap() {
       </Card>
     </div>
   );
-}
+} 

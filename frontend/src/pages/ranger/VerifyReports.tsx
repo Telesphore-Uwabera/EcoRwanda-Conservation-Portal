@@ -44,6 +44,7 @@ import {
   Loader2,
 } from "lucide-react";
 import api from "@/config/api";
+import { THREAT_CATEGORIES } from "@/components/common/categories";
 
 interface Report {
   _id: string;
@@ -78,6 +79,7 @@ export default function VerifyReports() {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [verifiedReportsCount, setVerifiedReportsCount] = useState(0);
+  const [otherCategory, setOtherCategory] = useState("");
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -481,14 +483,20 @@ export default function VerifyReports() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="poaching">Poaching</SelectItem>
-                      <SelectItem value="habitat_destruction">Habitat Destruction</SelectItem>
-                      <SelectItem value="wildlife_sighting">Wildlife Sighting</SelectItem>
-                      <SelectItem value="human_wildlife_conflict">Human-Wildlife Conflict</SelectItem>
-                      <SelectItem value="pollution">Environmental Pollution</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  {THREAT_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {categoryFilter === "other" && (
+                <Input
+                  className="mt-2"
+                  placeholder="Please specify the category"
+                  value={otherCategory || ""}
+                  onChange={e => setOtherCategory(e.target.value)}
+                  required
+                />
+              )}
             </div>
           </CardContent>
         </Card>

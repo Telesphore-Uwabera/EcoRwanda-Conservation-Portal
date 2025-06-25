@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleGuard } from "@/components/common/RoleGuard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import React from "react";
+import ThreatMap from "./components/common/ThreatMap";
 
 // Pages
 import NotFound from "./pages/NotFound";
@@ -47,7 +48,6 @@ import RangerAnalytics from "./pages/ranger/Analytics";
 import Announcements from "./pages/ranger/Announcements";
 import Chat from "./pages/ranger/Chat";
 import Collaboration from "./pages/ranger/Collaboration";
-import ThreatMap from "./pages/ranger/ThreatMap";
 import RangerPublications from "./pages/ranger/Publications";
 
 // Admin Pages

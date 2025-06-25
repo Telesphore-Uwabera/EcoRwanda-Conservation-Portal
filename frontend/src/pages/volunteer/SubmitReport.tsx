@@ -35,6 +35,7 @@ import {
   Navigation,
   Image,
 } from "lucide-react";
+import { THREAT_CATEGORIES } from "@/components/common/categories";
 
 export default function SubmitReport() {
   const { user } = useAuth();
@@ -51,25 +52,13 @@ export default function SubmitReport() {
       lat: 0,
       lng: 0,
     },
+    otherCategory: "",
   });
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
-
-  const categories = [
-    { value: "poaching", label: "Illegal Poaching Activity", icon: "🎯" },
-    { value: "habitat_destruction", label: "Habitat Destruction", icon: "🌳" },
-    { value: "wildlife_sighting", label: "Wildlife Sighting", icon: "🦁" },
-    {
-      value: "human_wildlife_conflict",
-      label: "Human-Wildlife Conflict",
-      icon: "⚠️",
-    },
-    { value: "pollution", label: "Environmental Pollution", icon: "🏭" },
-    { value: "other", label: "Other Conservation Issue", icon: "📝" },
-  ];
 
   const urgencyLevels = [
     {
@@ -218,6 +207,7 @@ export default function SubmitReport() {
           category: "",
           urgency: "",
           location: { name: "", lat: 0, lng: 0 },
+          otherCategory: "",
         });
         setPhotos([]);
         setSuccess(false);
@@ -303,7 +293,7 @@ export default function SubmitReport() {
                       <SelectValue placeholder="Select incident category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {THREAT_CATEGORIES.map((category) => (
                         <SelectItem key={category.value} value={category.value}>
                           <div className="flex items-center gap-2">
                             <span>{category.icon}</span>
@@ -314,6 +304,16 @@ export default function SubmitReport() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {formData.category === "other" && (
+                  <Input
+                    className="mt-2"
+                    placeholder="Please specify the category"
+                    value={formData.otherCategory || ""}
+                    onChange={e => handleInputChange("otherCategory", e.target.value)}
+                    required
+                  />
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="urgency">Urgency Level</Label>
