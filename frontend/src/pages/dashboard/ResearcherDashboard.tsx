@@ -53,6 +53,9 @@ interface ResearchProjectData {
   volunteersNeeded?: number; // Added as optional since it might not always be present or needed for all projects
   createdAt: string;
   updatedAt: string;
+  objectives?: string[];
+  skillsRequired?: string[];
+  applicants?: { _id: string; firstName: string; lastName: string; email: string }[];
 }
 
 interface ActiveProject extends ResearchProjectData { }
@@ -74,6 +77,7 @@ interface CollaborationRequest {
   status: string;
   createdAt: string;
   updatedAt: string;
+  objectives?: string[];
 }
 
 export default function ResearcherDashboard() {
@@ -283,15 +287,52 @@ export default function ResearcherDashboard() {
               ) : (
                 <div className="grid gap-4">
                   {activeProjects.map((project) => (
-                    <div key={project._id} className="p-3 rounded-lg border bg-white flex justify-between items-center">
-                      <div>
-                        <Link to={`/researcher/projects/${project._id}`} className="font-semibold text-gray-800 hover:underline">{project.title}</Link>
-                        <div className="text-sm text-gray-500 space-x-4">
-                          <span>Lead: {project.leadResearcher?.firstName || 'N/A'}</span>
-                          <span>Location: {project.location?.name || 'TBD'}</span>
-                        </div>
+                    <div key={project._id} className="p-3 rounded-lg border bg-white">
+                      <div className="font-semibold text-gray-800 text-lg">{project.title}</div>
+                      <div className="text-sm text-gray-500 space-x-4 mb-1">
+                        <span>Lead: {project.leadResearcher?.firstName || 'N/A'}</span>
+                        <span>Location: {project.location?.name || 'TBD'}</span>
                       </div>
-                      <Badge variant="outline">{project.status}</Badge>
+                      <div className="text-sm text-gray-700 mb-2">{project.description}</div>
+                      {project.objectives && project.objectives.length > 0 && (
+                        <div className="mb-2">
+                          <span className="font-semibold text-xs text-emerald-700">Objectives:</span>
+                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                            {project.objectives.map((obj: string, idx: number) => (
+                              <li key={idx}>{obj}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {project.skillsRequired && project.skillsRequired.length > 0 && (
+                        <div className="mb-2">
+                          <span className="font-semibold text-xs text-blue-700">Skills Required:</span>
+                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                            {project.skillsRequired.map((skill: string, idx: number) => (
+                              <li key={idx}>{skill}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {project.applicants && project.applicants.length > 0 && (
+                        <div className="mb-2">
+                          <span className="font-semibold text-xs text-amber-700">Applicants:</span>
+                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                            {project.applicants.map((app: any, idx: number) => (
+                              <li key={idx}>{app.firstName} {app.lastName} ({app.email})</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-2">
+                        <span>Status: <Badge variant="outline">{project.status}</Badge></span>
+                        <span>Start: {formatDate(project.startDate)}</span>
+                        <span>End: {formatDate(project.endDate)}</span>
+                        {project.volunteersNeeded !== undefined && (
+                          <span>Volunteers Needed: {project.volunteersNeeded}</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-400">Created: {formatDate(project.createdAt)} | Updated: {formatDate(project.updatedAt)}</div>
                     </div>
                   ))}
                 </div>
@@ -314,14 +355,54 @@ export default function ResearcherDashboard() {
               {collaborationRequests && collaborationRequests.length > 0 ? (
                 <div className="space-y-4">
                   {collaborationRequests.slice(0, 5).map((req: any) => (
-                    <div key={req._id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
-                      <div>
-                        <Link to="/researcher/request-volunteers" className="font-semibold text-gray-800 hover:underline">
-                          {req.title}
-                        </Link>
-                        <p className="text-sm text-gray-500">{req.applications.length} Applicants</p>
+                    <div key={req._id} className="p-3 rounded-lg border bg-white">
+                      <div className="font-semibold text-gray-800 text-lg">{req.title}</div>
+                      <div className="text-sm text-gray-500 space-x-4 mb-1">
+                        <span>Requested By: {req.requestedBy?.firstName || 'N/A'}</span>
+                        <span>Location: {req.location?.name || 'TBD'}</span>
                       </div>
-                      <Badge variant={req.status === 'open' ? 'default' : 'secondary'}>{req.status}</Badge>
+                      <div className="text-sm text-gray-700 mb-2">{req.description}</div>
+                      {req.objectives && req.objectives.length > 0 && (
+                        <div className="mb-2">
+                          <span className="font-semibold text-xs text-emerald-700">Objectives:</span>
+                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                            {req.objectives.map((obj: string, idx: number) => (
+                              <li key={idx}>{obj}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {req.skillsRequired && req.skillsRequired.length > 0 && (
+                        <div className="mb-2">
+                          <span className="font-semibold text-xs text-blue-700">Skills Required:</span>
+                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                            {req.skillsRequired.map((skill: string, idx: number) => (
+                              <li key={idx}>{skill}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {req.applicants && req.applicants.length > 0 && (
+                        <div className="mb-2">
+                          <span className="font-semibold text-xs text-amber-700">Applicants:</span>
+                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                            {req.applicants.map((app: any, idx: number) => (
+                              <li key={idx}>{app.firstName} {app.lastName} ({app.email})</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-2">
+                        <span>Status: <Badge variant={req.status === 'open' ? 'default' : 'secondary'}>{req.status}</Badge></span>
+                        <span>Start: {formatDate(req.startDate)}</span>
+                        <span>End: {formatDate(req.endDate)}</span>
+                        <span>Volunteers Needed: {req.numberOfVolunteersNeeded}</span>
+                        <span>Applicants: {req.applications.length}</span>
+                        {req.skillsRequired && req.skillsRequired.length > 0 && (
+                          <span>Skills: {req.skillsRequired.join(', ')}</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-400">Created: {formatDate(req.createdAt)} | Updated: {formatDate(req.updatedAt)}</div>
                     </div>
                   ))}
                 </div>
