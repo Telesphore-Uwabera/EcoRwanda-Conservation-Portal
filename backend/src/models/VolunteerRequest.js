@@ -95,6 +95,14 @@ const VolunteerRequestSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  support: {
+    type: [String],
+    default: [],
+  },
+  benefits: {
+    type: [String],
+    default: [],
+  },
 });
 
 // Update `updatedAt` field on save

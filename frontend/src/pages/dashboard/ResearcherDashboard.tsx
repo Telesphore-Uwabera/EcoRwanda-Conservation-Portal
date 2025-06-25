@@ -78,6 +78,8 @@ interface CollaborationRequest {
   createdAt: string;
   updatedAt: string;
   objectives?: string[];
+  benefits?: string[];
+  support?: string[];
 }
 
 export default function ResearcherDashboard() {
@@ -96,6 +98,12 @@ export default function ResearcherDashboard() {
   const [collaborationRequests, setCollaborationRequests] = useState<CollaborationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Add state for expanded sections
+  const [showAllActive, setShowAllActive] = useState(false);
+  const [showAllCompleted, setShowAllCompleted] = useState(false);
+  const [showAllCollab, setShowAllCollab] = useState(false);
+  const [showAllDeadlines, setShowAllDeadlines] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -178,6 +186,13 @@ export default function ResearcherDashboard() {
       day: "numeric",
     });
   };
+
+  const completedProjects = activeProjects.filter(project => new Date(project.endDate) < new Date());
+
+  // Helper: Get upcoming deadlines (next 2 by endDate)
+  const allWithDeadlines = [...activeProjects, ...collaborationRequests].filter(item => new Date(item.endDate) > new Date());
+  const upcomingDeadlinesFull = allWithDeadlines.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
+  const upcomingDeadlines = upcomingDeadlinesFull.slice(0, 2);
 
   if (loading) {
     return (
@@ -268,151 +283,291 @@ export default function ResearcherDashboard() {
 
         {/* Research Projects and Publications */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Active Projects */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Microscope className="h-5 w-5 text-emerald-600" />
-                Active Projects
-              </CardTitle>
-              <CardDescription>
-                Your ongoing research initiatives
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {(!activeProjects || activeProjects.length === 0) ? (
-                <div className="text-center text-gray-500 py-10">
-                  <p>No active projects found.</p>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {activeProjects.map((project) => (
-                    <div key={project._id} className="p-3 rounded-lg border bg-white">
-                      <div className="font-semibold text-gray-800 text-lg">{project.title}</div>
-                      <div className="text-sm text-gray-500 space-x-4 mb-1">
-                        <span>Lead: {project.leadResearcher?.firstName || 'N/A'}</span>
-                        <span>Location: {project.location?.name || 'TBD'}</span>
-                      </div>
-                      <div className="text-sm text-gray-700 mb-2">{project.description}</div>
-                      {project.objectives && project.objectives.length > 0 && (
-                        <div className="mb-2">
-                          <span className="font-semibold text-xs text-emerald-700">Objectives:</span>
-                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
-                            {project.objectives.map((obj: string, idx: number) => (
-                              <li key={idx}>{obj}</li>
-                            ))}
-                          </ul>
+          {/* Row 1: Active Projects | Completed Projects */}
+          <div className="flex flex-col h-full">
+            {/* Active Projects Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Microscope className="h-5 w-5 text-emerald-600" />
+                  Active Projects
+                </CardTitle>
+                <CardDescription>
+                  Your ongoing research initiatives
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(!activeProjects || activeProjects.length === 0) ? (
+                  <div className="text-center text-gray-500 py-10">
+                    <p>No active projects found.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {(showAllActive ? activeProjects : activeProjects.slice(0, 2)).map((project) => (
+                      <div key={project._id} className="p-3 rounded-lg border bg-white">
+                        <div className="font-semibold text-gray-800 text-lg">{project.title}</div>
+                        <div className="text-sm text-gray-500 space-x-4 mb-1">
+                          <span>Lead: {project.leadResearcher && (project.leadResearcher.firstName || project.leadResearcher.lastName) ? `${project.leadResearcher.firstName || ''} ${project.leadResearcher.lastName || ''}`.trim() : 'N/A'}</span>
+                            <span>Location: {project.location?.name || 'TBD'}</span>
                         </div>
-                      )}
-                      {project.skillsRequired && project.skillsRequired.length > 0 && (
-                        <div className="mb-2">
-                          <span className="font-semibold text-xs text-blue-700">Skills Required:</span>
-                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
-                            {project.skillsRequired.map((skill: string, idx: number) => (
-                              <li key={idx}>{skill}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {project.applicants && project.applicants.length > 0 && (
-                        <div className="mb-2">
-                          <span className="font-semibold text-xs text-amber-700">Applicants:</span>
-                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
-                            {project.applicants.map((app: any, idx: number) => (
-                              <li key={idx}>{app.firstName} {app.lastName} ({app.email})</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-2">
-                        <span>Status: <Badge variant="outline">{project.status}</Badge></span>
-                        <span>Start: {formatDate(project.startDate)}</span>
-                        <span>End: {formatDate(project.endDate)}</span>
-                        {project.volunteersNeeded !== undefined && (
-                          <span>Volunteers Needed: {project.volunteersNeeded}</span>
+                        <div className="text-sm text-gray-700 mb-2">{project.description}</div>
+                        {project.objectives && project.objectives.length > 0 && (
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-emerald-700">Objectives:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {project.objectives.map((obj: string, idx: number) => (
+                                <li key={idx}>{obj}</li>
+                              ))}
+                            </ul>
+                          </div>
                         )}
+                        {project.skillsRequired && project.skillsRequired.length > 0 && (
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-blue-700">Skills Required:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {project.skillsRequired.map((skill: string, idx: number) => (
+                                <li key={idx}>{skill}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {project.applicants && project.applicants.length > 0 && (
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-amber-700">Applicants:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {project.applicants.map((app: any, idx: number) => (
+                                <li key={idx}>{app.firstName} {app.lastName} ({app.email})</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-2">
+                          <span>Status: <Badge variant="outline">{project.status}</Badge></span>
+                          <span>Start: {formatDate(project.startDate)}</span>
+                          <span>End: {formatDate(project.endDate)}</span>
+                          {project.volunteersNeeded !== undefined && (
+                            <span>Volunteers Needed: {project.volunteersNeeded}</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-400">Created: {formatDate(project.createdAt)} | Updated: {formatDate(project.updatedAt)}</div>
                       </div>
-                      <div className="text-xs text-gray-400">Created: {formatDate(project.createdAt)} | Updated: {formatDate(project.updatedAt)}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Collaboration Requests */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-amber-600" />
-                Collaboration Requests
-              </CardTitle>
-              <CardDescription>
-                Requests for volunteer assistance in your research
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {collaborationRequests && collaborationRequests.length > 0 ? (
-                <div className="space-y-4">
-                  {collaborationRequests.slice(0, 5).map((req: any) => (
-                    <div key={req._id} className="p-3 rounded-lg border bg-white">
-                      <div className="font-semibold text-gray-800 text-lg">{req.title}</div>
-                      <div className="text-sm text-gray-500 space-x-4 mb-1">
-                        <span>Requested By: {req.requestedBy?.firstName || 'N/A'}</span>
-                        <span>Location: {req.location?.name || 'TBD'}</span>
+                    ))}
+                  </div>
+                )}
+                {activeProjects.length > 2 && (
+                  <Button
+                    className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => setShowAllActive((prev) => !prev)}
+                  >
+                    {showAllActive ? 'Show Less' : 'View More'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          <div className="flex flex-col h-full">
+            {/* Completed Projects Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Microscope className="h-5 w-5 text-emerald-600" />
+                  Completed Projects
+                </CardTitle>
+                <CardDescription>
+                  Your research projects that have ended
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(!completedProjects || completedProjects.length === 0) ? (
+                  <div className="text-center text-gray-500 py-10">
+                    <p>No completed projects found.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {(showAllCompleted ? completedProjects : completedProjects.slice(0, 2)).map((project) => (
+                      <div key={project._id} className="p-3 rounded-lg border bg-white">
+                        <div className="font-semibold text-gray-800 text-lg">{project.title}</div>
+                        <div className="text-sm text-gray-500 space-x-4 mb-1">
+                          <span>Lead: {project.leadResearcher && (project.leadResearcher.firstName || project.leadResearcher.lastName) ? `${project.leadResearcher.firstName || ''} ${project.leadResearcher.lastName || ''}`.trim() : 'N/A'}</span>
+                          <span>Location: {project.location?.name || 'TBD'}</span>
+                        </div>
+                        <div className="text-sm text-gray-700 mb-2">{project.description}</div>
+                        {project.objectives && project.objectives.length > 0 && (
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-emerald-700">Objectives:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {project.objectives.map((obj: string, idx: number) => (
+                                <li key={idx}>{obj}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-2">
+                          <span>Status: <Badge variant="outline">{project.status}</Badge></span>
+                          <span>Start: {formatDate(project.startDate)}</span>
+                          <span>End: {formatDate(project.endDate)}</span>
+                        </div>
+                        <div className="text-xs text-gray-400">Created: {formatDate(project.createdAt)} | Updated: {formatDate(project.updatedAt)}</div>
                       </div>
-                      <div className="text-sm text-gray-700 mb-2">{req.description}</div>
-                      {req.objectives && req.objectives.length > 0 && (
-                        <div className="mb-2">
-                          <span className="font-semibold text-xs text-emerald-700">Objectives:</span>
-                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
-                            {req.objectives.map((obj: string, idx: number) => (
-                              <li key={idx}>{obj}</li>
-                            ))}
-                          </ul>
+                    ))}
+                  </div>
+                )}
+                {completedProjects.length > 2 && (
+                  <Button
+                    className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => setShowAllCompleted((prev) => !prev)}
+                  >
+                    {showAllCompleted ? 'Show Less' : 'View More'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          {/* Row 2: Collaboration Requests | Upcoming Deadlines */}
+          <div className="flex flex-col h-full">
+            {/* Collaboration Requests Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-amber-600" />
+                  Collaboration Requests
+                </CardTitle>
+                <CardDescription>
+                  Requests for volunteer assistance in your research
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(!collaborationRequests || collaborationRequests.length === 0) ? (
+                  <div className="text-center text-gray-500 py-10">
+                    <p>No active collaboration requests found.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {(showAllCollab ? collaborationRequests : collaborationRequests.slice(0, 2)).map((req: any) => (
+                      <div key={req._id} className="p-3 rounded-lg border bg-white">
+                        <div className="font-semibold text-gray-800 text-lg">{req.title}</div>
+                        <div className="text-sm text-gray-500 space-x-4 mb-1">
+                          <span>Requested By: {req.requestedBy && (req.requestedBy.firstName || req.requestedBy.lastName) ? `${req.requestedBy.firstName || ''} ${req.requestedBy.lastName || ''}`.trim() : 'N/A'}</span>
+                          <span>Location: {req.location?.name || 'TBD'}</span>
                         </div>
-                      )}
-                      {req.skillsRequired && req.skillsRequired.length > 0 && (
-                        <div className="mb-2">
-                          <span className="font-semibold text-xs text-blue-700">Skills Required:</span>
-                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
-                            {req.skillsRequired.map((skill: string, idx: number) => (
-                              <li key={idx}>{skill}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {req.applicants && req.applicants.length > 0 && (
-                        <div className="mb-2">
-                          <span className="font-semibold text-xs text-amber-700">Applicants:</span>
-                          <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
-                            {req.applicants.map((app: any, idx: number) => (
-                              <li key={idx}>{app.firstName} {app.lastName} ({app.email})</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-2">
-                        <span>Status: <Badge variant={req.status === 'open' ? 'default' : 'secondary'}>{req.status}</Badge></span>
-                        <span>Start: {formatDate(req.startDate)}</span>
-                        <span>End: {formatDate(req.endDate)}</span>
-                        <span>Volunteers Needed: {req.numberOfVolunteersNeeded}</span>
-                        <span>Applicants: {req.applications.length}</span>
+                        <div className="text-sm text-gray-700 mb-2">{req.description}</div>
+                        {req.objectives && req.objectives.length > 0 && (
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-emerald-700">Objectives:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {req.objectives.map((obj: string, idx: number) => (
+                                <li key={idx}>{obj}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         {req.skillsRequired && req.skillsRequired.length > 0 && (
-                          <span>Skills: {req.skillsRequired.join(', ')}</span>
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-blue-700">Skills Required:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {req.skillsRequired.map((skill: string, idx: number) => (
+                                <li key={idx}>{skill}</li>
+                              ))}
+                            </ul>
+                          </div>
                         )}
+                        {req.applicants && req.applicants.length > 0 && (
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-amber-700">Applicants:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {req.applicants.map((app: any, idx: number) => (
+                                <li key={idx}>{app.firstName} {app.lastName} ({app.email})</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {req.benefits && req.benefits.length > 0 && (
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-green-700">Benefits:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {req.benefits.map((benefit: string, idx: number) => (
+                                <li key={idx}>{benefit}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {req.support && req.support.length > 0 && (
+                          <div className="mb-2">
+                            <span className="font-semibold text-xs text-blue-700">Support Provided:</span>
+                            <ul className="list-disc list-inside text-xs text-gray-700 ml-2">
+                              {req.support.map((item: string, idx: number) => (
+                                <li key={idx}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-4 text-xs text-gray-600 mb-2">
+                          <span>Status: <Badge variant={req.status === 'open' ? 'default' : 'secondary'}>{req.status}</Badge></span>
+                          <span>Start: {formatDate(req.startDate)}</span>
+                          <span>End: {formatDate(req.endDate)}</span>
+                          <span>Volunteers Needed: {req.numberOfVolunteersNeeded}</span>
+                          <span>Applicants: {req.applications.length}</span>
+                          {req.skillsRequired && req.skillsRequired.length > 0 && (
+                            <span>Skills: {req.skillsRequired.join(', ')}</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-400">Created: {formatDate(req.createdAt)} | Updated: {formatDate(req.updatedAt)}</div>
                       </div>
-                      <div className="text-xs text-gray-400">Created: {formatDate(req.createdAt)} | Updated: {formatDate(req.updatedAt)}</div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-gray-500 py-4">
-                  <p>No active collaboration requests found.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                )}
+                {collaborationRequests.length > 2 && (
+                  <Button
+                    className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => setShowAllCollab((prev) => !prev)}
+                  >
+                    {showAllCollab ? 'Show Less' : 'View More'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          <div className="flex flex-col h-full">
+            {/* Upcoming Deadlines Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-amber-600" />
+                  Upcoming Deadlines
+                </CardTitle>
+                <CardDescription>
+                  Projects and requests ending soon
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {upcomingDeadlines.length === 0 ? (
+                  <div className="text-center text-gray-500 py-10">
+                    <p>No upcoming deadlines.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {(showAllDeadlines ? upcomingDeadlinesFull : upcomingDeadlines).map((item, idx) => (
+                      <div key={item._id || idx} className="p-3 rounded-lg border bg-white">
+                        <div className="font-semibold text-gray-800 text-lg">{item.title}</div>
+                        <div className="text-sm text-gray-500 mb-1">
+                          <span>Ends: {formatDate(item.endDate)}</span>
+                        </div>
+                        <div className="text-xs text-gray-700">{item.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {upcomingDeadlinesFull.length > 2 && (
+                  <Button
+                    className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => setShowAllDeadlines((prev) => !prev)}
+                  >
+                    {showAllDeadlines ? 'Show Less' : 'View More'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
   );

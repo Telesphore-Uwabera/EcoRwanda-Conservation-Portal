@@ -56,6 +56,7 @@ const getResearcherDashboardData = async (req, res) => {
     const collaborationRequestsData = await VolunteerRequest.find({
       requestedBy: userId,
     })
+      .populate('requestedBy', 'firstName lastName')
       .sort({ createdAt: -1 })
       .limit(5)
       .lean(); // Use lean for better performance
@@ -63,6 +64,8 @@ const getResearcherDashboardData = async (req, res) => {
     const collaborationRequests = collaborationRequestsData.map(req => ({
       ...req,
       applicants: req.applications ? req.applications.length : 0,
+      benefits: req.benefits || [],
+      support: req.support || [],
     }));
 
     res.status(200).json({

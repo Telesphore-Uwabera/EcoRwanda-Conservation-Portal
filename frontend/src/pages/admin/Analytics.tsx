@@ -16,7 +16,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ analytics }) => {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard icon={Users} title="Total Users" value={userStats.totalUsers} />
-        <StatCard icon={FolderOpen} title="Active Projects" value={projectStats.activeProjects} />
+        <StatCard icon={FolderOpen} title="Total Projects" value={projectStats.totalProjects} />
         <StatCard icon={CheckSquare} title="Verified Reports" value={activityStats.verifiedReports} />
         <StatCard icon={Activity} title="Completed Patrols" value={activityStats.completedPatrols} />
       </div>
