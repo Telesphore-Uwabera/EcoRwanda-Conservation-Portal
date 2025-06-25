@@ -32,8 +32,8 @@ const getAnalytics = async (req, res) => {
     const completedResearchProjects = await ResearchProject.countDocuments({ status: 'completed' });
     const totalResearchStudies = await ResearchProject.countDocuments();
 
-    const totalResearchProjects = await ResearchProject.countDocuments();
-    const totalConservationProjects = await ConservationProject.countDocuments();
+    const totalResearchProjects = await ResearchProject.countDocuments() || 0;
+    const totalConservationProjects = await ConservationProject.countDocuments() || 0;
 
     const analytics = {
       userStats: {
