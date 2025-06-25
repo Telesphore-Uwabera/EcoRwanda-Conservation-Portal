@@ -60,7 +60,6 @@ const getResearcherDashboardData = async (req, res) => {
     });
 
     const stats = {
-      publishedFindings,
       activeProjects: activeProjectsCount,
       volunteerCollaborators: volunteerCollaboratorsCount,
       datasetDownloads: datasetDownloadsCount,

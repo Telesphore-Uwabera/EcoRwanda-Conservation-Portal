@@ -106,7 +106,7 @@ export default function Analytics() {
         <>
           {/* Stat Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard icon={BookOpen} title="Published Findings" value={stats.publishedFindings} />
+            {/* <StatCard icon={BookOpen} title="Published Findings" value={stats.publishedFindings} /> */}
             <StatCard icon={BarChart3} title="Active Projects" value={stats.activeProjects} />
             <StatCard icon={Users} title="Volunteer Collaborators" value={stats.volunteerCollaborators} />
             <StatCard icon={Database} title="Datasets Available" value={stats.datasetsAvailable} />
