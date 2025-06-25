@@ -39,6 +39,7 @@ import PublishFindings from "./pages/researcher/PublishFindings";
 import DataHub from "./pages/researcher/DataHub";
 import RequestVolunteers from "./pages/researcher/RequestVolunteers";
 import Analytics from "./pages/researcher/Analytics";
+import Publications from "./pages/researcher/Publications";
 
 // Ranger Pages
 import VerifyReports from "./pages/ranger/VerifyReports";
@@ -243,6 +244,16 @@ const App = () => (
                 <RoleGuard allowedRoles={["researcher"]}>
                   <DashboardLayout>
                     <ThreatMap />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/researcher/publications"
+              element={
+                <RoleGuard allowedRoles={["researcher"]}>
+                  <DashboardLayout>
+                    <Publications />
                   </DashboardLayout>
                 </RoleGuard>
               }

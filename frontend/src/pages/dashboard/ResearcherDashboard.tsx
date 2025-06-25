@@ -286,23 +286,23 @@ export default function ResearcherDashboard() {
           {/* Row 1: Active Projects | Completed Projects */}
           <div className="flex flex-col h-full">
             {/* Active Projects Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Microscope className="h-5 w-5 text-emerald-600" />
-                  Active Projects
-                </CardTitle>
-                <CardDescription>
-                  Your ongoing research initiatives
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(!activeProjects || activeProjects.length === 0) ? (
-                  <div className="text-center text-gray-500 py-10">
-                    <p>No active projects found.</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Microscope className="h-5 w-5 text-emerald-600" />
+                Active Projects
+              </CardTitle>
+              <CardDescription>
+                Your ongoing research initiatives
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(!activeProjects || activeProjects.length === 0) ? (
+                <div className="text-center text-gray-500 py-10">
+                  <p>No active projects found.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
                     {(showAllActive ? activeProjects : activeProjects.slice(0, 2)).map((project) => (
                       <div key={project._id} className="p-3 rounded-lg border bg-white">
                         <div className="font-semibold text-gray-800 text-lg">{project.title}</div>
@@ -406,12 +406,12 @@ export default function ResearcherDashboard() {
                           <span>Status: <Badge variant="outline">{project.status}</Badge></span>
                           <span>Start: {formatDate(project.startDate)}</span>
                           <span>End: {formatDate(project.endDate)}</span>
-                        </div>
-                        <div className="text-xs text-gray-400">Created: {formatDate(project.createdAt)} | Updated: {formatDate(project.updatedAt)}</div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                        <div className="text-xs text-gray-400">Created: {formatDate(project.createdAt)} | Updated: {formatDate(project.updatedAt)}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
                 {completedProjects.length > 2 && (
                   <Button
                     className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -419,23 +419,23 @@ export default function ResearcherDashboard() {
                   >
                     {showAllCompleted ? 'Show Less' : 'View More'}
                   </Button>
-                )}
-              </CardContent>
-            </Card>
+              )}
+            </CardContent>
+          </Card>
           </div>
           {/* Row 2: Collaboration Requests | Upcoming Deadlines */}
           <div className="flex flex-col h-full">
             {/* Collaboration Requests Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-amber-600" />
-                  Collaboration Requests
-                </CardTitle>
-                <CardDescription>
-                  Requests for volunteer assistance in your research
-                </CardDescription>
-              </CardHeader>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-amber-600" />
+                Collaboration Requests
+              </CardTitle>
+              <CardDescription>
+                Requests for volunteer assistance in your research
+              </CardDescription>
+            </CardHeader>
               <CardContent className="space-y-4">
                 {(!collaborationRequests || collaborationRequests.length === 0) ? (
                   <div className="text-center text-gray-500 py-10">
@@ -553,9 +553,9 @@ export default function ResearcherDashboard() {
                           <span>Ends: {formatDate(item.endDate)}</span>
                         </div>
                         <div className="text-xs text-gray-700">{item.description}</div>
-                      </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
+                </div>
                 )}
                 {upcomingDeadlinesFull.length > 2 && (
                   <Button
@@ -564,9 +564,9 @@ export default function ResearcherDashboard() {
                   >
                     {showAllDeadlines ? 'Show Less' : 'View More'}
                   </Button>
-                )}
-              </CardContent>
-            </Card>
+              )}
+            </CardContent>
+          </Card>
           </div>
         </div>
       </div>

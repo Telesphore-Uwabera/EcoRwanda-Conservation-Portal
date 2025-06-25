@@ -3,16 +3,26 @@ const WildlifeReport = require('../models/WildlifeReport'); // Potentially used 
 const User = require('../models/User');
 const VolunteerRequest = require('../models/VolunteerRequest'); // Import the new model
 const ConservationProject = require('../models/ConservationProject');
+const Application = require('../models/Application');
 
 const getResearcherDashboardData = async (req, res) => {
   try {
     const userId = req.user._id; // Assuming userId is available from authentication middleware
 
-    // Fetch count of published findings by this researcher (assuming published means completed projects)
+    // Fetch count of published findings by this researcher (projects with publicationLinks)
     const publishedFindingsCount = await ResearchProject.countDocuments({
       leadResearcher: userId,
-      status: { $in: ['completed', 'published'] },
+      publicationLinks: { $exists: true, $not: { $size: 0 } }
     });
+
+    // Fetch count of research papers (completed ConservationProjects created by this researcher)
+    const researchPapersCount = await ConservationProject.countDocuments({
+      createdBy: userId,
+      status: 'completed'
+    });
+
+    // Combine both counts for published findings
+    const totalPublishedFindings = publishedFindingsCount + researchPapersCount;
 
     // Fetch count of active research projects led by this researcher
     const activeProjectsCount = await ResearchProject.countDocuments({
@@ -20,27 +30,37 @@ const getResearcherDashboardData = async (req, res) => {
       status: { $in: ['active', 'data_collection', 'planning'] },
     });
 
-    // Count unique volunteer collaborators (e.g., from projects)
-    // This will count the number of applicants across all active volunteer requests by this researcher
-    const volunteerRequests = await VolunteerRequest.find({
-      requestedBy: userId,
-      status: { $in: ['open', 'in-progress'] },
-    }).populate('applicants', 'firstName lastName');
+    // Count unique volunteer collaborators (accepted volunteers for started projects)
+    const now = new Date();
+    const startedProjectIds = (await ResearchProject.find({
+      leadResearcher: userId,
+      startDate: { $lte: now }
+    }, '_id')).map(p => p._id);
 
-    let volunteerCollaboratorsCount = 0;
-    const uniqueVolunteerIds = new Set();
-    volunteerRequests.forEach(request => {
-      request.applicants.forEach(applicant => {
-        uniqueVolunteerIds.add(applicant._id.toString());
-      });
-    });
-    volunteerCollaboratorsCount = uniqueVolunteerIds.size;
+    // Find all volunteer requests for these projects
+    const volunteerRequests = await VolunteerRequest.find({
+      researchProject: { $in: startedProjectIds }
+    }, '_id');
+    const volunteerRequestIds = volunteerRequests.map(r => r._id);
+
+    // Find all accepted applications for these requests
+    const acceptedApplications = await Application.find({
+      volunteerRequest: { $in: volunteerRequestIds },
+      status: 'accepted'
+    }, 'applicant');
+    const uniqueVolunteerIds = new Set(acceptedApplications.map(app => app.applicant.toString()));
+    const volunteerCollaboratorsCount = uniqueVolunteerIds.size;
 
     // Count dataset downloads (placeholder for now, requires a Dataset model or tracking in ResearchProject)
     const datasetDownloadsCount = 0; 
 
+    // Fetch total number of publications (all completed or published ConservationProjects)
+    const publishedFindings = await ConservationProject.countDocuments({
+      status: { $in: ['completed', 'published'] }
+    });
+
     const stats = {
-      publishedFindings: publishedFindingsCount,
+      publishedFindings,
       activeProjects: activeProjectsCount,
       volunteerCollaborators: volunteerCollaboratorsCount,
       datasetDownloads: datasetDownloadsCount,
