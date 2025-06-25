@@ -14,6 +14,26 @@ interface Publication {
   category?: string;
   downloads?: number;
   accessLevel: string;
+  description?: string;
+  organization?: string;
+  location?: string;
+  requiredVolunteers?: number;
+  currentVolunteers?: number;
+  startDate?: string;
+  endDate?: string;
+  skills?: string[];
+  requirements?: string;
+  images?: string[];
+  datasets?: string[];
+  impact?: {
+    treesPlanted: number;
+    wildlifeProtected: number;
+    areaRestored: number;
+  };
+  contributors?: { name: string; role: string; email?: string }[];
+  createdAt?: string;
+  updatedAt?: string;
+  status?: string;
 }
 
 export default function Publications() {
@@ -75,10 +95,56 @@ export default function Publications() {
                       {pub.downloads.toLocaleString()} Downloads
                     </Badge>
                   )}
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    Status: {pub.status}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    Access: {pub.accessLevel}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    Organization: {pub.organization}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    Location: {pub.location}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    Required Volunteers: {pub.requiredVolunteers}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    Current Volunteers: {pub.currentVolunteers}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    Start: {pub.startDate ? new Date(pub.startDate).toLocaleDateString() : 'N/A'}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    End: {pub.endDate ? new Date(pub.endDate).toLocaleDateString() : 'N/A'}
+                  </Badge>
                 </div>
-                {pub.accessLevel === 'open' ? (
-                  <div className="text-gray-800 mb-2">{pub.abstract || 'No abstract provided.'}</div>
-                ) : pub.accessLevel === 'restricted' ? (
+                <div className="mb-2 text-gray-800"><b>Description:</b> {pub.description}</div>
+                <div className="mb-2 text-gray-800"><b>Abstract:</b> {pub.abstract}</div>
+                {pub.requirements && <div className="mb-2 text-gray-800"><b>Requirements:</b> {pub.requirements}</div>}
+                {pub.skills && pub.skills.length > 0 && (
+                  <div className="mb-2 text-gray-800"><b>Skills:</b> {pub.skills.join(', ')}</div>
+                )}
+                {pub.images && pub.images.length > 0 && (
+                  <div className="mb-2 text-gray-800"><b>Images:</b> {pub.images.join(', ')}</div>
+                )}
+                {pub.datasets && pub.datasets.length > 0 && (
+                  <div className="mb-2 text-gray-800"><b>Datasets:</b> {pub.datasets.join(', ')}</div>
+                )}
+                {pub.impact && (
+                  <div className="mb-2 text-gray-800">
+                    <b>Impact:</b> Trees Planted: {pub.impact.treesPlanted}, Wildlife Protected: {pub.impact.wildlifeProtected}, Area Restored: {pub.impact.areaRestored}
+                  </div>
+                )}
+                {pub.contributors && pub.contributors.length > 0 && (
+                  <div className="mb-2 text-gray-800">
+                    <b>Contributors:</b> {pub.contributors.map((c: any, idx: number) => `${c.name} (${c.role}${c.email ? ', ' + c.email : ''})`).join('; ')}
+                  </div>
+                )}
+                <div className="mb-2 text-gray-800"><b>Created At:</b> {pub.createdAt ? new Date(pub.createdAt).toLocaleString() : 'N/A'}</div>
+                <div className="mb-2 text-gray-800"><b>Updated At:</b> {pub.updatedAt ? new Date(pub.updatedAt).toLocaleString() : 'N/A'}</div>
+                {pub.accessLevel === 'open' ? null : pub.accessLevel === 'restricted' ? (
                   <div className="text-red-600 font-semibold mb-2">Access Restricted</div>
                 ) : (
                   <div className="mb-2">
