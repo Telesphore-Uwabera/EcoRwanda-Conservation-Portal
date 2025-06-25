@@ -93,7 +93,7 @@ export default function Analytics() {
   return (
     <div className="space-y-6 p-4 md:p-8">
       <OfflineIndicator isOnline={isOnline} />
-      <h1 className="text-3xl font-bold mb-4">Research Analytics</h1>
+        <h1 className="text-3xl font-bold mb-4">Research Analytics</h1>
       <p className="text-gray-600 mb-6">Analytics and insights about your research projects.</p>
       {loading && <p>Loading analytics...</p>}
       {error && (
@@ -137,6 +137,6 @@ export default function Analytics() {
           )}
         </>
       )}
-    </div>
+      </div>
   );
 } 

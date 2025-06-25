@@ -12,6 +12,7 @@ const {
   exportPatrols,
   updatePatrolStatus,
   addFindings,
+  getAllPatrols,
 } = require('../controllers/patrolController');
 
 // All routes are protected with authentication
@@ -27,6 +28,9 @@ router.get('/analytics', getPatrolAnalytics);
 
 // GET /api/patrols/export - Export patrol data
 router.get('/export', exportPatrols);
+
+// GET /api/patrols/all - Get all patrols for all rangers
+router.get('/all', getAllPatrols);
 
 // GET /api/patrols/ - Get all patrols for the logged-in ranger
 // POST /api/patrols/ - Create a new patrol for the logged-in ranger

@@ -225,14 +225,72 @@ exports.deletePatrol = async (req, res) => {
 exports.updatePatrolStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const patrol = await Patrol.findById(req.params.id);
-    if (!patrol) return res.status(404).json({ message: 'Patrol not found' });
-    if (patrol.ranger.toString() !== req.user._id) return res.status(403).json({ message: 'Not authorized' });
+    
+    // Validate status
+    if (!['scheduled', 'in_progress', 'completed', 'cancelled'].includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid status. Must be one of: scheduled, in_progress, completed, cancelled' 
+      });
+    }
+
+    const patrol = await Patrol.findById(req.params.id).populate('ranger', 'firstName lastName email');
+    if (!patrol) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Patrol not found' 
+      });
+    }
+
+    // Check authorization - only the assigned ranger or admin can update status
+    const isAdmin = req.user.role === 'admin';
+    const isAssignedRanger = patrol.ranger._id.toString() === req.user._id.toString();
+    
+    if (!isAdmin && !isAssignedRanger) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Not authorized to update this patrol' 
+      });
+    }
+
+    // Don't allow status changes for completed patrols unless cancelling
+    if (patrol.status === 'completed' && status !== 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot change status of completed patrols'
+      });
+    }
+
     patrol.status = status;
     await patrol.save();
-    res.json({ message: 'Patrol status updated successfully', patrol });
+
+    res.json({ 
+      success: true,
+      message: 'Patrol status updated successfully', 
+      patrol: {
+        id: patrol._id.toString(),
+        route: patrol.route,
+        status: patrol.status,
+        actualDuration: patrol.actualDuration,
+        findings: patrol.findings || '',
+        ranger: patrol.ranger,
+        patrolDate: patrol.patrolDate ? patrol.patrolDate.toISOString().split('T')[0] : null,
+        startTime: patrol.startTime || '',
+        endTime: patrol.endTime && patrol.endTime instanceof Date ? patrol.endTime.toISOString() : '',
+        estimatedDuration: patrol.estimatedDuration,
+        priority: patrol.priority || '',
+        objectives: patrol.objectives || [],
+        equipment: patrol.equipment || [],
+        notes: patrol.notes || '',
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating patrol status' });
+    console.error('Error updating patrol status:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error updating patrol status',
+      error: error.message 
+    });
   }
 };
 
@@ -260,5 +318,33 @@ exports.exportPatrols = async (req, res) => {
   } catch (error) {
     console.error("Error exporting patrols:", error);
     res.status(500).json({ message: 'Error exporting patrols' });
+  }
+};
+
+exports.getAllPatrols = async (req, res) => {
+  try {
+    const patrolsRaw = await Patrol.find({})
+      .populate('ranger', 'firstName lastName email')
+      .sort({ patrolDate: -1, startTime: -1 });
+    const patrols = patrolsRaw.map(patrol => ({
+      id: patrol._id.toString(),
+      route: patrol.route,
+      status: patrol.status,
+      actualDuration: patrol.actualDuration,
+      findings: patrol.findings || '',
+      ranger: patrol.ranger,
+      patrolDate: patrol.patrolDate ? patrol.patrolDate.toISOString().split('T')[0] : null,
+      startTime: patrol.startTime || '',
+      endTime: patrol.endTime && patrol.endTime instanceof Date ? patrol.endTime.toISOString() : '',
+      estimatedDuration: patrol.estimatedDuration,
+      priority: patrol.priority || '',
+      objectives: patrol.objectives || [],
+      equipment: patrol.equipment || [],
+      notes: patrol.notes || '',
+    }));
+    res.status(200).json({ success: true, patrols });
+  } catch (error) {
+    console.error('Error in getAllPatrols:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 }; 
