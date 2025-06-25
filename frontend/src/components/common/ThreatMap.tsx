@@ -116,12 +116,6 @@ export default function ThreatMap() {
 
   // Summary calculations
   const totalThreats = filteredReports.length;
-  const threatsByCategory = Object.keys(categoryColors)
-    .map(cat => ({
-      category: cat,
-      count: filteredReports.filter(r => r.category === cat).length,
-    }))
-    .filter(item => item.count > 0);
   const threatsByUrgency = ["critical", "high", "medium", "low"]
     .map(urg => ({
       urgency: urg,
@@ -147,16 +141,6 @@ export default function ThreatMap() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalThreats}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>By Category</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {threatsByCategory.map(({ category, count }) => (
-              <Badge key={category} className="capitalize" style={{ background: categoryColors[category], color: 'white' }}>{category.replace(/_/g, ' ')}: {count}</Badge>
-            ))}
           </CardContent>
         </Card>
         <Card>
