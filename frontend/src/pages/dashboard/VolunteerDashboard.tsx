@@ -246,7 +246,7 @@ export default function VolunteerDashboard() {
                     {report.photos && report.photos.length > 0 && (
                       <div className="mb-3">
                         <img 
-                          src={report.photos[0]} 
+                          src={`http://localhost:8080/api/reports/${report._id}/photo/0`} 
                           alt="Report" 
                           className="w-full h-32 object-cover rounded-md"
                         />
