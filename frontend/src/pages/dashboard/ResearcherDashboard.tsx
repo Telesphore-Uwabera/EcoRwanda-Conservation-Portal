@@ -447,7 +447,7 @@ export default function ResearcherDashboard() {
                       <div key={req._id} className="p-3 rounded-lg border bg-white">
                         <div className="font-semibold text-gray-800 text-lg">{req.title}</div>
                         <div className="text-sm text-gray-500 space-x-4 mb-1">
-                          <span>Requested By: {req.requestedBy && (req.requestedBy.firstName || req.requestedBy.lastName) ? `${req.requestedBy.firstName || ''} ${req.requestedBy.lastName || ''}`.trim() : 'N/A'}</span>
+                          <span>Requested: {req.requestedBy && (req.requestedBy.firstName || req.requestedBy.lastName) ? `${req.requestedBy.firstName || ''} ${req.requestedBy.lastName || ''}`.trim() : 'N/A'}</span>
                           <span>Location: {req.location?.name || 'TBD'}</span>
                         </div>
                         <div className="text-sm text-gray-700 mb-2">{req.description}</div>

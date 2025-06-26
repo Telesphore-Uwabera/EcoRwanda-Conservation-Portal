@@ -85,6 +85,7 @@ exports.getVolunteerRequests = async (req, res) => {
 
     let query = VolunteerRequest.find(queryParams)
       .populate('researchProject', 'title')
+      .populate('requestedBy', 'firstName lastName')
       .sort({ createdAt: -1 });
 
     if (req.query.populate === 'applications') {

@@ -68,7 +68,7 @@ const getResearcherDashboardData = async (req, res) => {
     // Fetch active research projects led by this researcher
     const activeProjects = await ResearchProject.find({
       leadResearcher: userId,
-      status: { $in: ['active', 'data_collection', 'analysis'] },
+      status: { $in: ['active', 'data_collection', 'planning', 'analysis', 'in-progress', 'on-hold'] },
     }).populate('leadResearcher', 'firstName lastName').limit(5);
 
     // Get collaboration requests (volunteer requests for their projects)
