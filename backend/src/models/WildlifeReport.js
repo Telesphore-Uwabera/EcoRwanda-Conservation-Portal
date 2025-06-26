@@ -16,10 +16,13 @@ const WildlifeReportSchema = new mongoose.Schema({
     lng: { type: Number, required: true },
     name: { type: String, required: true, trim: true },
   },
-  photos: {
-    type: [String],
-    default: [],
-  },
+  photos: [
+    {
+      data: Buffer,
+      contentType: String,
+      filename: String,
+    }
+  ],
   category: {
     type: String,
     enum: [

@@ -179,51 +179,62 @@ export default function SubmitReport() {
     setIsSubmitting(true);
 
     try {
-      const reportData = {
-        ...formData,
-        photos: photos.map((file) => file.name),
-        submittedBy: user?._id,
-        submittedAt: new Date().toISOString(),
-        status: "pending",
-      };
-
       if (isOnline) {
-        // Actual API submission
-        await api.post('/reports', reportData);
-        console.log("Report submitted online:", reportData);
+        // Use FormData for file upload
+        const form = new FormData();
+        form.append('title', formData.title);
+        form.append('description', formData.description);
+        form.append('category', formData.category);
+        form.append('urgency', formData.urgency);
+        form.append('location[name]', formData.location.name);
+        form.append('location[lat]', String(formData.location.lat));
+        form.append('location[lng]', String(formData.location.lng));
+        if (formData.otherCategory) form.append('otherCategory', formData.otherCategory);
+        photos.forEach((file) => {
+          form.append('photos', file);
+        });
+        // Add any other fields as needed
+        await api.post('/reports', form, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        console.log('Report submitted online');
       } else {
-        // Store offline
-        await offlineManager.storeData("wildlife_report", reportData);
-        console.log("Report stored offline:", reportData);
+        // Store offline (without actual files)
+        const reportData = {
+          ...formData,
+          photos: photos.map((file) => file.name),
+          submittedBy: user?._id,
+          submittedAt: new Date().toISOString(),
+          status: 'pending',
+        };
+        await offlineManager.storeData('wildlife_report', reportData);
+        console.log('Report stored offline:', reportData);
       }
 
       setSuccess(true);
-
       // Reset form after success
       setTimeout(() => {
         setFormData({
-          title: "",
-          description: "",
-          category: "",
-          urgency: "",
-          location: { name: "", lat: 0, lng: 0 },
-          otherCategory: "",
+          title: '',
+          description: '',
+          category: '',
+          urgency: '',
+          location: { name: '', lat: 0, lng: 0 },
+          otherCategory: '',
         });
         setPhotos([]);
         setSuccess(false);
-        navigate("/volunteer/my-reports");
+        navigate('/volunteer/my-reports');
       }, 3000);
     } catch (error) {
-      console.error("Error submitting report:", error);
-      // Display error message to user
-      // setError("Failed to submit report. Please try again.");
-      // Basic error display for now
+      console.error('Error submitting report:', error);
       if (error.response && error.response.data && error.response.data.error) {
         alert(`Submission Error: ${error.response.data.error}`);
       } else {
-        alert("Failed to submit report. Please try again.");
+        alert('Failed to submit report. Please try again.');
       }
-
     } finally {
       setIsSubmitting(false);
     }

@@ -57,7 +57,16 @@ exports.getReportById = async (req, res) => {
 // Create a new report
 exports.createReport = async (req, res) => {
   try {
-    const reportData = { ...req.body, submittedBy: req.user.id };
+    // Handle uploaded images
+    const files = req.files || [];
+    const photos = files.map(file => ({
+      data: file.buffer,
+      contentType: file.mimetype,
+      filename: file.originalname,
+    }));
+
+    // Merge photos into report data
+    const reportData = { ...req.body, submittedBy: req.user.id, photos };
     const report = await WildlifeReport.create(reportData);
 
     // Log the activity (generic message, no 'by ...')
@@ -111,5 +120,21 @@ exports.deleteReport = async (req, res) => {
     res.status(200).json({ success: true, message: 'Report deleted' });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
+// Serve a specific photo from a report
+exports.getReportPhoto = async (req, res) => {
+  try {
+    const { id, photoIndex } = req.params;
+    const report = await WildlifeReport.findById(id);
+    if (!report || !report.photos[photoIndex]) {
+      return res.status(404).send('Not found');
+    }
+    const photo = report.photos[photoIndex];
+    res.contentType(photo.contentType);
+    res.send(photo.data);
+  } catch (error) {
+    res.status(500).send('Server error');
   }
 }; 

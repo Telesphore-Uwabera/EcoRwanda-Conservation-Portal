@@ -10,6 +10,9 @@ const {
   getUserReports,
   getRecentUserReports
 } = require('../controllers/reportController');
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // Get all reports
 router.get('/', authenticateToken, getAllReports);
@@ -24,12 +27,15 @@ router.get('/user/:userId/recent', authenticateToken, getRecentUserReports);
 router.get('/:id', authenticateToken, getReportById);
 
 // Create a new report
-router.post('/', authenticateToken, createReport);
+router.post('/', authenticateToken, upload.array('photos', 5), createReport);
 
 // Update a report
 router.put('/:id', authenticateToken, updateReport);
 
 // Delete a report
 router.delete('/:id', authenticateToken, deleteReport);
+
+// Serve a specific photo from a report
+router.get('/:id/photo/:photoIndex', require('../controllers/reportController').getReportPhoto);
 
 module.exports = router; 

@@ -329,11 +329,11 @@ const MyReports = () => {
                 {report.photos && report.photos.length > 0 && (
                   <div className="h-48 overflow-hidden">
                     <img
-                      src={report.photos[0]}
+                      src={`http://localhost:8080/api/reports/${report._id}/photo/0`}
                       alt={report.title}
                       className="w-full h-full object-cover"
                     />
-                        </div>
+                  </div>
                 )}
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-2">
