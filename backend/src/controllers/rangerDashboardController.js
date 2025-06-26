@@ -10,7 +10,7 @@ const getRangerDashboardData = async (req, res) => {
     
     // Fetch pending reports for verification
     const pendingReports = await WildlifeReport.find({
-      status: "pending_verification",
+      status: "pending",
     })
       .populate("submittedBy", "firstName lastName")
       .sort({ createdAt: -1 })
