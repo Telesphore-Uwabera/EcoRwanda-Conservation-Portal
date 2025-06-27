@@ -176,11 +176,11 @@ export default function PatrolData() {
   }, [filteredPatrols]);
 
   // Compute recent patrols: patrols scheduled to start within the next 24 hours (not past)
-  const now = new Date();
+    const now = new Date();
   const recentPatrols = patrols.filter((patrol) => {
     const start = new Date(patrol.patrolDate + 'T' + (patrol.startTime || '00:00'));
     return start > now && (start.getTime() - now.getTime()) <= 24 * 60 * 60 * 1000 && patrol.status !== 'cancelled';
-  });
+    });
 
   // Scheduled patrols: all future scheduled patrols
   const scheduledPatrols = patrols.filter((patrol) => {

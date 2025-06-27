@@ -46,7 +46,7 @@ interface ResearchProjectData {
   title: string;
   description: string;
   status: string;
-  leadResearcher: { _id: string; firstName: string; lastName: string };
+  leadResearcher: { _id: string; firstName: string; lastName: string; email: string };
   location: { lat: number; lng: number; name: string };
   startDate: string;
   endDate: string;
@@ -307,8 +307,7 @@ export default function ResearcherDashboard() {
                       <div key={project._id} className="p-3 rounded-lg border bg-white">
                         <div className="font-semibold text-gray-800 text-lg">{project.title}</div>
                         <div className="text-sm text-gray-500 space-x-4 mb-1">
-                          <span>Lead: {project.leadResearcher && (project.leadResearcher.firstName || project.leadResearcher.lastName) ? `${project.leadResearcher.firstName || ''} ${project.leadResearcher.lastName || ''}`.trim() : 'N/A'}</span>
-                            <span>Location: {project.location?.name || 'TBD'}</span>
+                          <span>Location: {project.location?.name || 'TBD'}</span>
                         </div>
                         <div className="text-sm text-gray-700 mb-2">{project.description}</div>
                         {project.objectives && project.objectives.length > 0 && (
@@ -388,7 +387,6 @@ export default function ResearcherDashboard() {
                       <div key={project._id} className="p-3 rounded-lg border bg-white">
                         <div className="font-semibold text-gray-800 text-lg">{project.title}</div>
                         <div className="text-sm text-gray-500 space-x-4 mb-1">
-                          <span>Lead: {project.leadResearcher && (project.leadResearcher.firstName || project.leadResearcher.lastName) ? `${project.leadResearcher.firstName || ''} ${project.leadResearcher.lastName || ''}`.trim() : 'N/A'}</span>
                           <span>Location: {project.location?.name || 'TBD'}</span>
                         </div>
                         <div className="text-sm text-gray-700 mb-2">{project.description}</div>
