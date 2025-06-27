@@ -234,7 +234,7 @@ export default function VolunteerDashboard() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {recentReports.map((report) => (
+                {recentReports.slice(0, 2).map((report) => (
                   <Card key={report._id} className="p-4">
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="font-semibold">{report.title || 'Untitled Report'}</h3>
@@ -298,7 +298,7 @@ export default function VolunteerDashboard() {
             ) : (
               <div className="space-y-4">
                 {availableProjects.length > 0 ? (
-                  availableProjects.slice(0, 3).map((project) => (
+                  availableProjects.slice(0, 5).map((project) => (
                     <Card key={project._id} className="p-4 flex justify-between items-center">
                       <div>
                         <h4 className="font-semibold">{project.title}</h4>
