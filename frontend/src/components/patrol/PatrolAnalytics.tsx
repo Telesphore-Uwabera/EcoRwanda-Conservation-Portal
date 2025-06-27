@@ -191,6 +191,27 @@ export function PatrolAnalytics() {
         </Select>
       </div>
 
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-2 sm:items-center sm:justify-end mb-4">
+        <button
+          className="btn btn-primary"
+          onClick={fetchAnalytics}
+        >
+          Refresh Data
+        </button>
+        <button
+          className="btn btn-outline"
+          onClick={() => {/* download logic here */}}
+        >
+          Download Patrol Data
+        </button>
+        <button
+          className="btn btn-outline"
+          onClick={() => {/* view analytics logic here */}}
+        >
+          View Analytics
+        </button>
+      </div>
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
