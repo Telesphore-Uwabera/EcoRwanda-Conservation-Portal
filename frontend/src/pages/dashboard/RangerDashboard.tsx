@@ -268,7 +268,7 @@ export default function RangerDashboard() {
         <OfflineIndicator isOnline={isOnline} />
 
         {/* Download & Analytics Buttons */}
-        <div className="flex gap-4 justify-end">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 justify-end">
           <Button 
             variant="outline" 
             onClick={handleRefresh}
