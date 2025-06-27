@@ -398,7 +398,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content */}
       <main
-        className={`flex-1 overflow-y-auto transition-all duration-300 ${isMobile ? 'pt-20 mr-[10px]' : 'mr-[10px]'}`}
+        className={`flex-1 w-full max-w-full overflow-x-hidden transition-all duration-300 px-2 sm:px-4 md:px-6 lg:px-8 ${isMobile ? 'pt-20 mr-[10px]' : 'mr-[10px]'}`}
       >
         {children}
       </main>
