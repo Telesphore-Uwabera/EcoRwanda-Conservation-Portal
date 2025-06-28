@@ -36,6 +36,16 @@ interface Publication {
   createdAt?: string;
   updatedAt?: string;
   status?: string;
+  references?: string[];
+  keywords?: string[];
+  supplementaryFiles?: string[];
+  doi?: string;
+  fundingSource?: string;
+  publicationLink?: string;
+  methodology?: string;
+  ethicalApproval?: string;
+  volunteers?: string[];
+  createdBy?: { name?: string; email?: string } | string;
 }
 
 interface Dataset {
@@ -154,7 +164,7 @@ export default function Publications() {
                   </Badge>
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {pub.publicationDate ? new Date(pub.publicationDate).toLocaleDateString() : 'N/A'}
+                    {pub.createdAt ? new Date(pub.createdAt).toLocaleString() : 'N/A'}
                   </Badge>
                   {typeof pub.downloads === 'number' && (
                     <Badge variant="outline" className="flex items-center gap-1">
@@ -216,6 +226,9 @@ export default function Publications() {
                     </div>
                   </div>
                 )}
+                {pub.volunteers && pub.volunteers.length > 0 && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Volunteers:</b> {pub.volunteers.join(', ')}</div>
+                )}
                 {pub.impact && (
                   <div className="mb-2 text-gray-800 whitespace-pre-line">
                     <b>Impact:</b> Trees Planted: {pub.impact.treesPlanted}, Wildlife Protected: {pub.impact.wildlifeProtected}, Area Restored: {pub.impact.areaRestored}
@@ -266,6 +279,30 @@ export default function Publications() {
                       </button>
                     )}
                   </div>
+                )}
+                {pub.references && pub.references.length > 0 && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>References:</b> {pub.references.join(', ')}</div>
+                )}
+                {pub.keywords && pub.keywords.length > 0 && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Keywords:</b> {pub.keywords.join(', ')}</div>
+                )}
+                {pub.supplementaryFiles && pub.supplementaryFiles.length > 0 && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Supplementary Files:</b> {pub.supplementaryFiles.join(', ')}</div>
+                )}
+                {pub.doi && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>DOI:</b> {pub.doi}</div>
+                )}
+                {pub.fundingSource && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Funding Source:</b> {pub.fundingSource}</div>
+                )}
+                {pub.publicationLink && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Publication Link:</b> <a href={pub.publicationLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{pub.publicationLink}</a></div>
+                )}
+                {pub.methodology && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Methodology:</b> {pub.methodology}</div>
+                )}
+                {pub.ethicalApproval && (
+                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Ethical Approval:</b> {pub.ethicalApproval}</div>
                 )}
               </CardContent>
             </Card>

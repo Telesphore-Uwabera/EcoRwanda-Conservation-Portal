@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 exports.getAllProjects = async (req, res) => {
   try {
     const projects = await ConservationProject.find()
-      .populate('createdBy')
+      .populate('createdBy', 'name email')
       .sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: projects });
   } catch (error) {
@@ -21,7 +21,7 @@ exports.getAvailableProjects = async (req, res) => {
       status: 'active',
       $expr: { $lt: ['$currentVolunteers', '$requiredVolunteers'] }
     })
-      .populate('createdBy')
+      .populate('createdBy', 'name email')
       .sort({ startDate: 1 });
     res.status(200).json({ success: true, data: projects });
   } catch (error) {
@@ -34,7 +34,7 @@ exports.getAvailableProjects = async (req, res) => {
 exports.getProjectById = async (req, res) => {
   try {
     const project = await ConservationProject.findById(req.params.id)
-      .populate('createdBy')
+      .populate('createdBy', 'name email')
       .populate('volunteers');
     
     if (!project) {
@@ -192,7 +192,8 @@ exports.publishResearchPaper = async (req, res) => {
       references,
       keywords,
       supplementaryFiles,
-      datasets
+      datasets,
+      impact
     } = req.body;
 
     if (!title || !description || !organization || !location || !abstract || !authors || !publicationDate || !category) {
@@ -226,6 +227,7 @@ exports.publishResearchPaper = async (req, res) => {
       ethicalApproval: ethicalApproval || '',
       publicationLink: publicationLink || '',
       contributors: contributors || [],
+      impact: impact || { treesPlanted: 0, wildlifeProtected: 0, areaRestored: 0 },
     });
 
     res.status(201).json({ success: true, data: project });

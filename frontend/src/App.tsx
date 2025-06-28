@@ -40,6 +40,7 @@ import DataHub from "./pages/researcher/DataHub";
 import RequestVolunteers from "./pages/researcher/RequestVolunteers";
 import Analytics from "./pages/researcher/Analytics";
 import Publications from "./pages/researcher/Publications";
+import PublicationDetails from "./pages/researcher/PublicationDetails";
 
 // Ranger Pages
 import VerifyReports from "./pages/ranger/VerifyReports";
@@ -254,6 +255,16 @@ const App = () => (
                 <RoleGuard allowedRoles={["researcher"]}>
                   <DashboardLayout>
                     <Publications />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/publications/:id"
+              element={
+                <RoleGuard allowedRoles={["researcher"]}>
+                  <DashboardLayout>
+                    <PublicationDetails />
                   </DashboardLayout>
                 </RoleGuard>
               }

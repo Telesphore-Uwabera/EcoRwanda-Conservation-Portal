@@ -46,6 +46,7 @@ import {
 import { Alert as AlertDialog, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 interface DataHubStats {
   datasetsAvailable: number;
@@ -78,6 +79,7 @@ interface ResearchPaper {
   category: string;
   accessLevel: string;
   downloads: number;
+  createdAt: string;
 }
 
 export default function DataHub() {
@@ -163,6 +165,13 @@ export default function DataHub() {
   // New state for requesting access to a research paper
   const [requestingPaperId, setRequestingPaperId] = useState<string | null>(null);
   const [requestPaperMessage, setRequestPaperMessage] = useState("");
+
+  // Add impact state near the top of the component:
+  const [impact, setImpact] = useState({
+    treesPlanted: 0,
+    wildlifeProtected: 0,
+    areaRestored: 0
+  });
 
   // Helper to parse date to ISO
   function parseDateToISO(dateStr: string | undefined): string | undefined {
@@ -272,10 +281,16 @@ export default function DataHub() {
         endDate: parseDateToISO(publicationForm.endDate),
         authors: authors.filter(a => a.trim()),
         contributors: contributors.filter(c => c.name.trim() && c.role.trim()),
-        references: references.filter(r => r.trim()),
-        keywords: keywords.filter(k => k.trim()),
-        supplementaryFiles: supplementaryFiles.filter(f => f.trim()),
+        references: references.length > 0 ? references : [],
+        keywords: keywords.length > 0 ? keywords : [],
+        supplementaryFiles: supplementaryFiles.length > 0 ? supplementaryFiles : [],
         datasets: selectedDatasets,
+        impact,
+        doi: publicationForm.doi || '',
+        fundingSource: publicationForm.fundingSource || '',
+        publicationLink: publicationForm.publicationLink || '',
+        methodology: publicationForm.methodology || '',
+        ethicalApproval: publicationForm.ethicalApproval || '',
       };
       console.log('Publishing payload:', payload);
       const response = await api.post('/conservation-projects/publish', payload, {
@@ -290,6 +305,7 @@ export default function DataHub() {
         setKeywords(['']);
         setSupplementaryFiles(['']);
         setSelectedDatasets([]);
+        setImpact({ treesPlanted: 0, wildlifeProtected: 0, areaRestored: 0 });
         // Refresh all DataHub data (summary, datasets, papers)
         fetchDataHubData();
       } else {
@@ -760,7 +776,7 @@ export default function DataHub() {
                             </Badge>
                             <Badge variant="outline" className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              Published: {paper.publicationDate ? new Date(paper.publicationDate).toLocaleString() : 'N/A'}
+                              Published: {paper.createdAt ? new Date(paper.createdAt).toLocaleString() : 'N/A'}
                             </Badge>
                             {typeof paper.downloads === 'number' && (
                               <Badge variant="outline" className="flex items-center gap-1">
@@ -808,9 +824,11 @@ export default function DataHub() {
                               )}
                             </div>
                           )}
-                          <Button size="sm" className="mt-3" onClick={() => { setSelectedPaper(paper); setShowPaperDialog(true); }}>
-                            View Details
-                          </Button>
+                          <Link to={`/publications/${paper._id}`}>
+                            <Button size="sm" className="mt-3">
+                              View Details
+                            </Button>
+                          </Link>
                         </CardContent>
                       </Card>
                     ))}
@@ -997,6 +1015,39 @@ export default function DataHub() {
                     <Input name="publicationLink" value={publicationForm.publicationLink || ''} onChange={handlePublicationInput} placeholder="Publication Link" />
                   </div>
                 </div>
+                {/* Impact Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block font-medium mb-1">Trees Planted</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={impact.treesPlanted}
+                      onChange={e => setImpact({ ...impact, treesPlanted: Number(e.target.value) })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">Wildlife Protected</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={impact.wildlifeProtected}
+                      onChange={e => setImpact({ ...impact, wildlifeProtected: Number(e.target.value) })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">Area Restored</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={impact.areaRestored}
+                      onChange={e => setImpact({ ...impact, areaRestored: Number(e.target.value) })}
+                      required
+                    />
+                  </div>
+                </div>
                 {publishError && <div className="text-red-600">{publishError}</div>}
                 {publishSuccess && <div className="text-green-600">Research paper published successfully!</div>}
                 <Button type="submit" disabled={isPublishing}>{isPublishing ? 'Publishing...' : 'Publish Research Paper'}</Button>
@@ -1139,7 +1190,7 @@ export default function DataHub() {
                   <div><b>Authors:</b> {selectedPaper.authors?.join(', ')}</div>
                   <div><b>Category:</b> {selectedPaper.category}</div>
                   <div><b>Access Level:</b> {selectedPaper.accessLevel?.replace('_', ' ')}</div>
-                  <div><b>Published:</b> {selectedPaper.publicationDate ? new Date(selectedPaper.publicationDate).toLocaleString() : 'N/A'}</div>
+                  <div><b>Published:</b> {selectedPaper.createdAt ? new Date(selectedPaper.createdAt).toLocaleString() : 'N/A'}</div>
                 </div>
               </>
             )}

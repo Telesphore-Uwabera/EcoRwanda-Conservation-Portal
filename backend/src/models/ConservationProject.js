@@ -100,6 +100,7 @@ const ConservationProjectSchema = new mongoose.Schema({
   datasets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Dataset' }],
 }, {
   timestamps: true,
+  strict: false,
 });
 
 // Add index for efficient querying
