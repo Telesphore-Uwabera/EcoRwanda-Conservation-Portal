@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
-const { getDataHubData, createDataset, getDatasets, getDatasetById, updateDataset, deleteDataset, requestDatasetAccess } = require('../controllers/dataHubController');
+const { getDataHubData, createDataset, getDatasets, getDatasetById, updateDataset, deleteDataset, requestDatasetAccess, downloadDataset } = require('../controllers/dataHubController');
 
 router.get('/', authenticateToken, getDataHubData);
 
@@ -13,5 +13,7 @@ router.put('/datasets/:id', authenticateToken, updateDataset);
 router.delete('/datasets/:id', authenticateToken, deleteDataset);
 
 router.post('/request-dataset-access', authenticateToken, requestDatasetAccess);
+
+router.get('/datasets/:id/download', authenticateToken, downloadDataset);
 
 module.exports = router; 

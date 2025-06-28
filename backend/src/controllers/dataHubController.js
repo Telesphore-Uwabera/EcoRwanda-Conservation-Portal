@@ -62,7 +62,7 @@ exports.getDatasets = async (req, res) => {
 
 exports.getDatasetById = async (req, res) => {
   try {
-    const dataset = await Dataset.findById(req.params.id);
+    const dataset = await Dataset.findById(req.params.id).populate('owner', 'name email');
     if (!dataset) return res.status(404).json({ success: false, error: 'Dataset not found' });
     res.status(200).json({ success: true, data: dataset });
   } catch (error) {
@@ -109,6 +109,20 @@ exports.requestDatasetAccess = async (req, res) => {
   } catch (error) {
     console.error('Error sending dataset access request email:', error);
     return res.status(500).json({ success: false, error: 'Failed to send access request email.' });
+  }
+};
+
+exports.downloadDataset = async (req, res) => {
+  try {
+    const dataset = await Dataset.findById(req.params.id).populate('owner', 'name email');
+    if (!dataset) {
+      return res.status(404).json({ success: false, error: 'Dataset not found' });
+    }
+    res.setHeader('Content-Disposition', `attachment; filename="${dataset.title.replace(/\s+/g, '_') || 'dataset'}.json"`);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(dataset, null, 2));
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 

@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import api from '@/config/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Download, Calendar, Users, MapPin, Tag, User, ExternalLink } from 'lucide-react';
 import { toast } from "sonner";
 
 interface Publication {
@@ -36,12 +38,32 @@ interface Publication {
   status?: string;
 }
 
+interface Dataset {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  location: { lat: number; lng: number; name: string };
+  accessLevel: string;
+  tags: string[];
+  createdAt: string;
+  downloads: number;
+  featured?: boolean;
+  owner?: { name: string; email: string };
+  downloadUrl?: string;
+}
+
 export default function Publications() {
   const [publications, setPublications] = useState<Publication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [requestMessage, setRequestMessage] = useState("");
+  
+  // Dataset dialog state
+  const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
+  const [showDatasetDialog, setShowDatasetDialog] = useState(false);
+  const [datasetLoading, setDatasetLoading] = useState(false);
 
   useEffect(() => {
     const fetchPublications = async () => {
@@ -62,6 +84,51 @@ export default function Publications() {
     };
     fetchPublications();
   }, []);
+
+  const handleDatasetClick = async (datasetId: string) => {
+    setDatasetLoading(true);
+    try {
+      // Fetch dataset details by ID
+      const response = await api.get(`/data-hub/datasets/${datasetId}`);
+      if (response.data.success && response.data.data) {
+        setSelectedDataset(response.data.data);
+        setShowDatasetDialog(true);
+      } else {
+        toast.error('Dataset not found');
+      }
+    } catch (err) {
+      toast.error('Failed to load dataset details');
+    } finally {
+      setDatasetLoading(false);
+    }
+  };
+
+  const handleDownloadDataset = async (dataset: Dataset) => {
+    try {
+      const storedUser = localStorage.getItem('eco-user');
+      let token = null;
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        token = user.token;
+      }
+      const res = await api.get(`/data-hub/datasets/${dataset._id}/download`, {
+        responseType: 'blob',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${dataset.title?.replace(/\s+/g, '_') || 'dataset'}.json`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      toast.success('Dataset downloaded!');
+    } catch (err) {
+      toast.error('Failed to download dataset');
+    }
+  };
 
   if (loading) return <div className="p-8 text-center">Loading publications...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
@@ -130,7 +197,24 @@ export default function Publications() {
                   <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Images:</b> {pub.images.join(', ')}</div>
                 )}
                 {pub.datasets && pub.datasets.length > 0 && (
-                  <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Datasets:</b> {pub.datasets.join(', ')}</div>
+                  <div className="mb-2 text-gray-800">
+                    <b>Datasets:</b>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {pub.datasets.map((datasetId, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDatasetClick(datasetId)}
+                          disabled={datasetLoading}
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          {datasetId}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 )}
                 {pub.impact && (
                   <div className="mb-2 text-gray-800 whitespace-pre-line">
@@ -188,6 +272,106 @@ export default function Publications() {
           ))}
         </div>
       )}
+
+      {/* Dataset Dialog */}
+      <Dialog open={showDatasetDialog} onOpenChange={setShowDatasetDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ExternalLink className="h-5 w-5" />
+              Dataset Details
+            </DialogTitle>
+          </DialogHeader>
+          {selectedDataset && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{selectedDataset.title}</h3>
+                <p className="text-gray-600">{selectedDataset.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Tag className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium">Category:</span>
+                    <Badge variant="outline">{selectedDataset.category}</Badge>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium">Location:</span>
+                    <span>{selectedDataset.location.name}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-sm">
+                    <Download className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium">Downloads:</span>
+                    <span>{selectedDataset.downloads}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium">Created:</span>
+                    <span>{new Date(selectedDataset.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium">Access Level:</span>
+                    <Badge variant={selectedDataset.accessLevel === 'open' ? 'default' : 'secondary'}>
+                      {selectedDataset.accessLevel}
+                    </Badge>
+                  </div>
+                  
+                  {selectedDataset.owner && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-gray-500" />
+                      <span className="font-medium">Owner:</span>
+                      <span>{selectedDataset.owner.name}</span>
+                    </div>
+                  )}
+                  
+                  {selectedDataset.featured && (
+                    <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>
+                  )}
+                </div>
+              </div>
+              
+              {selectedDataset.tags && selectedDataset.tags.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Tags:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDataset.tags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex gap-2 pt-4 border-t">
+                {selectedDataset.downloadUrl && (
+                  <Button 
+                    onClick={() => handleDownloadDataset(selectedDataset)}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Dataset
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowDatasetDialog(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 
