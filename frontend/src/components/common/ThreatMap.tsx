@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ReactMapGL, { Marker, Popup } from 'react-map-gl';
+import ReactMapGL, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +60,28 @@ export default function ThreatMap() {
   const { user } = useAuth();
   const [selectedReport, setSelectedReport] = useState<WildlifeReport | null>(null);
   const [otherCategory, setOtherCategory] = useState<string | null>(null);
+
+  // Default map center
+  const mapCenter = filteredReports.length > 0
+    ? [filteredReports[0].location.lng, filteredReports[0].location.lat]
+    : [29.8739, -1.9441];
+
+  // Controlled map view state
+  const [viewState, setViewState] = useState({
+    longitude: mapCenter[0],
+    latitude: mapCenter[1],
+    zoom: 8,
+  });
+
+  useEffect(() => {
+    // Update viewState center if filteredReports change
+    setViewState((prev) => ({
+      ...prev,
+      longitude: mapCenter[0],
+      latitude: mapCenter[1],
+    }));
+    // eslint-disable-next-line
+  }, [mapCenter[0], mapCenter[1]]);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -122,11 +144,6 @@ export default function ThreatMap() {
       count: filteredReports.filter(r => r.urgency === urg).length,
     }))
     .filter(item => item.count > 0);
-
-  // Default map center
-  const mapCenter = filteredReports.length > 0
-    ? [filteredReports[0].location.lng, filteredReports[0].location.lat]
-    : [29.8739, -1.9441];
 
   return (
     <div className="space-y-6 p-4 max-w-6xl mx-auto">
@@ -229,14 +246,17 @@ export default function ThreatMap() {
           </div>
           <div style={{ height: '500px', width: '100%' }}>
             <ReactMapGL
-              longitude={mapCenter[0]}
-              latitude={mapCenter[1]}
-              zoom={8}
+              {...viewState}
+              minZoom={2}
+              maxZoom={20}
               width="100%"
               height="500px"
               mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-              onViewportChange={() => {}}
+              onViewportChange={setViewState}
             >
+              <div style={{ position: 'absolute', left: 10, top: 10 }}>
+                <NavigationControl />
+              </div>
               {filteredReports.map(report => (
                 <Marker
                   key={report._id}
@@ -313,7 +333,7 @@ export default function ThreatMap() {
                   <td className="px-3 py-2">{report.location.name}</td>
                   <td className="px-3 py-2">{new Date(report.createdAt).toLocaleDateString()}</td>
                   <td className="px-3 py-2">{report.submittedBy?.firstName || 'Unknown'}</td>
-                  <td className="px-3 py-2 max-w-xs truncate" title={report.description}>{report.description}</td>
+                  <td className="px-3 py-2" style={{whiteSpace: 'pre-line'}}>{report.description}</td>
                 </tr>
               ))}
             </tbody>
