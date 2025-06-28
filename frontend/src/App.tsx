@@ -41,6 +41,7 @@ import RequestVolunteers from "./pages/researcher/RequestVolunteers";
 import Analytics from "./pages/researcher/Analytics";
 import Publications from "./pages/researcher/Publications";
 import PublicationDetails from "./pages/researcher/PublicationDetails";
+import DatasetDetails from "./pages/researcher/DatasetDetails";
 
 // Ranger Pages
 import VerifyReports from "./pages/ranger/VerifyReports";
@@ -265,6 +266,16 @@ const App = () => (
                 <RoleGuard allowedRoles={["researcher"]}>
                   <DashboardLayout>
                     <PublicationDetails />
+                  </DashboardLayout>
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/datasets/:id"
+              element={
+                <RoleGuard allowedRoles={["researcher"]}>
+                  <DashboardLayout>
+                    <DatasetDetails />
                   </DashboardLayout>
                 </RoleGuard>
               }

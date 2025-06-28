@@ -726,8 +726,8 @@ export default function DataHub() {
                               <Star className="h-3 w-3 fill-current" /> Featured
                             </Badge>
                           )}
-                          <Button size="sm" className="mt-3" onClick={() => { setSelectedDataset(dataset); setShowDatasetDialog(true); }}>
-                            View Details
+                          <Button asChild size="sm" className="mt-3">
+                            <Link to={`/datasets/${dataset._id}`}>View Details</Link>
                           </Button>
                         </CardContent>
                       </Card>
