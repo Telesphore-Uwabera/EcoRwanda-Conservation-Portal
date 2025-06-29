@@ -23,6 +23,7 @@ import {
   BookOpen,
   Shield,
   UserCog,
+  RefreshCw,
 } from "lucide-react";
 
 export default function Signup() {
@@ -102,6 +103,16 @@ export default function Signup() {
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Helper to generate a strong password
+  function generateStrongPassword() {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=<>?";
+    let password = "";
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
 
   return (
     <AuthLayout
@@ -240,6 +251,14 @@ export default function Signup() {
                 />
                 <button
                   type="button"
+                  className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setFormData((prev) => ({ ...prev, password: generateStrongPassword() }))}
+                  title="Generate Strong Password"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowPassword(!showPassword)}
                 >
@@ -249,6 +268,10 @@ export default function Signup() {
                     <Eye className="h-4 w-4" />
                   )}
                 </button>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Use at least 8 characters, including uppercase, lowercase, numbers, and symbols.<br />
+                Example: <span className="font-mono">EcoRwanda!2024</span>
               </div>
             </div>
 
