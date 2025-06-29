@@ -42,6 +42,7 @@ export default function PublishFindings() {
   
   const [projects, setProjects] = useState<ResearchProject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAllProjects, setShowAllProjects] = useState(false);
 
   const initialFormData = {
     title: "",
@@ -249,17 +250,27 @@ export default function PublishFindings() {
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : projects.length > 0 ? (
-                  <ul className="space-y-4">
-                    {projects.map((project) => (
-                      <li key={project._id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <h3 className="font-semibold text-gray-800">{project.title}</h3>
-                        <div className="text-sm text-gray-500 flex justify-between items-center mt-2">
-                          <Badge variant={project.status === 'active' ? 'default' : 'outline'}>{project.status}</Badge>
-                          <span>{format(new Date(project.createdAt), 'MMM d, yyyy')}</span>
-                    </div>
-                            </li>
-                          ))}
-                        </ul>
+                  <>
+                    <ul className="space-y-4">
+                      {(showAllProjects ? projects : projects.slice(0, 6)).map((project) => (
+                        <li key={project._id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                          <h3 className="font-semibold text-gray-800">{project.title}</h3>
+                          <div className="text-sm text-gray-500 flex justify-between items-center mt-2">
+                            <Badge variant={project.status === 'active' ? 'default' : 'outline'}>{project.status}</Badge>
+                            <span>{format(new Date(project.createdAt), 'MMM d, yyyy')}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {projects.length > 6 && (
+                      <Button
+                        className="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={() => setShowAllProjects((prev) => !prev)}
+                      >
+                        {showAllProjects ? 'Show Less' : 'View More'}
+                      </Button>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center text-gray-500 py-8">
                     <p>You have not created any projects yet.</p>
