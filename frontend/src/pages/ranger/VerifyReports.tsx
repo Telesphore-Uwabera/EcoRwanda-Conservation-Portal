@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -65,6 +65,7 @@ export default function VerifyReports() {
   const isOnline = useOfflineStatus();
   const [searchParams] = useSearchParams();
   const reportId = searchParams.get("reportId");
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [urgencyFilter, setUrgencyFilter] = useState("all");
@@ -291,7 +292,7 @@ export default function VerifyReports() {
               </Badge>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Button onClick={() => setSelectedReport(null)} variant="outline" className="mb-4">
+              <Button onClick={() => { setSelectedReport(null); navigate('/ranger/verify-reports'); }} variant="outline" className="mb-4">
                 <ArrowLeft className="h-4 w-4 mr-2" /> Back to Reports List
               </Button>
 
