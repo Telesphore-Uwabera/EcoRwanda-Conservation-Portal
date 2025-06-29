@@ -192,7 +192,7 @@ export default function ResearcherDashboard() {
   // Helper: Get upcoming deadlines (next 2 by endDate)
   const allWithDeadlines = [...activeProjects, ...collaborationRequests].filter(item => new Date(item.endDate) > new Date());
   const upcomingDeadlinesFull = allWithDeadlines.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
-  const upcomingDeadlines = upcomingDeadlinesFull.slice(0, 2);
+  const upcomingDeadlines = upcomingDeadlinesFull.slice(0, 5);
 
   if (loading) {
     return (
@@ -555,7 +555,7 @@ export default function ResearcherDashboard() {
                   ))}
                 </div>
                 )}
-                {upcomingDeadlinesFull.length > 2 && (
+                {upcomingDeadlinesFull.length > 5 && (
                   <Button
                     className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white"
                     onClick={() => setShowAllDeadlines((prev) => !prev)}
