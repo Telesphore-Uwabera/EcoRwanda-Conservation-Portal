@@ -36,14 +36,11 @@ import {
   Image,
 } from "lucide-react";
 import { THREAT_CATEGORIES } from "@/components/common/categories";
-<<<<<<< HEAD
-=======
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 // Add your Mapbox API key here
 const MAPBOX_API_KEY = 'pk.eyJ1IjoidGVsZXNwaG9yZXV3YWJlcmEiLCJhIjoiY21jbWl2Z3A5MGdoMTJqcXE1bDZ5enNuayJ9.njrKk2Q8klZDkq2tpFW6rw';
->>>>>>> d1f42f4 (Implement real-time location detection and Mapbox reverse geocoding for volunteer report)
 
 export default function SubmitReport() {
   const { user } = useAuth();
@@ -66,9 +63,6 @@ export default function SubmitReport() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-<<<<<<< HEAD
-  const [gettingLocation, setGettingLocation] = useState(false);
-=======
   const [mapOpen, setMapOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: -1.9577, lng: 30.1127 }); // Default Rwanda
   const [tempMarker, setTempMarker] = useState<{ lat: number; lng: number } | null>(null);
@@ -76,7 +70,6 @@ export default function SubmitReport() {
     googleMapsApiKey: 'AIzaSyCPYHYMBO101B9ajFYNrwt8fWqEUBzHz8M',
     libraries: ['places'],
   });
->>>>>>> d1f42f4 (Implement real-time location detection and Mapbox reverse geocoding for volunteer report)
 
   const urgencyLevels = [
     {
@@ -136,25 +129,6 @@ export default function SubmitReport() {
     }
   };
 
-<<<<<<< HEAD
-  const getCurrentLocation = async () => {
-    setGettingLocation(true);
-
-    if (navigator.geolocation) {
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-
-        const { latitude, longitude } = position.coords;
-
-        // Reverse geocode to get a location name
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
-        const data = await response.json();
-        
-        const locationName = data.display_name || `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
-
-=======
   const handleGetLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (position) => {
@@ -167,36 +141,10 @@ export default function SubmitReport() {
         const mapboxData = await mapboxRes.json();
         const locationName =
           mapboxData.features?.[0]?.place_name || `Lat: ${lat.toFixed(4)}, Lon: ${lng.toFixed(4)}`;
->>>>>>> d1f42f4 (Implement real-time location detection and Mapbox reverse geocoding for volunteer report)
         setFormData((prev) => ({
           ...prev,
           location: {
             name: locationName,
-<<<<<<< HEAD
-            lat: latitude,
-            lng: longitude,
-          },
-        }));
-      } catch (error) {
-        console.error("Error getting or geocoding location:", error);
-        // Fallback to setting just coords if geocoding fails
-        if ('coords' in (error as GeolocationPositionError)) {
-           const { latitude, longitude } = (error as GeolocationPosition).coords;
-          setFormData((prev) => ({
-            ...prev,
-            location: {
-              ...prev.location,
-                lat: latitude,
-                lng: longitude,
-            },
-          }));
-        }
-      } finally {
-          setGettingLocation(false);
-      }
-    } else {
-      setGettingLocation(false);
-=======
             lat,
             lng,
           },
@@ -204,7 +152,6 @@ export default function SubmitReport() {
       });
     } else {
       alert('Geolocation is not supported by your browser.');
->>>>>>> d1f42f4 (Implement real-time location detection and Mapbox reverse geocoding for volunteer report)
     }
   };
 
@@ -426,45 +373,16 @@ export default function SubmitReport() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-<<<<<<< HEAD
-                  <Label>Location Name</Label>
-                  <Input
-                    value={formData.location.name}
-                    readOnly
-                    placeholder="Location will be detected via GPS"
-                  />
-                </div>
-                <div className="space-y-2">
-=======
->>>>>>> d1f42f4 (Implement real-time location detection and Mapbox reverse geocoding for volunteer report)
                   <Label>GPS Coordinates</Label>
                   <div className="flex gap-2 w-full">
                     <Button
                       type="button"
                       variant="outline"
-<<<<<<< HEAD
-                      onClick={getCurrentLocation}
-                      disabled={gettingLocation}
-                      className="flex-1 w-full"
-                    >
-                      {gettingLocation ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Getting Location...
-                        </>
-                      ) : (
-                        <>
-                          <Navigation className="h-4 w-4 mr-2" />
-                          Get Current Location
-                        </>
-                      )}
-=======
                       onClick={handleGetLocation}
                       className="flex-1 w-full"
                     >
                       <Navigation className="h-4 w-4 mr-2" />
                       Get My Location
->>>>>>> d1f42f4 (Implement real-time location detection and Mapbox reverse geocoding for volunteer report)
                     </Button>
                   </div>
                   {formData.location.lat !== 0 && (
@@ -473,8 +391,6 @@ export default function SubmitReport() {
                     </p>
                   )}
                 </div>
-<<<<<<< HEAD
-=======
                 <div className="space-y-2">
                   <Label>Location Name</Label>
                   <Input
@@ -483,7 +399,6 @@ export default function SubmitReport() {
                     placeholder="Location will be detected via GPS"
                   />
                 </div>
->>>>>>> d1f42f4 (Implement real-time location detection and Mapbox reverse geocoding for volunteer report)
               </div>
             </CardContent>
           </Card>
