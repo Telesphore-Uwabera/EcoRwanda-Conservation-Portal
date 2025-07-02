@@ -90,6 +90,8 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   }
 };
 
+userSchema.index({ email: 1 });
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User; 

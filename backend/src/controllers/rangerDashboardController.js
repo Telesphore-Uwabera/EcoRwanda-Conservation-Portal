@@ -2,28 +2,34 @@ const WildlifeReport = require("../models/WildlifeReport");
 const { getPatrolStatsHelper } = require('./patrolController'); // Import the helper
 
 const getRangerDashboardData = async (req, res) => {
+  const start = Date.now();
   try {
     const userId = req.user._id;
 
     // Use the centralized helper to get patrol stats
     const patrolStats = await getPatrolStatsHelper(userId);
+    console.log('Patrol stats fetched in', Date.now() - start, 'ms');
     
     // Fetch pending reports for verification
     const pendingReports = await WildlifeReport.find({
       status: "pending",
     })
+      .select('title description location submittedBy createdAt urgency photos')
       .populate("submittedBy", "firstName lastName")
       .sort({ createdAt: -1 })
       .limit(10);
+    console.log('Pending reports fetched in', Date.now() - start, 'ms');
 
     // Fetch recent verified reports by this ranger
     const recentVerifiedReports = await WildlifeReport.find({
       verifiedBy: userId,
       status: "verified",
     })
+      .select('title description location submittedBy updatedAt urgency photos')
       .populate("submittedBy", "firstName lastName")
       .sort({ updatedAt: -1 })
       .limit(5);
+    console.log('Recent verified reports fetched in', Date.now() - start, 'ms');
 
     // Transform the data to match frontend expectations
     const stats = {

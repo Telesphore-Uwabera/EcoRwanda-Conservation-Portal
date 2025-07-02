@@ -77,4 +77,10 @@ const WildlifeReportSchema = new mongoose.Schema({
   timestamps: true, // Adds createdAt and updatedAt automatically
 });
 
+WildlifeReportSchema.index({ status: 1 });
+WildlifeReportSchema.index({ submittedBy: 1 });
+WildlifeReportSchema.index({ verifiedBy: 1 });
+WildlifeReportSchema.index({ createdAt: -1 });
+WildlifeReportSchema.index({ updatedAt: -1 });
+
 module.exports = mongoose.model('WildlifeReport', WildlifeReportSchema); 

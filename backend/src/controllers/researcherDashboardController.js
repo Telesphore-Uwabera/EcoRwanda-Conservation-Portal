@@ -6,6 +6,7 @@ const ConservationProject = require('../models/ConservationProject');
 const Application = require('../models/Application');
 
 const getResearcherDashboardData = async (req, res) => {
+  const start = Date.now();
   try {
     const userId = req.user._id; // Assuming userId is available from authentication middleware
 
@@ -14,12 +15,14 @@ const getResearcherDashboardData = async (req, res) => {
       leadResearcher: userId,
       publicationLinks: { $exists: true, $not: { $size: 0 } }
     });
+    console.log('publishedFindingsCount in', Date.now() - start, 'ms');
 
     // Fetch count of research papers (completed ConservationProjects created by this researcher)
     const researchPapersCount = await ConservationProject.countDocuments({
       createdBy: userId,
       status: 'completed'
     });
+    console.log('researchPapersCount in', Date.now() - start, 'ms');
 
     // Combine both counts for published findings
     const totalPublishedFindings = publishedFindingsCount + researchPapersCount;
@@ -29,25 +32,26 @@ const getResearcherDashboardData = async (req, res) => {
       leadResearcher: userId,
       status: { $in: ['active', 'data_collection', 'planning'] },
     });
+    console.log('activeProjectsCount in', Date.now() - start, 'ms');
 
     // Count unique volunteer collaborators (accepted volunteers for started projects)
     const now = new Date();
     const startedProjectIds = (await ResearchProject.find({
       leadResearcher: userId,
       startDate: { $lte: now }
-    }, '_id')).map(p => p._id);
+    }, '_id').lean()).map(p => p._id);
 
     // Find all volunteer requests for these projects
     const volunteerRequests = await VolunteerRequest.find({
       researchProject: { $in: startedProjectIds }
-    }, '_id');
+    }, '_id').lean();
     const volunteerRequestIds = volunteerRequests.map(r => r._id);
 
     // Find all accepted applications for these requests
     const acceptedApplications = await Application.find({
       volunteerRequest: { $in: volunteerRequestIds },
       status: 'accepted'
-    }, 'applicant');
+    }, 'applicant').lean();
     const uniqueVolunteerIds = new Set(acceptedApplications.map(app => app.applicant.toString()));
     const volunteerCollaboratorsCount = uniqueVolunteerIds.size;
 
@@ -58,6 +62,7 @@ const getResearcherDashboardData = async (req, res) => {
     const publishedFindings = await ConservationProject.countDocuments({
       status: { $in: ['completed', 'published'] }
     });
+    console.log('publishedFindings in', Date.now() - start, 'ms');
 
     const stats = {
       activeProjects: activeProjectsCount,
@@ -68,7 +73,8 @@ const getResearcherDashboardData = async (req, res) => {
     // Fetch all active research projects (not just those led by the user)
     const activeProjects = await ResearchProject.find({
       status: { $in: ['active', 'data_collection', 'planning', 'analysis', 'in-progress', 'on-hold'] },
-    }).populate('leadResearcher', 'firstName lastName email').limit(5);
+    }).select('title status leadResearcher').populate('leadResearcher', 'firstName lastName email').limit(5).lean();
+    console.log('activeProjects in', Date.now() - start, 'ms');
 
     // Get collaboration requests (volunteer requests for their projects)
     const collaborationRequestsData = await VolunteerRequest.find({
@@ -77,7 +83,8 @@ const getResearcherDashboardData = async (req, res) => {
       .populate('requestedBy', 'firstName lastName')
       .sort({ createdAt: -1 })
       .limit(5)
-      .lean(); // Use lean for better performance
+      .lean();
+    console.log('collaborationRequestsData in', Date.now() - start, 'ms');
 
     const collaborationRequests = collaborationRequestsData.map(req => ({
       ...req,

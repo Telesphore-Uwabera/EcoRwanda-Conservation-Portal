@@ -3,6 +3,7 @@ const ConservationProject = require('../models/ConservationProject');
 const ResearchProject = require('../models/ResearchProject'); // Although not directly used for volunteer projects, it's good to have it imported if cross-linking is needed later
 
 const getVolunteerDashboardData = async (req, res) => {
+  const start = Date.now();
   try {
     console.log('Attempting to fetch volunteer dashboard data...');
     console.log('req.user:', req.user);
@@ -11,7 +12,7 @@ const getVolunteerDashboardData = async (req, res) => {
 
     // Fetch reports submitted by the logged-in volunteer
     const reportsSubmittedCount = await WildlifeReport.countDocuments({ submittedBy: userId });
-    console.log('reportsSubmittedCount:', reportsSubmittedCount);
+    console.log('reportsSubmittedCount:', reportsSubmittedCount, 'in', Date.now() - start, 'ms');
 
     // Fetch conservation projects joined by the logged-in volunteer
     const projectsJoinedCount = await ConservationProject.countDocuments({ volunteers: userId });
@@ -25,16 +26,17 @@ const getVolunteerDashboardData = async (req, res) => {
 
     // Fetch recent reports relevant to the volunteer (e.g., their own reports, sorted by submittedAt)
     const recentReports = await WildlifeReport.find({ submittedBy: userId })
+      .select('title description location submittedBy createdAt urgency photos')
       .sort({ submittedAt: -1 })
       .limit(5);
-    console.log('recentReports:', recentReports.length, 'reports');
+    console.log('recentReports:', recentReports.length, 'reports in', Date.now() - start, 'ms');
 
     // Fetch available conservation projects for volunteers
     const availableProjects = await ConservationProject.find({
       status: { $in: ['active', 'planning'] },
       volunteers: { $ne: userId } 
-    }).limit(5);
-    console.log('availableProjects:', availableProjects.length, 'projects');
+    }).select('title description status').limit(5);
+    console.log('availableProjects:', availableProjects.length, 'projects in', Date.now() - start, 'ms');
 
     const stats = {
       reportsSubmitted: reportsSubmittedCount,
