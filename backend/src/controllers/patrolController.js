@@ -99,6 +99,8 @@ exports.getPatrols = async (req, res) => {
       objectives: patrol.objectives || [],
       equipment: patrol.equipment || [],
       notes: patrol.notes || '',
+      attendees: patrol.attendees || [],
+      createdAt: patrol.createdAt ? patrol.createdAt.toISOString() : '',
     }));
     
     res.status(200).json({ success: true, patrols });
@@ -282,6 +284,7 @@ exports.updatePatrolStatus = async (req, res) => {
         objectives: patrol.objectives || [],
         equipment: patrol.equipment || [],
         notes: patrol.notes || '',
+        attendees: patrol.attendees || [],
       }
     });
   } catch (error) {
@@ -341,6 +344,8 @@ exports.getAllPatrols = async (req, res) => {
       objectives: patrol.objectives || [],
       equipment: patrol.equipment || [],
       notes: patrol.notes || '',
+      attendees: patrol.attendees || [],
+      createdAt: patrol.createdAt ? patrol.createdAt.toISOString() : '',
     }));
     res.status(200).json({ success: true, patrols });
   } catch (error) {

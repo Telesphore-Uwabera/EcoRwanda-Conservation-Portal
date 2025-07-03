@@ -67,6 +67,8 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
   const { toast = () => {} } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [attendees, setAttendees] = useState([{ name: '', phone: '' }]);
+  const [attendeeErrors, setAttendeeErrors] = useState<string[]>([]);
 
   const form = useForm<PatrolFormValues>({
     resolver: zodResolver(patrolFormSchema),
@@ -93,6 +95,22 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
     },
   });
 
+  const handleAttendeeChange = (index: number, field: 'name' | 'phone', value: string) => {
+    setAttendees(prev => prev.map((a, i) => i === index ? { ...a, [field]: value } : a));
+  };
+
+  const addAttendee = () => setAttendees(prev => [...prev, { name: '', phone: '' }]);
+
+  const removeAttendee = (index: number) => setAttendees(prev => prev.filter((_, i) => i !== index));
+
+  const validateAttendees = () => {
+    const errors = attendees.map(a =>
+      /^\d{10}$/.test(a.phone) ? '' : 'Phone number must be exactly 10 digits.'
+    );
+    setAttendeeErrors(errors);
+    return errors.every(e => !e);
+  };
+
   const onSubmit = async (data: PatrolFormValues) => {
     setIsSubmitting(true);
     try {
@@ -103,8 +121,13 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
         token = user.token;
       }
 
+      if (!validateAttendees()) {
+        return;
+      }
+
       const patrolData = {
         ...data,
+        attendees,
         status: mode === "new" ? "in_progress" : mode === "schedule" ? "scheduled" : patrol.status,
         objectives: data.objectives.split(",").map(obj => obj.trim()).filter(obj => obj.length > 0),
         equipment: data.equipment.split(",").map(eq => eq.trim()).filter(eq => eq.length > 0),
@@ -358,6 +381,34 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
                 </FormItem>
               )}
             />
+          </div>
+
+          <div className="col-span-1 md:col-span-2">
+            <label className="block font-medium mb-2">Patrol Attendees</label>
+            {attendees.map((attendee, idx) => (
+              <div key={idx} className="flex gap-2 items-center mb-2">
+                <Input
+                  type="text"
+                  placeholder="Name"
+                  value={attendee.name}
+                  onChange={e => setAttendees(prev => prev.map((a, i) => i === idx ? { ...a, name: e.target.value } : a))}
+                  className="w-1/2"
+                />
+                <Input
+                  type="text"
+                  placeholder="Phone (10 digits)"
+                  value={attendee.phone}
+                  onChange={e => setAttendees(prev => prev.map((a, i) => i === idx ? { ...a, phone: e.target.value } : a))}
+                  className="w-1/2"
+                  maxLength={10}
+                  pattern="\d{10}"
+                />
+                {attendees.length > 1 && (
+                  <Button type="button" variant="destructive" size="sm" onClick={() => removeAttendee(idx)}>-</Button>
+                )}
+                {attendeeErrors[idx] && <span className="text-red-500 text-xs ml-2">{attendeeErrors[idx]}</span>}
+              </div>
+            ))}
           </div>
 
           <div className="flex justify-end gap-4 pt-4">

@@ -65,6 +65,7 @@ interface Patrol {
   equipment?: string[];
   notes?: string;
   createdAt?: string;
+  attendees?: { name: string; phone: string }[];
 }
 
 // Helper to calculate patrol status
@@ -84,6 +85,21 @@ const calculatePatrolStatus = (patrol) => {
   if (end && isAfter(now, end)) return 'completed';
   if (end && isAfter(now, start) && isBefore(now, end)) return 'in_progress';
   return patrol.status || 'scheduled';
+};
+
+// Helper to render attendees
+const renderAttendees = (attendees?: { name: string; phone: string }[]) => {
+  if (!attendees || attendees.length === 0) return null;
+  return (
+    <div className="pt-2">
+      <p className="text-sm font-semibold">Attendees:</p>
+      <ul className="pl-4 list-disc text-sm">
+        {attendees.map((a, i) => (
+          <li key={i}>{a.name} ({a.phone})</li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
 export default function PatrolData() {
@@ -136,31 +152,32 @@ export default function PatrolData() {
     fetchPatrolData();
   }, [fetchPatrolData]);
 
-  const filteredPatrols = useMemo(() => patrols.filter((patrol) => {
-    const searchTermLower = searchTerm.toLowerCase();
-    const matchesSearch =
-      patrol.route.toLowerCase().includes(searchTermLower) ||
-      `${patrol.ranger.firstName} ${patrol.ranger.lastName}`.toLowerCase().includes(searchTermLower) ||
-      (patrol.findings && patrol.findings.toLowerCase().includes(searchTermLower));
-    
-    const status = calculatePatrolStatus(patrol);
-    const matchesStatus = statusFilter === "all" || status === statusFilter;
-    
-    let matchesDate = true;
-    if (dateFilter !== "all") {
-      const today = new Date();
-      const patrolDate = new Date(patrol.patrolDate);
-      if (dateFilter === "today") {
-        matchesDate = patrolDate.toDateString() === today.toDateString();
-      } else if (dateFilter === "week") {
-        const weekAgo = new Date(today);
-        weekAgo.setDate(today.getDate() - 7);
-        matchesDate = patrolDate >= weekAgo && patrolDate <= today;
+  const applyFilters = (patrols: Patrol[]) => {
+    return patrols.filter((patrol) => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        patrol.route.toLowerCase().includes(searchTermLower) ||
+        `${patrol.ranger.firstName} ${patrol.ranger.lastName}`.toLowerCase().includes(searchTermLower) ||
+        (patrol.findings && patrol.findings.toLowerCase().includes(searchTermLower));
+      const status = calculatePatrolStatus(patrol);
+      const matchesStatus = statusFilter === 'all' || status === statusFilter;
+      let matchesDate = true;
+      if (dateFilter !== 'all') {
+        const today = new Date();
+        const patrolDate = new Date(patrol.patrolDate);
+        if (dateFilter === 'today') {
+          matchesDate = patrolDate.toDateString() === today.toDateString();
+        } else if (dateFilter === 'week') {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(today.getDate() - 7);
+          matchesDate = patrolDate >= weekAgo && patrolDate <= today;
+        }
       }
-    }
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  };
 
-    return matchesSearch && matchesStatus && matchesDate;
-  }), [patrols, searchTerm, statusFilter, dateFilter]);
+  const filteredPatrols = useMemo(() => applyFilters(patrols), [patrols, searchTerm, statusFilter, dateFilter]);
 
   // Group filtered patrols by status
   const groupedFilteredPatrols = useMemo(() => {
@@ -175,12 +192,13 @@ export default function PatrolData() {
     return groups;
   }, [filteredPatrols]);
 
-  // Compute recent patrols: patrols scheduled to start within the next 24 hours (not past)
-    const now = new Date();
+  // Fix recent patrols logic: patrols created within the last 24 hours
+  const now = new Date();
   const recentPatrols = patrols.filter((patrol) => {
-    const start = new Date(patrol.patrolDate + 'T' + (patrol.startTime || '00:00'));
-    return start > now && (start.getTime() - now.getTime()) <= 24 * 60 * 60 * 1000 && patrol.status !== 'cancelled';
-    });
+    if (!patrol.createdAt) return false;
+    const created = new Date(patrol.createdAt);
+    return now.getTime() - created.getTime() <= 24 * 60 * 60 * 1000;
+  });
 
   // Scheduled patrols: all future scheduled patrols
   const scheduledPatrols = patrols.filter((patrol) => {
@@ -190,6 +208,15 @@ export default function PatrolData() {
 
   // Cancelled patrols: status 'cancelled'
   const cancelledPatrols = patrols.filter((patrol) => patrol.status === 'cancelled');
+
+  // Use applyFilters(recentPatrols) for filteredRecentPatrols
+  const filteredRecentPatrols = applyFilters(recentPatrols);
+
+  // Use filtered lists for all patrol sections
+  const filteredScheduledPatrols = applyFilters(scheduledPatrols);
+  const filteredCancelledPatrols = applyFilters(cancelledPatrols);
+  const filteredActivePatrolsAll = applyFilters(allPatrols.filter(p => calculatePatrolStatus(p) === 'in_progress'));
+  const filteredCompletedPatrolsAll = applyFilters(allPatrols.filter(p => calculatePatrolStatus(p) === 'completed'));
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -274,9 +301,9 @@ export default function PatrolData() {
       const response = await api.patch(`/patrols/${patrolId}/status`, { status: 'cancelled' }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
       if (response.data.success) {
         await fetchPatrolData();
+        await fetchAllPatrols();
         toast.success('Patrol cancelled successfully');
       } else {
         throw new Error(response.data.message || 'Failed to cancel patrol');
@@ -299,9 +326,9 @@ export default function PatrolData() {
       const response = await api.patch(`/patrols/${patrolId}/status`, { status: 'scheduled' }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.data.success) {
         await fetchPatrolData();
+        await fetchAllPatrols();
         toast.success('Patrol reactivated successfully');
       } else {
         throw new Error(response.data.message || 'Failed to reactivate patrol');
@@ -345,6 +372,9 @@ export default function PatrolData() {
   // Active patrols (all rangers)
   const activePatrolsAll = useMemo(() => allPatrols.filter(p => calculatePatrolStatus(p) === 'in_progress'), [allPatrols]);
 
+  // Completed patrols (all rangers)
+  const completedPatrolsAll = useMemo(() => allPatrols.filter(p => calculatePatrolStatus(p) === 'completed'), [allPatrols]);
+
   const handleEditPatrol = (e: React.MouseEvent, patrol: any) => {
     e.stopPropagation(); // Prevent card click event
     handlePatrolDialog('edit', patrol);
@@ -387,9 +417,9 @@ export default function PatrolData() {
         <Tabs defaultValue="recent" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <TabsList>
-              <TabsTrigger value="recent">Recent Patrols ({groupedFilteredPatrols.recent.length})</TabsTrigger>
-              <TabsTrigger value="scheduled">Scheduled ({groupedFilteredPatrols.scheduled.length})</TabsTrigger>
-              <TabsTrigger value="cancelled">Cancelled ({groupedFilteredPatrols.cancelled.length})</TabsTrigger>
+              <TabsTrigger value="recent">Recent Patrols ({filteredRecentPatrols.length})</TabsTrigger>
+              <TabsTrigger value="scheduled">Scheduled ({filteredScheduledPatrols.length})</TabsTrigger>
+              <TabsTrigger value="cancelled">Cancelled ({filteredCancelledPatrols.length})</TabsTrigger>
             </TabsList>
             <div className="flex flex-wrap items-center gap-2">
             <Input
@@ -426,10 +456,11 @@ export default function PatrolData() {
                <div className="text-center py-12">
                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" />
                </div>
-             ) : recentPatrols.length > 0 ? (
-               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                   {recentPatrols.map((patrol) => (
-                     <Card key={patrol.id} className="cursor-pointer hover:shadow-md transition-shadow">
+             ) : filteredRecentPatrols.length > 0 ? (
+               <>
+                 <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                   {filteredRecentPatrols.slice(0, 4).map((patrol) => (
+                     <Card key={patrol.id} className="min-w-[260px] max-w-full p-4 flex flex-col justify-between hover:shadow-lg transition-shadow">
                        <CardHeader>
                          <CardTitle className="flex justify-between items-start">
                            <span className="font-bold">{patrol.route}</span>
@@ -437,7 +468,25 @@ export default function PatrolData() {
                              {getStatusInfo(calculatePatrolStatus(patrol)).text}
                            </Badge>
                          </CardTitle>
-                         <CardDescription>Started: {formatDate(patrol.patrolDate)} at {patrol.startTime}</CardDescription>
+                         <CardDescription>
+                           <div className="flex items-center text-sm text-muted-foreground">
+                             <Calendar className="mr-2 h-4 w-4" />
+                             <span>{formatDate(patrol.patrolDate)} at {patrol.startTime || ''}</span>
+                           </div>
+                           <div className="flex items-center text-sm text-muted-foreground">
+                             <Clock className="mr-2 h-4 w-4" />
+                             <span>Estimated Duration: {patrol.estimatedDuration ? `${patrol.estimatedDuration}h` : 'N/A'}</span>
+                             {patrol.actualDuration !== undefined && patrol.actualDuration !== null && (
+                               <span className="ml-4">Actual Duration: {patrol.actualDuration}h</span>
+                             )}
+                           </div>
+                           {patrol.endTime && (
+                             <div className="flex items-center text-sm text-muted-foreground">
+                               <Clock className="mr-2 h-4 w-4" />
+                               <span>End Time: {typeof patrol.endTime === 'string' ? formatDate(patrol.endTime) : ''}</span>
+                             </div>
+                           )}
+                         </CardDescription>
                        </CardHeader>
                        <CardContent className="space-y-2">
                          <div className="flex items-center text-sm text-muted-foreground">
@@ -450,122 +499,151 @@ export default function PatrolData() {
                              <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
                            </>
                          )}
+                         {patrol.equipment && patrol.equipment.length > 0 && (
+                           <>
+                             <p className="text-sm font-semibold pt-2">Equipment:</p>
+                             <p className="text-sm line-clamp-2">{patrol.equipment.join(', ')}</p>
+                           </>
+                         )}
+                         {patrol.notes && (
+                           <>
+                             <p className="text-sm font-semibold pt-2">Notes:</p>
+                             <p className="text-sm line-clamp-2">{patrol.notes}</p>
+                           </>
+                         )}
+                         {patrol.findings && (
+                           <>
+                             <p className="text-sm font-semibold pt-2">Findings:</p>
+                             <p className="text-sm line-clamp-2">{patrol.findings}</p>
+                           </>
+                         )}
+                         {renderAttendees(patrol.attendees)}
                          <div className="flex gap-2 pt-2">
-                           {(user?._id === patrol.ranger._id || user?.role === 'admin') && (
-                             <>
-                               <Button size="sm" variant="outline" onClick={(e) => handleEditPatrol(e, patrol)}>
-                                 Edit
+                           {(user?._id === patrol.ranger._id || user?.role === 'admin') && calculatePatrolStatus(patrol) !== 'completed' && (
+                             <Button size="sm" variant="outline" onClick={(e) => handleEditPatrol(e, patrol)}>
+                               Edit
+                             </Button>
+                           )}
+                           {(user?._id === patrol.ranger._id || user?.role === 'admin') && calculatePatrolStatus(patrol) !== 'completed' && (
+                             calculatePatrolStatus(patrol) === 'cancelled' ? (
+                               <Button size="sm" variant="default" onClick={(e) => handleUncancelPatrolClick(e, patrol.id)} disabled={uncancellingId === patrol.id}>
+                                 {uncancellingId === patrol.id ? 'Uncancelling...' : 'Uncancel'}
                                </Button>
-                               {patrol.status === 'cancelled' ? (
-                                 <Button 
-                                   size="sm" 
-                                   variant="default" 
-                                   onClick={(e) => handleUncancelPatrolClick(e, patrol.id)} 
-                                   disabled={uncancellingId === patrol.id}
-                                 >
-                                   {uncancellingId === patrol.id ? 'Uncancelling...' : 'Uncancel'}
-                                 </Button>
-                               ) : (
-                                 <Button 
-                                   size="sm" 
-                                   variant="destructive" 
-                                   onClick={(e) => handleCancelPatrolClick(e, patrol.id)}
-                                 >
-                                   Cancel
-                                 </Button>
-                               )}
-                             </>
+                             ) : (
+                               <Button size="sm" variant="destructive" onClick={(e) => handleCancelPatrolClick(e, patrol.id)}>
+                                 Cancel
+                               </Button>
+                             )
                            )}
                          </div>
                        </CardContent>
                      </Card>
                    ))}
                  </div>
+                 {filteredRecentPatrols.length > 4 && (
+                   <div className="flex justify-end mt-4">
+                     <Button asChild variant="outline">
+                       <Link to="/ranger/patrols?tab=recent">View All</Link>
+                     </Button>
+                   </div>
+                 )}
+               </>
              ) : <div className="text-center py-12 text-gray-500">No recent patrols found.</div>}
           </TabsContent>
           <TabsContent value="scheduled">
             {loading ? <div className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" /></div> :
-              scheduledPatrols.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {scheduledPatrols.map((patrol) => (
-                    <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardHeader>
-                      <CardTitle className="flex justify-between items-start">
-                        <span className="font-bold">{patrol.route}</span>
-                        <Badge className={getStatusInfo(patrol.status).color}>{getStatusInfo(patrol.status).text}</Badge>
+              filteredScheduledPatrols.length > 0 ? (
+                <>
+                  <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredScheduledPatrols.slice(0, 4).map((patrol) => (
+                      <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="min-w-[260px] max-w-full p-4 flex flex-col justify-between hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                          <CardTitle className="flex justify-between items-start">
+                            <span className="font-bold">{patrol.route}</span>
+                            <Badge className={getStatusInfo(patrol.status).color}>{getStatusInfo(patrol.status).text}</Badge>
                           </CardTitle>
-                      <CardDescription>Scheduled for: {formatDate(patrol.patrolDate)} at {patrol.startTime}</CardDescription>
+                          <CardDescription>Scheduled for: {formatDate(patrol.patrolDate)} at {patrol.startTime}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Users className="mr-2 h-4 w-4" /> 
-                        Assigned to: {patrol.ranger.firstName} {patrol.ranger.lastName}
-                      </div>
-                      {patrol.objectives && patrol.objectives.length > 0 && (
-                        <>
-                          <p className="text-sm font-semibold pt-2">Objectives:</p>
-                          <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
-                        </>
-                      )}
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Users className="mr-2 h-4 w-4" /> 
+                            Assigned to: {patrol.ranger.firstName} {patrol.ranger.lastName}
+                          </div>
+                          {patrol.objectives && patrol.objectives.length > 0 && (
+                            <>
+                              <p className="text-sm font-semibold pt-2">Objectives:</p>
+                              <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
+                            </>
+                          )}
+                          {renderAttendees(patrol.attendees)}
                         </CardContent>
                       </Card>
                     ))}
                   </div>
-            ) : <div className="text-center py-12 text-gray-500">No scheduled patrols found.</div>}
+                  {filteredScheduledPatrols.length > 4 && (
+                    <div className="flex justify-end mt-4">
+                      <Button asChild variant="outline">
+                        <Link to="/ranger/patrols?tab=scheduled">View All</Link>
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : <div className="text-center py-12 text-gray-500">No scheduled patrols found.</div>}
           </TabsContent>
           <TabsContent value="cancelled">
             {loading ? <div className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" /></div> :
-              cancelledPatrols.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {cancelledPatrols.map((patrol) => (
-                    <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="cursor-pointer hover:shadow-md transition-shadow">
-                      <CardHeader>
-                        <CardTitle className="flex justify-between items-start">
-                          <span className="font-bold">{patrol.route}</span>
-                          <Badge className={getStatusInfo(patrol.status).color}>{getStatusInfo(patrol.status).text}</Badge>
-                        </CardTitle>
-                        <CardDescription>Cancelled on: {formatDate(patrol.patrolDate)} at {patrol.startTime}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Users className="mr-2 h-4 w-4" />
-                          Assigned to: {patrol.ranger.firstName} {patrol.ranger.lastName}
-                        </div>
-                        {patrol.objectives && patrol.objectives.length > 0 && (
-                          <>
-                            <p className="text-sm font-semibold pt-2">Objectives:</p>
-                            <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
-                          </>
-                        )}
-                        <div className="flex gap-2 pt-2">
-                          {(user?._id === patrol.ranger._id || user?.role === 'admin') && (
+              filteredCancelledPatrols.length > 0 ? (
+                <>
+                  <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredCancelledPatrols.slice(0, 4).map((patrol) => (
+                      <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="min-w-[260px] max-w-full p-4 flex flex-col justify-between hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                          <CardTitle className="flex justify-between items-start">
+                            <span className="font-bold">{patrol.route}</span>
+                            <Badge className={getStatusInfo(patrol.status).color}>{getStatusInfo(patrol.status).text}</Badge>
+                          </CardTitle>
+                          <CardDescription>Cancelled on: {formatDate(patrol.patrolDate)} at {patrol.startTime}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Users className="mr-2 h-4 w-4" />
+                            Assigned to: {patrol.ranger.firstName} {patrol.ranger.lastName}
+                          </div>
+                          {patrol.objectives && patrol.objectives.length > 0 && (
                             <>
-                              <Button size="sm" variant="outline" onClick={(e) => handleEditPatrol(e, patrol)}>Edit</Button>
-                              {patrol.status === 'cancelled' ? (
-                                <Button 
-                                  size="sm" 
-                                  variant="default" 
-                                  onClick={(e) => handleUncancelPatrolClick(e, patrol.id)} 
-                                  disabled={uncancellingId === patrol.id}
-                                >
-                                  {uncancellingId === patrol.id ? 'Uncancelling...' : 'Uncancel'}
-                                </Button>
-                              ) : (
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive" 
-                                  onClick={(e) => handleCancelPatrolClick(e, patrol.id)}
-                                >
-                                  Cancel
-                                </Button>
-                              )}
+                              <p className="text-sm font-semibold pt-2">Objectives:</p>
+                              <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
                             </>
                           )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                          {renderAttendees(patrol.attendees)}
+                          <div className="flex gap-2 pt-2">
+                            {(user?._id === patrol.ranger._id || user?.role === 'admin') && (
+                              <>
+                                <Button size="sm" variant="outline" onClick={(e) => handleEditPatrol(e, patrol)}>Edit</Button>
+                                {calculatePatrolStatus(patrol) === 'cancelled' ? (
+                                  <Button size="sm" variant="default" onClick={(e) => handleUncancelPatrolClick(e, patrol.id)} disabled={uncancellingId === patrol.id}>
+                                    {uncancellingId === patrol.id ? 'Uncancelling...' : 'Uncancel'}
+                                  </Button>
+                                ) : (
+                                  <Button size="sm" variant="destructive" onClick={(e) => handleCancelPatrolClick(e, patrol.id)}>
+                                    Cancel
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {filteredCancelledPatrols.length > 4 && (
+                    <div className="flex justify-end mt-4">
+                      <Button asChild variant="outline">
+                        <Link to="/ranger/patrols?tab=cancelled">View All</Link>
+                      </Button>
+                    </div>
+                  )}
+                </>
               ) : <div className="text-center py-12 text-gray-500">No cancelled patrols found.</div>}
           </TabsContent>
         </Tabs>
@@ -577,9 +655,9 @@ export default function PatrolData() {
         ) : activePatrolsAll.length === 0 ? (
           <div>No active patrols found.</div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {activePatrolsAll.map((patrol) => (
-              <Card key={patrol.id} className="hover:shadow-md transition-shadow">
+              <Card key={patrol.id} className="min-w-[260px] max-w-full p-4 flex flex-col justify-between hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="flex justify-between items-start">
                     <span className="font-bold">{patrol.route}</span>
@@ -590,31 +668,154 @@ export default function PatrolData() {
                     {patrol.ranger.firstName} {patrol.ranger.lastName}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    <span>{formatDate(patrol.patrolDate)} at {patrol.startTime || ''}</span>
-                  </div>
-                  {patrol.objectives && patrol.objectives.length > 0 && (
-                    <>
-                      <p className="text-sm font-semibold pt-2">Objectives:</p>
-                      <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
-                    </>
-                  )}
-                  <div className="flex gap-2 pt-2">
-                    {(user?._id === patrol.ranger._id || user?.role === 'admin') && (
+                <CardContent className="flex flex-col flex-1 justify-between space-y-2">
+                  <div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>{formatDate(patrol.patrolDate)} at {patrol.startTime || ''}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Clock className="mr-2 h-4 w-4" />
+                      <span>Estimated Duration: {patrol.estimatedDuration ? `${patrol.estimatedDuration}h` : 'N/A'}</span>
+                      {patrol.actualDuration !== undefined && patrol.actualDuration !== null && (
+                        <span className="ml-4">Actual Duration: {patrol.actualDuration}h</span>
+                      )}
+                    </div>
+                    {patrol.endTime && (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Clock className="mr-2 h-4 w-4" />
+                        <span>End Time: {typeof patrol.endTime === 'string' ? formatDate(patrol.endTime) : ''}</span>
+                      </div>
+                    )}
+                    {patrol.objectives && patrol.objectives.length > 0 && (
                       <>
-                        <Button size="sm" variant="outline" onClick={() => handlePatrolDialog('edit', patrol)}>Edit</Button>
-                        {patrol.status === 'cancelled' ? (
-                          <Button size="sm" variant="default" onClick={() => handleUncancelPatrol(patrol.id)} disabled={uncancellingId === patrol.id}>
-                            {uncancellingId === patrol.id ? 'Uncancelling...' : 'Uncancel'}
-                          </Button>
-                        ) : (
-                          <Button size="sm" variant="destructive" onClick={() => handleCancelPatrol(patrol.id)}>
-                            Cancel
-                          </Button>
-                        )}
+                        <p className="text-sm font-semibold pt-2">Objectives:</p>
+                        <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
                       </>
+                    )}
+                    {patrol.equipment && patrol.equipment.length > 0 && (
+                      <>
+                        <p className="text-sm font-semibold pt-2">Equipment:</p>
+                        <p className="text-sm line-clamp-2">{patrol.equipment.join(', ')}</p>
+                      </>
+                    )}
+                    {patrol.notes && (
+                      <>
+                        <p className="text-sm font-semibold pt-2">Notes:</p>
+                        <p className="text-sm line-clamp-2">{patrol.notes}</p>
+                      </>
+                    )}
+                    {patrol.findings && (
+                      <>
+                        <p className="text-sm font-semibold pt-2">Findings:</p>
+                        <p className="text-sm line-clamp-2">{patrol.findings}</p>
+                      </>
+                    )}
+                    {renderAttendees(patrol.attendees)}
+                  </div>
+                  <div className="flex gap-2 pt-2 mt-auto">
+                    {(user?._id === patrol.ranger._id || user?.role === 'admin') && calculatePatrolStatus(patrol) !== 'completed' && (
+                      <Button size="sm" variant="outline" onClick={() => handlePatrolDialog('edit', patrol)}>Edit</Button>
+                    )}
+                    {(user?._id === patrol.ranger._id || user?.role === 'admin') && calculatePatrolStatus(patrol) !== 'completed' && (
+                      calculatePatrolStatus(patrol) === 'cancelled' ? (
+                        <Button size="sm" variant="default" onClick={() => handleUncancelPatrol(patrol.id)} disabled={uncancellingId === patrol.id}>
+                          {uncancellingId === patrol.id ? 'Uncancelling...' : 'Uncancel'}
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="destructive" onClick={() => handleCancelPatrol(patrol.id)}>
+                          Cancel
+                        </Button>
+                      )
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {/* Completed Patrols Section */}
+      <div className="mt-8">
+        <h3 className="text-xl font-bold mb-2">Completed Patrols (All Rangers)</h3>
+        {loadingAllPatrols ? (
+          <div>Loading completed patrols...</div>
+        ) : completedPatrolsAll.length === 0 ? (
+          <div>No completed patrols found.</div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {completedPatrolsAll.map((patrol) => (
+              <Card key={patrol.id} className="min-w-[260px] max-w-full p-4 flex flex-col justify-between hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-start">
+                    <span className="font-bold">{patrol.route}</span>
+                    <Badge className={getStatusInfo(patrol.status).color}>{getStatusInfo(patrol.status).text}</Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    <Users className="inline-block h-4 w-4 mr-1" />
+                    {patrol.ranger.firstName} {patrol.ranger.lastName}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col flex-1 justify-between space-y-2">
+                  <div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>{formatDate(patrol.patrolDate)} at {patrol.startTime || ''}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Clock className="mr-2 h-4 w-4" />
+                      <span>Estimated Duration: {patrol.estimatedDuration ? `${patrol.estimatedDuration}h` : 'N/A'}</span>
+                      {patrol.actualDuration !== undefined && patrol.actualDuration !== null && (
+                        <span className="ml-4">Actual Duration: {patrol.actualDuration}h</span>
+                      )}
+                    </div>
+                    {patrol.endTime && (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Clock className="mr-2 h-4 w-4" />
+                        <span>End Time: {typeof patrol.endTime === 'string' ? formatDate(patrol.endTime) : ''}</span>
+                      </div>
+                    )}
+                    {patrol.objectives && patrol.objectives.length > 0 && (
+                      <>
+                        <p className="text-sm font-semibold pt-2">Objectives:</p>
+                        <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
+                      </>
+                    )}
+                    {patrol.equipment && patrol.equipment.length > 0 && (
+                      <>
+                        <p className="text-sm font-semibold pt-2">Equipment:</p>
+                        <p className="text-sm line-clamp-2">{patrol.equipment.join(', ')}</p>
+                      </>
+                    )}
+                    {patrol.notes && (
+                      <>
+                        <p className="text-sm font-semibold pt-2">Notes:</p>
+                        <p className="text-sm line-clamp-2">{patrol.notes}</p>
+                      </>
+                    )}
+                    {patrol.findings && (
+                      <>
+                        <p className="text-sm font-semibold pt-2">Findings:</p>
+                        <p className="text-sm line-clamp-2">{patrol.findings}</p>
+                      </>
+                    )}
+                    {renderAttendees(patrol.attendees)}
+                  </div>
+                  <div className="flex gap-2 pt-2 mt-auto">
+                    {(user?._id === patrol.ranger._id || user?.role === 'admin') && calculatePatrolStatus(patrol) !== 'completed' && (
+                      <Button size="sm" variant="outline" onClick={() => handlePatrolDialog('edit', patrol)}>Edit</Button>
+                    )}
+                    {(user?._id === patrol.ranger._id || user?.role === 'admin') && calculatePatrolStatus(patrol) !== 'completed' && (
+                      calculatePatrolStatus(patrol) === 'cancelled' ? (
+                        <Button size="sm" variant="default" onClick={() => handleUncancelPatrol(patrol.id)} disabled={uncancellingId === patrol.id}>
+                          {uncancellingId === patrol.id ? 'Uncancelling...' : 'Uncancel'}
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="destructive" onClick={() => handleCancelPatrol(patrol.id)}>
+                          Cancel
+                        </Button>
+                      )
                     )}
                   </div>
                 </CardContent>
