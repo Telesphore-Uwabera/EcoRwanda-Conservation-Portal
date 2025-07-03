@@ -39,7 +39,7 @@ import { THREAT_CATEGORIES } from "@/components/common/categories";
 import { GoogleMap, Marker, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
-// Add your Mapbox API key here
+// Add the Mapbox API key here
 const MAPBOX_API_KEY = 'pk.eyJ1IjoidGVsZXNwaG9yZXV3YWJlcmEiLCJhIjoiY21jbWl2Z3A5MGdoMTJqcXE1bDZ5enNuayJ9.njrKk2Q8klZDkq2tpFW6rw';
 const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/dnlatyl5z/image/upload';
 const CLOUDINARY_UPLOAD_PRESET = 'ecorwanda';
@@ -219,7 +219,7 @@ export default function SubmitReport() {
         }));
       });
     } else {
-      alert('Geolocation is not supported by your browser.');
+      alert('Geolocation is not supported by this browser.');
     }
   };
 
@@ -339,7 +339,7 @@ export default function SubmitReport() {
           <Alert className="border-emerald-200 bg-emerald-50">
             <CheckCircle className="h-4 w-4 text-emerald-600" />
             <AlertDescription className="text-emerald-800">
-              Your report has been submitted successfully!
+              The report has been submitted successfully!
               {!isOnline && " It will be synced when you come back online."}
             </AlertDescription>
           </Alert>
@@ -500,7 +500,7 @@ export default function SubmitReport() {
                 Photo Evidence
               </CardTitle>
               <CardDescription>
-                Upload photos to support your report (up to 5 photos, max 10MB
+                Upload photos to support the report (up to 5 photos, max 10MB
                 each)
               </CardDescription>
             </CardHeader>

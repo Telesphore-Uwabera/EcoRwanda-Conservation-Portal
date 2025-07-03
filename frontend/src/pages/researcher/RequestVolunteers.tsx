@@ -192,11 +192,11 @@ export default function RequestVolunteers() {
         if (response.data.success) {
           setProjects(response.data.data);
         } else {
-            setError(response.data.message || "Failed to load projects.");
+            setError(response.data.message || "Failed to load research projects. Please try again later.");
         }
       } catch (err: any) {
         console.error("Failed to fetch projects", err);
-        setError(err.response?.data?.message || "Could not load your research projects. Please try again later.");
+        setError(err.response?.data?.message || "Could not load research projects. Please try again later.");
       } finally {
         setLoadingProjects(false);
       }
@@ -377,7 +377,7 @@ export default function RequestVolunteers() {
           <h2 className="text-2xl font-semibold mb-2">No Research Projects Found</h2>
           <p className="text-gray-600 mb-4 max-w-md">You need to create a research project before you can request volunteers to join it.</p>
           <Button asChild>
-            <Link to="/researcher/publish">Create Your First Project</Link>
+            <Link to="/researcher/publish">Create First Project</Link>
                 </Button>
         </div>
     );
@@ -404,7 +404,7 @@ export default function RequestVolunteers() {
               <CardHeader>
                 <CardTitle>Create a Volunteer Request</CardTitle>
                 <CardDescription>
-                  Fill out the form below to find the perfect volunteers for your
+                  Fill out the form below to find the perfect volunteers for this
                   next research project.
                 </CardDescription>
               </CardHeader>
@@ -414,7 +414,7 @@ export default function RequestVolunteers() {
                     <CheckCircle className="h-4 w-4 text-emerald-600" />
                     <AlertTitle className="text-emerald-800">Request Submitted!</AlertTitle>
                     <AlertDescription className="text-emerald-700">
-                      Your volunteer request has been successfully created. You will be redirected shortly.
+                      The volunteer request has been successfully created. You will be redirected shortly.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -577,7 +577,7 @@ export default function RequestVolunteers() {
               <CardHeader>
                 <CardTitle>Existing Volunteer Requests</CardTitle>
                 <CardDescription>
-                  Manage your volunteer requests and view applicants.
+                  Manage volunteer requests and view applicants.
                 </CardDescription>
               </CardHeader>
               <CardContent>

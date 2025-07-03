@@ -292,7 +292,7 @@ export default function Publications() {
                       >
                         <textarea
                           className="border rounded p-2"
-                          placeholder="Enter your request message"
+                          placeholder="Enter a request message"
                           value={requestMessage}
                           onChange={e => setRequestMessage(e.target.value)}
                           required

@@ -22,7 +22,7 @@ export default function ResetPassword() {
 
   useEffect(() => {
     if (!token) {
-      setError("No reset token provided. Please use the link from your email.");
+      setError("No reset token provided. Please use the link from the email.");
       toast.error("No reset token provided.");
     }
   }, [token]);
@@ -49,7 +49,7 @@ export default function ResetPassword() {
 
     try {
       await api.post(`/auth/reset-password/${token}`, { newPassword });
-      setMessage("Your password has been reset successfully! You can now log in.");
+      setMessage("Password has been reset successfully! You can now log in.");
       toast.success("Password reset successfully!");
       setTimeout(() => navigate("/auth/login"), 3000); // Redirect to login after 3 seconds
     } catch (err: any) {
@@ -63,8 +63,8 @@ export default function ResetPassword() {
 
   return (
     <AuthLayout
-      title="Reset Your Password"
-      subtitle="Enter your new password below."
+      title="Reset Password"
+      subtitle="Enter the new password below."
     >
       <Toaster position="top-center" />
       <form onSubmit={handleSubmit} className="space-y-6">

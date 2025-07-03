@@ -204,7 +204,7 @@ const MyReports = () => {
               <FileText className="h-6 w-6 text-emerald-600" />
               My Reports
             </h1>
-            <p className="text-gray-600">Track the status of your submitted wildlife and conservation reports</p>
+            <p className="text-gray-600">Track the status of submitted wildlife and conservation reports</p>
           </div>
             <Link to="/volunteer/submit-report">
             <Button className="gap-2">
@@ -314,11 +314,11 @@ const MyReports = () => {
             <p className="text-gray-600 mt-1">
               {reports.length === 0
                 ? "You haven't submitted any reports yet"
-                : "No reports match your current filters"}
+                : "No reports match the current filters"}
             </p>
             {reports.length === 0 && (
                       <Link to="/volunteer/submit-report">
-                <Button className="mt-4">Submit Your First Report</Button>
+                <Button className="mt-4">Submit First Report</Button>
                       </Link>
             )}
           </div>

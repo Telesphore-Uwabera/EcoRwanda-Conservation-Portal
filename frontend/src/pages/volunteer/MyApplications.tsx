@@ -31,7 +31,7 @@ export default function MyApplications() {
         if (response.data.success) {
           setApplications(Array.isArray(response.data.data) ? response.data.data : []);
         } else {
-          setError(response.data.error || 'Failed to fetch your applications.');
+          setError(response.data.error || 'Failed to fetch applications.');
         }
       } catch (err: any) {
         setError(err.response?.data?.error || 'An error occurred while fetching applications.');
@@ -119,7 +119,7 @@ export default function MyApplications() {
     <div className="container mx-auto p-4 md:p-6">
       <div className="mb-6">
           <h1 className="text-3xl font-bold">My Applications</h1>
-          <p className="text-gray-600">Track the status of your volunteer applications.</p>
+          <p className="text-gray-600">Track the status of volunteer applications.</p>
       </div>
       {renderContent()}
     </div>

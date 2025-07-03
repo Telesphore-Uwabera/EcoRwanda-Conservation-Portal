@@ -72,7 +72,7 @@ export default function Signup() {
     }
 
     if (!formData.role) {
-      setError("Please select your role");
+      setError("Please select a role");
       return;
     }
 
@@ -143,7 +143,7 @@ export default function Signup() {
   return (
     <AuthLayout
       title="Join EcoRwanda"
-      subtitle="Create your account to start contributing to conservation"
+      subtitle="Create an account to start contributing to conservation"
     >
       {success ? (
         <div className="space-y-6 text-center">
@@ -206,13 +206,13 @@ export default function Signup() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">Select Your Role</Label>
+            <Label htmlFor="role">Select Role</Label>
             <Select
               value={formData.role}
               onValueChange={(value) => handleInputChange("role", value)}
             >
               <SelectTrigger className="h-11">
-                <SelectValue placeholder="Choose your role in conservation" />
+                <SelectValue placeholder="Choose a role in conservation" />
               </SelectTrigger>
               <SelectContent>
                 {roleOptions.map((role) => (
@@ -256,7 +256,7 @@ export default function Signup() {
                 onChange={(e) =>
                   handleInputChange("organization", e.target.value)
                 }
-                placeholder="Your organization"
+                placeholder="Organization"
                 className="h-11"
               />
             </div>

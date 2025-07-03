@@ -46,7 +46,7 @@ export default function Login() {
   return (
     <AuthLayout
       title="Welcome Back"
-      subtitle="Sign in to continue your conservation work"
+      subtitle="Sign in to continue conservation work"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
@@ -65,7 +65,7 @@ export default function Login() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="your.email@example.com"
+            placeholder="email@example.com"
             required
             className="h-11"
           />
@@ -79,7 +79,7 @@ export default function Login() {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder="Enter password"
               required
               className="h-11 pr-10"
             />

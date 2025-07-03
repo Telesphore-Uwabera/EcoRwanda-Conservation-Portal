@@ -22,9 +22,9 @@ export default function ForgotPassword() {
     setError(null);
 
     try {
-      // Replace with your actual backend API endpoint for forgot password
+      // Replace with the actual backend API endpoint for forgot password
       await api.post("/auth/forgot-password", { email });
-      setMessage("If an account with that email exists, a password reset link has been sent to your inbox.");
+      setMessage("If an account with that email exists, a password reset link has been sent to the inbox.");
       toast.success("Password reset request sent!");
     } catch (err: any) {
       console.error("Forgot password error:", err);
@@ -37,8 +37,8 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout
-      title="Forgot Your Password?"
-      subtitle="Enter your email to receive a password reset link."
+      title="Forgot Password?"
+      subtitle="Enter the email to receive a password reset link."
     >
       <Toaster position="top-center" />
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -68,7 +68,7 @@ export default function ForgotPassword() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="your.email@example.com"
+            placeholder="email@example.com"
             required
             className="h-11"
           />

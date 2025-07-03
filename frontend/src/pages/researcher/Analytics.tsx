@@ -123,7 +123,7 @@ export default function Analytics() {
     <div className="space-y-6 p-4 md:p-8">
       <OfflineIndicator isOnline={isOnline} />
         <h1 className="text-3xl font-bold mb-4">Research Analytics</h1>
-      <p className="text-gray-600 mb-6">Analytics and insights about your research projects.</p>
+      <p className="text-gray-600 mb-6">Analytics and insights about research projects.</p>
       {loading && <p>Loading analytics...</p>}
       {error && (
         <AlertDialog variant="destructive" className="mb-4">

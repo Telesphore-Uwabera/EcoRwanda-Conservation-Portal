@@ -241,7 +241,7 @@ export default function VolunteerRequestDetails() {
                   <Alert className="bg-emerald-50 border-emerald-300">
                     <CheckCircle className="h-4 w-4 text-emerald-600" />
                     <AlertTitle className="text-emerald-800">Application Sent!</AlertTitle>
-                    <AlertDescription className="text-emerald-700">The researcher has received your application.</AlertDescription>
+                    <AlertDescription className="text-emerald-700">The researcher has received the application.</AlertDescription>
                   </Alert>
                 ) : (
                   <Dialog open={open} onOpenChange={setOpen}>
@@ -254,7 +254,7 @@ export default function VolunteerRequestDetails() {
                       <DialogHeader>
                         <DialogTitle>Apply for: {request.title}</DialogTitle>
                         <DialogDescription>
-                          Submit your application by filling out the form below.
+                          Submit the application by filling out the form below.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
@@ -273,7 +273,7 @@ export default function VolunteerRequestDetails() {
                           <Label htmlFor="portfolio-link">Portfolio Link (Optional)</Label>
                           <Input
                             id="portfolio-link"
-                            placeholder="https://your-portfolio.com"
+                            placeholder="https://portfolio-link.com"
                             value={portfolioLink}
                             onChange={(e) => setPortfolioLink(e.target.value)}
                           />

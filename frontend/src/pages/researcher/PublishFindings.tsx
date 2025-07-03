@@ -65,7 +65,7 @@ export default function PublishFindings() {
       }
     } catch (err) {
       console.error("Failed to fetch projects", err);
-      setError("Failed to load your projects.");
+      setError("Failed to load projects.");
     } finally {
       setLoading(false);
     }
@@ -249,7 +249,7 @@ export default function PublishFindings() {
               <Card>
                 <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <List /> Your Projects
+                    <List /> Projects
                 </CardTitle>
                 </CardHeader>
               <CardContent>
