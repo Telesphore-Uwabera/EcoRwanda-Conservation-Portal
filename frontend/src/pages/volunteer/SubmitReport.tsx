@@ -416,38 +416,6 @@ export default function SubmitReport() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label>Location</Label>
-                  <Select
-                    value={formData.location.name}
-                    onValueChange={value => handleInputChange("location.name", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {rwandaLocations.map((loc) => (
-                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formData.location.name === "Other Location" && (
-                    <Input
-                      className="mt-2"
-                      placeholder="Enter location name"
-                      value={formData.otherLocationName || ""}
-                      onChange={e => setFormData(prev => ({
-                        ...prev,
-                        location: {
-                          ...prev.location,
-                          name: e.target.value
-                        },
-                        otherLocationName: e.target.value
-                      }))}
-                      required
-                    />
-                  )}
-                </div>
-                <div className="space-y-2">
                   <Label>GPS Coordinates</Label>
                   <div className="flex gap-2 w-full">
                     <Button
@@ -465,6 +433,12 @@ export default function SubmitReport() {
                       Coordinates: {formData.location.lat.toFixed(6)}, {formData.location.lng.toFixed(6)}
                     </p>
                   )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Location</Label>
+                  <p className="text-sm text-gray-600">
+                    {formData.location.name}
+                  </p>
                 </div>
               </div>
             </CardContent>
