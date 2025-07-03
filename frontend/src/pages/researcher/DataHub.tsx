@@ -66,7 +66,7 @@ interface Dataset {
   createdAt: string;
   downloads: number;
   featured?: boolean;
-  owner?: { name: string; email: string };
+  owners?: { name: string; email: string }[];
   downloadUrl?: string;
 }
 
@@ -280,8 +280,8 @@ export default function DataHub() {
       // Convert startDate and endDate to ISO format using helper
       const payload = {
         ...publicationForm,
-        startDate: parseDateToISO(publicationForm.startDate),
-        endDate: parseDateToISO(publicationForm.endDate),
+        startDate: publicationForm.startDate,
+        endDate: publicationForm.endDate,
         authors: authors.filter(a => a.trim()),
         contributors: contributors.filter(c => c.name.trim() && c.role.trim()),
         references: references.length > 0 ? references : [],
@@ -394,7 +394,7 @@ export default function DataHub() {
       const payload = {
         ...datasetForm,
         tags: datasetForm.tags.filter((t) => t.trim()),
-        owner: userObj?._id,
+        owners: userObj?._id,
       };
       const response = await api.post('/data-hub/datasets', payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -424,32 +424,6 @@ export default function DataHub() {
     { value: "conservation_policy", label: "Conservation Policy", icon: "📋" },
     { value: "habitat_restoration", label: "Habitat Restoration", icon: "🌳" },
   ];
-
-  const getAccessIcon = (accessLevel: string) => {
-    switch (accessLevel) {
-      case "open":
-        return <Unlock className="h-4 w-4 text-emerald-600" />;
-      case "restricted":
-        return <Lock className="h-4 w-4 text-red-600" />;
-      case "upon_request":
-        return <Eye className="h-4 w-4 text-amber-600" />;
-      default:
-        return <Lock className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getAccessColor = (accessLevel: string) => {
-    switch (accessLevel) {
-      case "open":
-        return "bg-emerald-100 text-emerald-800";
-      case "restricted":
-        return "bg-red-100 text-red-800";
-      case "upon_request":
-        return "bg-amber-100 text-amber-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -499,7 +473,7 @@ export default function DataHub() {
 
   // Request access handler
   const handleRequestAccess = async () => {
-    if (!selectedDataset || !selectedDataset.owner || !selectedDataset.owner.email) return;
+    if (!selectedDataset || !selectedDataset.owners || selectedDataset.owners.length === 0) return;
     setRequestingAccess(true);
     try {
       const storedUser = localStorage.getItem('eco-user');
@@ -511,12 +485,12 @@ export default function DataHub() {
       }
       await api.post('/data-hub/request-dataset-access', {
         datasetId: selectedDataset._id,
-        ownerEmail: selectedDataset.owner.email,
+        owners: selectedDataset.owners.map(o => o?.email),
         message: requestMessage,
       }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast.success('Access request sent to the publisher.');
+      toast.success('Access request sent to the publishers.');
       setShowDatasetDialog(false);
       setRequestMessage("");
     } catch (err: any) {
@@ -708,10 +682,6 @@ export default function DataHub() {
                           <CardTitle className="text-lg font-medium">
                             {dataset.title}
                           </CardTitle>
-                          <Badge className={getAccessColor(dataset.accessLevel)}>
-                            {getAccessIcon(dataset.accessLevel)}
-                            {dataset.accessLevel.replace("_", " ")}
-                          </Badge>
                         </CardHeader>
                         <CardContent className="space-y-2">
                           <p className="text-sm text-gray-700 line-clamp-2">
@@ -779,10 +749,6 @@ export default function DataHub() {
                           <CardTitle className="text-lg font-medium">
                             {paper.title}
                           </CardTitle>
-                          <Badge className={getAccessColor(paper.accessLevel)}>
-                            {getAccessIcon(paper.accessLevel)}
-                            {paper.accessLevel.replace("_", " ")}
-                          </Badge>
                         </CardHeader>
                         <CardContent className="space-y-2">
                           <p className="text-sm text-gray-700 line-clamp-2">
@@ -915,58 +881,49 @@ export default function DataHub() {
                     value={datasetSearchTerm || ''}
                     onChange={e => setDatasetSearchTerm(e.target.value)}
                   />
-                  {filteredDatasets.length === 0 ? (
+                  {datasetsList.length === 0 ? (
                     <div className="text-gray-500 text-sm mb-2">No datasets available. <button type="button" className="text-blue-600 underline" onClick={() => setShowDatasetForm(true)}>Create a new dataset</button></div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {selectedDatasets.map(dsId => {
-                          const ds = datasetsList.find(d => d._id === dsId);
-                          return ds ? (
-                            <div key={dsId} className="w-full bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2 flex flex-col md:flex-row md:items-center md:justify-between">
-                              <div>
-                                <div className="font-semibold text-blue-900">{ds.title} <span className="text-xs text-gray-500">({ds.category})</span></div>
-                                <div className="text-xs text-gray-700 mb-1 line-clamp-2">{ds.description}</div>
-                                <div className="flex flex-wrap gap-1 mb-1">
-                                  {ds.tags.map(tag => <span key={tag} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">{tag}</span>)}
-                                </div>
-                                <div className="text-xs text-gray-500">Access: {ds.accessLevel.replace('_', ' ')} | Owner: {ds.owner?.name || 'N/A'}</div>
-                              </div>
-                              <div className="flex gap-2 mt-2 md:mt-0">
-                                <button type="button" className="text-blue-600 underline text-xs" onClick={() => { setSelectedDataset(ds); setShowDatasetDialog(true); }}>View Details</button>
-                                <button type="button" className="text-red-600 text-lg ml-2" onClick={() => setSelectedDatasets(selectedDatasets.filter(id => id !== dsId))} title="Remove">&times;</button>
-                              </div>
-                            </div>
-                          ) : null;
-                        })}
-                      </div>
                       <select
                         className="w-full border rounded px-2 py-1"
                         multiple
                         value={selectedDatasets}
                         onChange={e => {
                           const options = Array.from(e.target.selectedOptions).map(o => o.value);
-                          // Prevent duplicates
                           setSelectedDatasets(Array.from(new Set(options)));
                         }}
-                        size={Math.min(6, filteredDatasets.length)}
+                        size={Math.min(6, datasetsList.length)}
                       >
-                        {filteredDatasets.map(ds => (
-                          <option key={ds._id} value={ds._id} disabled={selectedDatasets.includes(ds._id)}>
-                            {ds.title} ({ds.category}) — {ds.owner?.name || 'N/A'}
-                          </option>
-                        ))}
+                        {datasetsList
+                          .filter(ds =>
+                            ds.title.toLowerCase().includes(datasetSearchTerm.toLowerCase()) ||
+                            ds.category.toLowerCase().includes(datasetSearchTerm.toLowerCase()) ||
+                            ds.tags.some(tag => tag.toLowerCase().includes(datasetSearchTerm.toLowerCase()))
+                          )
+                          .map(ds => (
+                            <option key={ds._id} value={ds._id} disabled={selectedDatasets.includes(ds._id)}>
+                              {ds.title} ({ds.category}) — {Array.isArray(ds.owners) && ds.owners.length > 0 ? ds.owners.map(o => o?.name).filter(Boolean).join(', ') : 'N/A'}
+                            </option>
+                          ))}
                       </select>
                       <div className="text-xs text-gray-500 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple datasets.</div>
-                      <Button
-                        type="button"
-                        className="mt-4 flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
-                        onClick={() => setShowDatasetForm(true)}
-                      >
+                      <button type="button" className="mt-4 flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2" onClick={() => setShowDatasetForm(true)}>
                         <span className="text-xl font-bold">+</span> Create New Dataset
-                      </Button>
+                      </button>
                     </div>
                   )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block font-medium mb-1">Start Date</label>
+                    <Input name="startDate" type="date" value={publicationForm.startDate} onChange={handlePublicationInput} required />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">End Date</label>
+                    <Input name="endDate" type="date" value={publicationForm.endDate} onChange={handlePublicationInput} required />
+                  </div>
+                  <div></div>
                 </div>
                 <Button type="submit" disabled={isPublishing} className="py-4 bg-blue-700 text-white font-extrabold text-lg uppercase tracking-wider rounded-xl hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-600 focus:ring-offset-2 transition duration-300 ease-in-out shadow-2xl transform hover:scale-105">
                   {isPublishing ? 'Publishing...' : 'Publish Research Paper'}
@@ -1063,10 +1020,10 @@ export default function DataHub() {
                   <div><b>Category:</b> {selectedDataset.category}</div>
                   <div><b>Location:</b> {selectedDataset.location?.name}</div>
                   <div><b>Tags:</b> {selectedDataset.tags?.join(', ')}</div>
-                  <div><b>Access Level:</b> {selectedDataset.accessLevel.replace('_', ' ')}</div>
+                  <div><b>Access Level:</b> {selectedDataset.accessLevel ? selectedDataset.accessLevel.replace('_', ' ') : ''}</div>
                   <div><b>Published:</b> {selectedDataset.createdAt ? new Date(selectedDataset.createdAt).toLocaleString() : 'N/A'}</div>
-                  {selectedDataset.owner && (
-                    <div><b>Publisher:</b> {selectedDataset.owner.name} ({selectedDataset.owner.email})</div>
+                  {Array.isArray(selectedDataset.owners) && selectedDataset.owners.length > 0 && (
+                    <div><b>Publishers:</b> {selectedDataset.owners.map(o => o?.name).filter(Boolean).join(', ')}</div>
                   )}
                 </div>
                 {selectedDataset.accessLevel === 'open' && (
@@ -1083,7 +1040,7 @@ export default function DataHub() {
                   <div className="mt-4 space-y-2">
                     <div className="font-semibold">Request Access</div>
                     <Input
-                      placeholder="Message to publisher (optional)"
+                      placeholder="Message to publishers (optional)"
                       value={requestMessage}
                       onChange={e => setRequestMessage(e.target.value)}
                       disabled={requestingAccess}
@@ -1110,7 +1067,7 @@ export default function DataHub() {
                 <div className="space-y-2 mt-2">
                   <div><b>Authors:</b> {selectedPaper.authors?.join(', ')}</div>
                   <div><b>Category:</b> {selectedPaper.category}</div>
-                  <div><b>Access Level:</b> {selectedPaper.accessLevel?.replace('_', ' ')}</div>
+                  <div><b>Access Level:</b> {selectedPaper.accessLevel}</div>
                   <div><b>Published:</b> {selectedPaper.createdAt ? new Date(selectedPaper.createdAt).toLocaleString() : 'N/A'}</div>
                 </div>
               </>

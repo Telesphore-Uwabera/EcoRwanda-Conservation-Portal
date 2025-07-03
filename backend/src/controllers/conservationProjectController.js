@@ -200,6 +200,15 @@ exports.publishResearchPaper = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing required fields.' });
     }
 
+    let owners = [];
+    if (Array.isArray(req.body.authorsUserIds) && req.body.authorsUserIds.length > 0) {
+      owners = req.body.authorsUserIds;
+    } else if (req.body.owner) {
+      owners = [req.body.owner];
+    } else if (req.user && req.user._id) {
+      owners = [req.user._id];
+    }
+
     const project = await ConservationProject.create({
       title,
       description,
@@ -228,6 +237,7 @@ exports.publishResearchPaper = async (req, res) => {
       publicationLink: publicationLink || '',
       contributors: contributors || [],
       impact: impact || { treesPlanted: 0, wildlifeProtected: 0, areaRestored: 0 },
+      owners: owners,
     });
 
     res.status(201).json({ success: true, data: project });

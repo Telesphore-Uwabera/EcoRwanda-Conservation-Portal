@@ -15,7 +15,7 @@ const datasetSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   downloads: { type: Number, default: 0 },
   featured: { type: Boolean, default: false },
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  owners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   researchType: { type: String },
   relatedProject: { type: mongoose.Schema.Types.ObjectId, ref: 'ConservationProject' },
   downloadUrl: { type: String },

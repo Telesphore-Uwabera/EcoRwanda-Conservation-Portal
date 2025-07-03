@@ -13,6 +13,7 @@ interface ResearcherStats {
   activeProjects: number;
   volunteerCollaborators: number;
   datasetsAvailable: number;
+  totalProjects: number;
 }
 
 interface ProjectStatus {
@@ -30,7 +31,7 @@ const projectStatusColors = {
 export default function Analytics() {
   const isOnline = useOfflineStatus();
   const [stats, setStats] = useState<ResearcherStats | null>(null);
-  const [projectStatus, setProjectStatus] = useState<ProjectStatus[]>([]);
+  const [projectStatusBreakdown, setProjectStatusBreakdown] = useState<{ completed: number; active: number; planning: number }>({ completed: 0, active: 0, planning: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,18 +57,11 @@ export default function Analytics() {
         });
         const datasetsAvailable = dataHubResponse.data.datasetsAvailable || 0;
         setStats({
-          publishedFindings: data.stats.publishedFindings,
-          activeProjects: data.stats.activeProjects,
-          volunteerCollaborators: data.stats.volunteerCollaborators,
+          ...data.stats,
           datasetsAvailable,
         });
-        // If project status breakdown is available, set it. Otherwise, skip.
-        if (data.activeProjects && Array.isArray(data.activeProjects)) {
-          const statusMap: { [key: string]: number } = {};
-          data.activeProjects.forEach((proj: any) => {
-            statusMap[proj.status] = (statusMap[proj.status] || 0) + 1;
-          });
-          setProjectStatus(Object.entries(statusMap).map(([status, count]) => ({ status, count })));
+        if (data.projectStatusBreakdown) {
+          setProjectStatusBreakdown(data.projectStatusBreakdown);
         }
       } catch (err) {
         setError('Failed to load analytics data. Please try again later.');
@@ -90,6 +84,13 @@ export default function Analytics() {
     </Card>
   );
 
+  // For the bar chart, build the data array from projectStatusBreakdown
+  const barChartData = [
+    { status: 'Completed', count: projectStatusBreakdown.completed },
+    { status: 'Active', count: projectStatusBreakdown.active },
+    { status: 'Planning', count: projectStatusBreakdown.planning },
+  ];
+
   return (
     <div className="space-y-6 p-4 md:p-8">
       <OfflineIndicator isOnline={isOnline} />
@@ -106,35 +107,32 @@ export default function Analytics() {
         <>
           {/* Stat Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {/* <StatCard icon={BookOpen} title="Published Findings" value={stats.publishedFindings} /> */}
-            <StatCard icon={BarChart3} title="Active Projects" value={stats.activeProjects} />
+            <StatCard icon={BarChart3} title="Total Projects" value={stats.totalProjects} />
             <StatCard icon={Users} title="Volunteer Collaborators" value={stats.volunteerCollaborators} />
             <StatCard icon={Database} title="Datasets Available" value={stats.datasetsAvailable} />
           </div>
           {/* Project Status Bar Chart */}
-          {projectStatus.length > 0 && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Active Project Status Overview</CardTitle>
-              </CardHeader>
-              <CardContent style={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <ReBarChart data={projectStatus}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="status" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" name="Projects">
-                      {projectStatus.map((item, idx) => (
-                        <Cell key={item.status} fill={projectStatusColors[item.status?.toLowerCase()] || '#8884d8'} />
-                      ))}
-                    </Bar>
-                  </ReBarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Project Status Overview</CardTitle>
+            </CardHeader>
+            <CardContent style={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ReBarChart data={barChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="status" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" name="Projects">
+                    {barChartData.map((item, idx) => (
+                      <Cell key={item.status} fill={projectStatusColors[item.status.toLowerCase()] || '#8884d8'} />
+                    ))}
+                  </Bar>
+                </ReBarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </>
       )}
       </div>

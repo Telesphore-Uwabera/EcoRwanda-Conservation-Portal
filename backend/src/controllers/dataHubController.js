@@ -7,7 +7,7 @@ const sendEmail = require('../utils/sendEmail');
 const getDataHubData = async (req, res) => {
   try {
     // Fetch all datasets and populate owner with name and email
-    const datasets = await Dataset.find({}).populate('owner', 'name email');
+    const datasets = await Dataset.find({}).populate('owners', 'name email');
     const datasetsAvailable = datasets.length;
 
     // Fetch research papers/publications from ConservationProject
@@ -44,7 +44,18 @@ const getDataHubData = async (req, res) => {
 // Dataset CRUD controllers
 exports.createDataset = async (req, res) => {
   try {
-    const dataset = await Dataset.create(req.body);
+    let owners = [];
+    if (Array.isArray(req.body.authorsUserIds) && req.body.authorsUserIds.length > 0) {
+      owners = req.body.authorsUserIds;
+    } else if (req.body.owner) {
+      owners = [req.body.owner];
+    } else if (req.user && req.user._id) {
+      owners = [req.user._id];
+    }
+    const dataset = await Dataset.create({
+      ...req.body,
+      owners,
+    });
     res.status(201).json({ success: true, data: dataset });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -53,7 +64,7 @@ exports.createDataset = async (req, res) => {
 
 exports.getDatasets = async (req, res) => {
   try {
-    const datasets = await Dataset.find({}).populate('owner', 'name email');
+    const datasets = await Dataset.find({}).populate('owners', 'name email');
     res.status(200).json({ success: true, data: datasets });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -62,7 +73,7 @@ exports.getDatasets = async (req, res) => {
 
 exports.getDatasetById = async (req, res) => {
   try {
-    const dataset = await Dataset.findById(req.params.id).populate('owner', 'name email');
+    const dataset = await Dataset.findById(req.params.id).populate('owners', 'name email');
     if (!dataset) return res.status(404).json({ success: false, error: 'Dataset not found' });
     res.status(200).json({ success: true, data: dataset });
   } catch (error) {
@@ -114,7 +125,7 @@ exports.requestDatasetAccess = async (req, res) => {
 
 exports.downloadDataset = async (req, res) => {
   try {
-    const dataset = await Dataset.findById(req.params.id).populate('owner', 'name email');
+    const dataset = await Dataset.findById(req.params.id).populate('owners', 'name email');
     if (!dataset) {
       return res.status(404).json({ success: false, error: 'Dataset not found' });
     }

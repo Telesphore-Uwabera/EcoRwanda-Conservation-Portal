@@ -98,6 +98,7 @@ const ConservationProjectSchema = new mongoose.Schema({
     default: 'open',
   },
   datasets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Dataset' }],
+  owners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, {
   timestamps: true,
   strict: false,
