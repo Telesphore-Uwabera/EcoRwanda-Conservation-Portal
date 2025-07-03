@@ -6,22 +6,28 @@ const sendEmail = require('../utils/sendEmail');
 
 const getDataHubData = async (req, res) => {
   try {
-    // Fetch all datasets and populate owner with name and email
+    // Fetch all datasets and publications
     const datasets = await Dataset.find({}).populate('owners', 'name email');
-    const datasetsAvailable = datasets.length;
+    const publications = await ConservationProject.find({}).populate('owners', 'name email');
+
+    // Collect all unique owner user IDs and names/emails
+    const contributorMap = new Map();
+    datasets.forEach(ds => {
+      (ds.owners || []).forEach(owner => {
+        if (owner && owner._id) contributorMap.set(owner._id.toString(), { name: owner.name, email: owner.email });
+      });
+    });
+    publications.forEach(pub => {
+      (pub.owners || []).forEach(owner => {
+        if (owner && owner._id) contributorMap.set(owner._id.toString(), { name: owner.name, email: owner.email });
+      });
+    });
+    const contributors = Array.from(contributorMap.values());
+    const contributingResearchersCount = contributors.length;
 
     // Fetch research papers/publications from ConservationProject
     const papers = await ConservationProject.find({ status: 'completed' });
     const researchPapersCount = papers.length;
-
-    // Count of Contributing Researchers (unique authors from publications)
-    const contributingResearchers = await ConservationProject.aggregate([
-      { $match: { status: 'completed' } },
-      { $unwind: '$authors' },
-      { $group: { _id: '$authors' } },
-      { $count: 'count' },
-    ]);
-    const contributingResearchersCount = contributingResearchers.length > 0 ? contributingResearchers[0].count : 0;
 
     // Total downloads (sum of all dataset downloads)
     const totalDownloads = datasets.reduce((sum, ds) => sum + (ds.downloads || 0), 0);
@@ -29,10 +35,11 @@ const getDataHubData = async (req, res) => {
     res.json({
       researchPapers: researchPapersCount,
       contributingResearchers: contributingResearchersCount,
-      datasetsAvailable: datasetsAvailable,
+      datasetsAvailable: datasets.length,
       totalDownloads: totalDownloads,
       datasets: datasets,
       papers: papers,
+      contributors,
     });
 
   } catch (error) {

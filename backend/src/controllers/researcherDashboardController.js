@@ -8,11 +8,9 @@ const Application = require('../models/Application');
 const getResearcherDashboardData = async (req, res) => {
   try {
     const userId = req.user._id;
-
-    // Fetch all research projects from ResearchProject collection only
-    const allProjects = await ResearchProject.find({});
+    // Fetch all research projects for this user
+    const allProjects = await ResearchProject.find({ leadResearcher: userId });
     const totalProjects = allProjects.length;
-
     // Group projects by status
     let completed = 0, active = 0, planning = 0;
     allProjects.forEach(p => {
