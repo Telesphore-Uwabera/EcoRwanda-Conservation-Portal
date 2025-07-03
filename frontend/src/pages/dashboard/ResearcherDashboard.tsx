@@ -187,7 +187,10 @@ export default function ResearcherDashboard() {
     });
   };
 
-  const completedProjects = activeProjects.filter(project => new Date(project.endDate) < new Date());
+  // Categorize projects by real date logic
+  const now = new Date();
+  const trulyActiveProjects = activeProjects.filter(project => new Date(project.endDate) >= now);
+  const completedProjects = activeProjects.filter(project => new Date(project.endDate) < now);
 
   // Helper: Get upcoming deadlines (next 2 by endDate)
   const allWithDeadlines = [...activeProjects, ...collaborationRequests].filter(item => new Date(item.endDate) > new Date());
@@ -297,13 +300,13 @@ export default function ResearcherDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(!activeProjects || activeProjects.length === 0) ? (
+              {(!trulyActiveProjects || trulyActiveProjects.length === 0) ? (
                 <div className="text-center text-gray-500 py-10">
                   <p>No active projects found.</p>
                 </div>
               ) : (
                 <div className="grid gap-4">
-                    {(showAllActive ? activeProjects : activeProjects.slice(0, 2)).map((project) => (
+                    {(showAllActive ? trulyActiveProjects : trulyActiveProjects.slice(0, 2)).map((project) => (
                       <div key={project._id} className="p-3 rounded-lg border bg-white">
                         <div className="font-semibold text-gray-800 text-lg">{project.title}</div>
                         <div className="text-sm text-gray-500 space-x-4 mb-1">
@@ -353,7 +356,7 @@ export default function ResearcherDashboard() {
                     ))}
                   </div>
                 )}
-                {activeProjects.length > 2 && (
+                {trulyActiveProjects.length > 2 && (
                   <Button
                     className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white"
                     onClick={() => setShowAllActive((prev) => !prev)}
@@ -409,7 +412,7 @@ export default function ResearcherDashboard() {
                     </div>
                   ))}
                 </div>
-              )}
+                )}
                 {completedProjects.length > 2 && (
                   <Button
                     className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white"

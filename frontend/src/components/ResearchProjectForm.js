@@ -122,11 +122,29 @@ const ResearchProjectForm = ({ project, onSubmit }) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    // Prepare payload to match backend requirements
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      objectives: formData.objectives,
+      methodology: formData.methodology,
+      location: {
+        name: formData.location.name,
+        lat: formData.location.lat !== '' ? Number(formData.location.lat) : undefined,
+        lng: formData.location.lng !== '' ? Number(formData.location.lng) : undefined,
+      },
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      status: formData.status || 'planning',
+      tags: formData.tags || [],
+      leadResearcher: user?._id,
+    };
+
     try {
       if (project) {
-        await api.put(`/research-projects/${project._id}`, formData);
+        await api.put(`/research-projects/${project._id}`, payload);
       } else {
-        await api.post('/research-projects', formData);
+        await api.post('/research-projects', payload);
       }
       navigate('/research-projects');
     } catch (error) {

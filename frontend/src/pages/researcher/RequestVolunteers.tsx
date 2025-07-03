@@ -268,20 +268,30 @@ export default function RequestVolunteers() {
 
     try {
       const requestData = {
-        ...formData,
+        researchProject: formData.researchProject,
+        title: formData.title,
+        description: formData.description,
+        objectives: formData.objectives ? formData.objectives.split('\n').map(obj => obj.trim()).filter(Boolean) : [],
+        skillsRequired: formData.requiredSkills || [],
+        preferredSkills: formData.preferredSkills || [],
+        location: { name: formData.location },
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        duration: formData.duration,
+        timeCommitment: formData.timeCommitment,
+        difficultyLevel: formData.difficultyLevel,
+        compensation: formData.compensation,
+        trainingProvided: !!formData.trainingProvided,
+        accommodationProvided: !!formData.accommodationProvided,
+        transportationProvided: !!formData.transportationProvided,
         numberOfVolunteersNeeded: Number(formData.volunteersNeeded),
-        skillsRequired: formData.requiredSkills,
-        location: {
-          name: formData.location,
-          lat: 6.45,
-          lng: 30.06,
-        }
+        applicationDeadline: formData.applicationDeadline,
       };
 
       const response = await api.post('/volunteer-requests', requestData);
 
       if (response.data.success) {
-      setSuccess(true);
+        setSuccess(true);
         setTimeout(() => navigate('/dashboard/researcher'), 2000);
       } else {
         throw new Error(response.data.error || "An unknown error occurred.");

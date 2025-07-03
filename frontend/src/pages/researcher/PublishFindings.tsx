@@ -107,18 +107,26 @@ export default function PublishFindings() {
     setSuccess(false);
     setIsSubmitting(true);
 
-    const submissionData = {
-      ...formData,
-      leadResearcher: user?._id,
+    // Prepare payload to match backend requirements
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      objectives: formData.objectives,
+      methodology: formData.methodology,
       location: {
-        ...formData.location,
-        lat: parseFloat(formData.location.lat),
-        lng: parseFloat(formData.location.lng),
+        name: formData.location.name,
+        lat: formData.location.lat !== '' ? Number(formData.location.lat) : undefined,
+        lng: formData.location.lng !== '' ? Number(formData.location.lng) : undefined,
       },
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      status: 'planning',
+      tags: [],
+      leadResearcher: user?._id,
     };
 
     try {
-      const response = await api.post('/researchprojects', submissionData);
+      const response = await api.post('/researchprojects', payload);
       if (response.data.success) {
         setSuccess(true);
         setFormData(initialFormData); // Reset form
