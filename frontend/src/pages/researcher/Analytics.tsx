@@ -42,27 +42,55 @@ export default function Analytics() {
       try {
         const storedUser = localStorage.getItem('eco-user');
         let token = null;
+        let userId = null;
         if (storedUser) {
           const user = JSON.parse(storedUser);
           token = user.token;
+          userId = user._id;
         }
-        // Fetch researcher dashboard stats
-        const response = await api.get('/researcher-dashboard', {
+        // Fetch all research projects for the user (correct endpoint)
+        const projectsRes = await api.get(`/researchprojects/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = response.data;
+        const projects = projectsRes.data.data || [];
+        const now = new Date();
+        let completed = 0, active = 0, planning = 0;
+        projects.forEach((p: any) => {
+          const start = new Date(p.startDate);
+          const end = new Date(p.endDate);
+          if (end < now) completed++;
+          else if (start > now) planning++;
+          else active++;
+        });
+        // Fetch all volunteer requests for the user's projects
+        const volunteerReqRes = await api.get(`/volunteer-requests?requestedBy=${userId}&populate=applications`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const volunteerRequests = volunteerReqRes.data.data || [];
+        // Count unique accepted applicants
+        const acceptedVolunteers = new Set();
+        volunteerRequests.forEach((req: any) => {
+          if (req.applications && Array.isArray(req.applications)) {
+            req.applications.forEach((app: any) => {
+              if (app.status === 'accepted' && app.applicant && app.applicant._id) {
+                acceptedVolunteers.add(app.applicant._id);
+              }
+            });
+          }
+        });
         // Fetch datasetsAvailable from /data-hub
         const dataHubResponse = await api.get('/data-hub', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const datasetsAvailable = dataHubResponse.data.datasetsAvailable || 0;
         setStats({
-          ...data.stats,
+          totalProjects: projects.length,
+          volunteerCollaborators: acceptedVolunteers.size,
           datasetsAvailable,
+          publishedFindings: 0,
+          activeProjects: active,
         });
-        if (data.projectStatusBreakdown) {
-          setProjectStatusBreakdown(data.projectStatusBreakdown);
-        }
+        setProjectStatusBreakdown({ completed, active, planning });
       } catch (err) {
         setError('Failed to load analytics data. Please try again later.');
       } finally {

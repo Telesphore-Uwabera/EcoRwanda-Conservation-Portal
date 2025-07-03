@@ -11,12 +11,12 @@ const {
 } = require('../controllers/researchProjectController');
 
 // Public routes
+router.get('/user/:userId', authenticateToken, getProjectsByUser);
 router.get('/', getAllResearchProjects);
 router.get('/:id', getResearchProjectById);
 
 // Protected routes (for logged-in users)
 router.post('/', authenticateToken, createResearchProject);
-router.get('/user/:userId', authenticateToken, getProjectsByUser);
 
 // Admin or Author protected routes
 router.put('/:id', authenticateToken, updateResearchProject); // Additional checks inside controller
