@@ -7,7 +7,7 @@ const publishFinding = async (req, res) => {
     // Parse fields from form-data or JSON
     const {
       title,
-      abstract,
+      content,
       category,
       methodology,
       findings,
@@ -27,7 +27,7 @@ const publishFinding = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!title || !abstract || !category || !methodology || !findings || !location) {
+    if (!title || !content || !category || !methodology || !findings || !location) {
       return res.status(400).json({ success: false, message: 'Missing required fields.' });
     }
 
@@ -60,7 +60,7 @@ const publishFinding = async (req, res) => {
       // Create a new project with all required info
       project = new ResearchProject({
         title,
-        description: abstract,
+        description: content,
         objectives: [],
         methodology,
         location: typeof parsedLocation === 'object' ? parsedLocation : { lat: 0, lng: 0, name: parsedLocation },
@@ -83,7 +83,7 @@ const publishFinding = async (req, res) => {
     // Add finding (store file URLs)
     project.findings.push({
       title,
-      description: abstract,
+      description: content,
       date: new Date(),
       addedBy: req.user._id,
       attachments: [
@@ -96,7 +96,7 @@ const publishFinding = async (req, res) => {
     parsedPublicationUrls.forEach(url => {
       project.documents.push({
         title,
-        description: abstract,
+        description: content,
         fileUrl: url,
         uploadedBy: req.user._id,
       });

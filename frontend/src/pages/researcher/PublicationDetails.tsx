@@ -13,7 +13,7 @@ interface Publication {
   title: string;
   authors: string[];
   publicationDate?: string;
-  abstract?: string;
+  content?: string;
   category?: string;
   downloads?: number;
   accessLevel: string;
@@ -168,7 +168,7 @@ export default function PublicationDetails() {
             </Badge>
           </div>
           <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Description:</b> {publication.description}</div>
-          <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Abstract:</b> {publication.abstract}</div>
+          <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Content:</b> {publication.content}</div>
           {publication.requirements && <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Requirements:</b> {publication.requirements}</div>}
           {publication.skills && publication.skills.length > 0 && (
             <div className="mb-2 text-gray-800 whitespace-pre-line"><b>Skills:</b> {publication.skills.join(', ')}</div>

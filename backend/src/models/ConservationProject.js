@@ -76,7 +76,7 @@ const ConservationProjectSchema = new mongoose.Schema({
     trim: true,
   }],
   // Research publication fields
-  abstract: {
+  content: {
     type: String,
     trim: true,
   },

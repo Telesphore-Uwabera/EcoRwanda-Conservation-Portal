@@ -175,7 +175,7 @@ exports.publishResearchPaper = async (req, res) => {
       description,
       organization,
       location,
-      abstract,
+      content,
       authors,
       publicationDate,
       startDate,
@@ -196,7 +196,7 @@ exports.publishResearchPaper = async (req, res) => {
       impact
     } = req.body;
 
-    if (!title || !description || !organization || !location || !abstract || !authors || !publicationDate || !category) {
+    if (!title || !description || !organization || !location || !content || !authors || !publicationDate || !category) {
       return res.status(400).json({ success: false, error: 'Missing required fields.' });
     }
 
@@ -205,7 +205,7 @@ exports.publishResearchPaper = async (req, res) => {
       description,
       organization,
       location,
-      abstract,
+      content,
       authors,
       publicationDate,
       startDate,

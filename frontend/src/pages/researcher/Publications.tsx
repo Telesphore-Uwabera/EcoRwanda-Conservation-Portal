@@ -12,7 +12,7 @@ interface Publication {
   title: string;
   authors: string[];
   publicationDate?: string;
-  abstract?: string;
+  content?: string;
   category?: string;
   downloads?: number;
   accessLevel: string;
@@ -199,7 +199,7 @@ export default function Publications() {
                 </div>
                 <div className="space-y-4">
                   <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Description:</span> {pub.description}</div>
-                  <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Abstract:</span> {pub.abstract}</div>
+                  <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Content:</span> {pub.content}</div>
                   {pub.requirements && <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Requirements:</span> {pub.requirements}</div>}
                 {pub.skills && pub.skills.length > 0 && (
                     <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Skills:</span> {pub.skills.join(', ')}</div>
