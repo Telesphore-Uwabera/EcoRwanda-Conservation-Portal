@@ -31,7 +31,7 @@ jobs:
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ecorwanda-portal-eed6gfb3f7ftbkfv'
+          app-name: 'ecorwanda-portal'
           slot-name: 'production'
-          publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: ./backend 
