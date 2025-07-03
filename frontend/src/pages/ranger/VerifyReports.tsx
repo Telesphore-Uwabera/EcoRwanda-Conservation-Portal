@@ -327,9 +327,9 @@ export default function VerifyReports() {
                 <div className="mt-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-3">Photos</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {selectedReport.photos.map((_, index) => (
+                    {selectedReport.photos.map((url, index) => (
                       <div key={index} className="relative aspect-video overflow-hidden rounded-md">
-                        <img src={`http://localhost:8080/api/reports/${selectedReport._id}/photo/${index}`} alt={`Report Photo ${index + 1}`} className="w-full h-full object-cover" />
+                        <img src={url} alt={`Report Photo ${index + 1}`} className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
