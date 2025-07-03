@@ -73,7 +73,7 @@ interface Dataset {
 interface ResearchPaper {
   _id: string;
   title: string;
-  abstract: string;
+  content: string;
   authors: string[];
   publicationDate: string;
   category: string;
@@ -108,7 +108,7 @@ export default function DataHub() {
     description: '',
     organization: '',
     location: '',
-    abstract: '',
+    content: '',
     authors: '',
     publicationDate: '',
     startDate: '',
@@ -479,7 +479,7 @@ export default function DataHub() {
   const filteredPapers = papers.filter((paper) => {
     const matchesSearch =
       paper.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      paper.abstract.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      paper.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
       paper.authors.some((author) =>
         author.toLowerCase().includes(searchTerm.toLowerCase()),
       );
@@ -767,7 +767,7 @@ export default function DataHub() {
                         </CardHeader>
                         <CardContent className="space-y-2">
                           <p className="text-sm text-gray-700 line-clamp-2">
-                            {paper.abstract}
+                            {paper.content}
                           </p>
                           <div className="flex flex-wrap gap-2 text-sm text-gray-600 mt-2">
                             <Badge variant="outline" className="flex items-center gap-1">
@@ -786,7 +786,7 @@ export default function DataHub() {
                             )}
                           </div>
                           {paper.accessLevel === 'open' ? (
-                            <div className="text-gray-800 mb-2">{paper.abstract || 'No abstract provided.'}</div>
+                            <div className="text-gray-800 mb-2">{paper.content || 'No content provided.'}</div>
                           ) : paper.accessLevel === 'restricted' ? (
                             <div className="text-red-600 font-semibold mb-2">Access Restricted</div>
                           ) : (
@@ -868,8 +868,8 @@ export default function DataHub() {
                     <Input name="location" value={publicationForm.location} onChange={handlePublicationInput} required placeholder="e.g., Nyungwe National Park" />
                   </div>
                   <div>
-                    <label className="block font-medium mb-1">Abstract</label>
-                    <Input name="abstract" value={publicationForm.abstract} onChange={handlePublicationInput} required />
+                    <label className="block font-medium mb-1">Content</label>
+                    <Input name="content" value={publicationForm.content} onChange={handlePublicationInput} required />
                   </div>
                   <div>
                     <label className="block font-medium mb-1">Category</label>
@@ -1091,7 +1091,7 @@ export default function DataHub() {
               <>
                 <DialogHeader>
                   <DialogTitle>{selectedPaper.title}</DialogTitle>
-                  <DialogDescription>{selectedPaper.abstract}</DialogDescription>
+                  <DialogDescription>{selectedPaper.content}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-2 mt-2">
                   <div><b>Authors:</b> {selectedPaper.authors?.join(', ')}</div>
