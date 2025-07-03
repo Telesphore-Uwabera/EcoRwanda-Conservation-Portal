@@ -42,12 +42,26 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material
 // Add your Mapbox API key here
 const MAPBOX_API_KEY = 'pk.eyJ1IjoidGVsZXNwaG9yZXV3YWJlcmEiLCJhIjoiY21jbWl2Z3A5MGdoMTJqcXE1bDZ5enNuayJ9.njrKk2Q8klZDkq2tpFW6rw';
 
+type FormDataType = {
+  title: string;
+  description: string;
+  category: string;
+  urgency: string;
+  location: {
+    name: string;
+    lat: number;
+    lng: number;
+  };
+  otherCategory: string;
+  otherLocationName?: string;
+};
+
 export default function SubmitReport() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isOnline = useOfflineStatus();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     title: "",
     description: "",
     category: "",
@@ -58,6 +72,7 @@ export default function SubmitReport() {
       lng: 0,
     },
     otherCategory: "",
+    otherLocationName: ""
   });
 
   const [photos, setPhotos] = useState<File[]>([]);
@@ -99,19 +114,46 @@ export default function SubmitReport() {
   ];
 
   const rwandaLocations = [
+    // Conservation Areas
+    "Akagera National Park",
     "Volcanoes National Park",
     "Nyungwe National Park",
-    "Akagera National Park",
     "Gishwati-Mukura National Park",
-    "Kigali City",
-    "Musanze District",
-    "Nyagatare District",
-    "Huye District",
-    "Rubavu District",
-    "Nyanza District",
-    "Kayonza District",
-    "Rwamagana District",
-    "Other Location",
+    "Nyabarongo River Wetlands",
+    "Rugezi Marsh",
+    "Akanyaru Wetlands",
+    // Districts
+    "Bugesera",
+    "Burera",
+    "Gakenke",
+    "Gasabo",
+    "Gatsibo",
+    "Gicumbi",
+    "Gisagara",
+    "Huye",
+    "Kamonyi",
+    "Karongi",
+    "Kayonza",
+    "Kicukiro",
+    "Kirehe",
+    "Muhanga",
+    "Musanze",
+    "Ngoma",
+    "Ngororero",
+    "Nyabihu",
+    "Nyagatare",
+    "Nyamagabe",
+    "Nyamasheke",
+    "Nyanza",
+    "Nyarugenge",
+    "Nyaruguru",
+    "Rubavu",
+    "Ruhango",
+    "Rulindo",
+    "Rusizi",
+    "Rutsiro",
+    "Rwamagana",
+    "Other Location"
   ];
 
   const handleInputChange = (field: string, value: any) => {
@@ -213,6 +255,7 @@ export default function SubmitReport() {
           urgency: '',
           location: { name: '', lat: 0, lng: 0 },
           otherCategory: '',
+          otherLocationName: ''
         });
         setPhotos([]);
         setSuccess(false);
@@ -373,6 +416,38 @@ export default function SubmitReport() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
+                  <Label>Location</Label>
+                  <Select
+                    value={formData.location.name}
+                    onValueChange={value => handleInputChange("location.name", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rwandaLocations.map((loc) => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.location.name === "Other Location" && (
+                    <Input
+                      className="mt-2"
+                      placeholder="Enter location name"
+                      value={formData.otherLocationName || ""}
+                      onChange={e => setFormData(prev => ({
+                        ...prev,
+                        location: {
+                          ...prev.location,
+                          name: e.target.value
+                        },
+                        otherLocationName: e.target.value
+                      }))}
+                      required
+                    />
+                  )}
+                </div>
+                <div className="space-y-2">
                   <Label>GPS Coordinates</Label>
                   <div className="flex gap-2 w-full">
                     <Button
@@ -390,14 +465,6 @@ export default function SubmitReport() {
                       Coordinates: {formData.location.lat.toFixed(6)}, {formData.location.lng.toFixed(6)}
                     </p>
                   )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Location Name</Label>
-                  <Input
-                    value={formData.location.name}
-                    readOnly
-                    placeholder="Location will be detected via GPS"
-                  />
                 </div>
               </div>
             </CardContent>
