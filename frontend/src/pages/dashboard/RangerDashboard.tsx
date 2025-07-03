@@ -441,23 +441,25 @@ export default function RangerDashboard() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {pendingReports.map((report) => (
-                <Card key={report.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {report.title}
-                      </h3>
-                      <Badge className={getPriorityColor(report.urgency)}>
-                        {report.urgency}
-                      </Badge>
+                <Card key={report.id} className="h-full min-h-[220px] flex flex-col">
+                  <CardContent className="p-4 flex flex-col flex-1">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900 truncate">
+                          {report.title}
+                        </h3>
+                        <Badge className={getPriorityColor(report.urgency)}>
+                          {report.urgency}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                        {report.description}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                        <MapPin className="h-4 w-4" /> {report.location == null ? 'Unknown' : (typeof (report.location as any) === 'object' ? (report.location as any).name ?? 'Unknown' : report.location)}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                      {report.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                      <MapPin className="h-4 w-4" /> {report.location == null ? 'Unknown' : (typeof (report.location as any) === 'object' ? (report.location as any).name ?? 'Unknown' : report.location)}
-                    </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-auto">
                       <Button asChild size="sm">
                         <Link to={`/ranger/verify-reports?reportId=${report.id}`}>
                           <Eye className="h-4 w-4 mr-2" />
