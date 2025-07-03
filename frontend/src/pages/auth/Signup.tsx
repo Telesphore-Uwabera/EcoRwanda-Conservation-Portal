@@ -42,6 +42,8 @@ export default function Signup() {
   const [success, setSuccess] = useState(false);
   const { signup, loading } = useAuth();
   const navigate = useNavigate();
+  const [passwordStrength, setPasswordStrength] = useState('');
+  const [passwordsMatch, setPasswordsMatch] = useState(true);
 
   const roleOptions = [
     {
@@ -113,6 +115,26 @@ export default function Signup() {
     }
     return password;
   }
+
+  // Add a function to check password strength
+  function getPasswordStrength(password: string) {
+    if (password.length < 8) return 'Too short';
+    let score = 0;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    if (score <= 1) return 'Weak';
+    if (score === 2) return 'Medium';
+    if (score >= 3) return 'Strong';
+    return '';
+  }
+
+  // Add useEffect to update strength and match
+  useEffect(() => {
+    setPasswordStrength(getPasswordStrength(formData.password));
+    setPasswordsMatch(formData.password === formData.confirmPassword);
+  }, [formData.password, formData.confirmPassword]);
 
   return (
     <AuthLayout
@@ -273,6 +295,15 @@ export default function Signup() {
                 Use at least 8 characters, including uppercase, lowercase, numbers, and symbols.<br />
                 Example: <span className="font-mono">EcoRwanda!2024</span>
               </div>
+              <div className="text-xs mt-1">
+                <span className={
+                  passwordStrength === 'Strong' ? 'text-green-600' :
+                  passwordStrength === 'Medium' ? 'text-yellow-600' :
+                  'text-red-600'
+                }>
+                  {formData.password && `Strength: ${passwordStrength}`}
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -288,13 +319,16 @@ export default function Signup() {
                 required
                 className="h-11"
               />
+              {!passwordsMatch && (
+                <div className="text-xs text-red-600 mt-1">Passwords do not match</div>
+              )}
             </div>
           </div>
 
           <Button
             type="submit"
             className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
-            disabled={loading}
+            disabled={loading || !passwordsMatch || passwordStrength !== 'Strong'}
           >
             {loading ? "Creating Account..." : "Create Account"}
           </Button>
