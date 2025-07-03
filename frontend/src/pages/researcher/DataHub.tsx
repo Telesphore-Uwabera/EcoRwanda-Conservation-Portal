@@ -173,6 +173,9 @@ export default function DataHub() {
     areaRestored: 0
   });
 
+  // Add these state and filter logic at the top of the component:
+  const [datasetSearchTerm, setDatasetSearchTerm] = useState("");
+
   // Helper to parse date to ISO
   function parseDateToISO(dateStr: string | undefined): string | undefined {
     if (!dateStr) return undefined;
@@ -458,7 +461,7 @@ export default function DataHub() {
 
   // Currently, these filters are based on mock data. Will need to be updated
   // when actual dataset/paper fetching is implemented.
-  const filteredDatasets = datasets.filter((dataset) => {
+  const filteredDatasetsForDisplay = datasets.filter((dataset) => {
     const matchesSearch =
       dataset.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dataset.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -522,6 +525,15 @@ export default function DataHub() {
       setRequestingAccess(false);
     }
   };
+
+  // Update the filteredDatasets variable for the publication form:
+  const filteredDatasets = datasetsList.filter(ds =>
+    !selectedDatasets.includes(ds._id) && (
+      ds.title.toLowerCase().includes(datasetSearchTerm.toLowerCase()) ||
+      ds.category.toLowerCase().includes(datasetSearchTerm.toLowerCase()) ||
+      ds.tags.some(tag => tag.toLowerCase().includes(datasetSearchTerm.toLowerCase()))
+    )
+  );
 
   if (loading) {
     return (
@@ -673,7 +685,14 @@ export default function DataHub() {
                 <CardDescription>Browse available datasets.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {filteredDatasets.length === 0 ? (
+                {activeTab === 'datasets' && user?.role === 'researcher' && !showDatasetForm && (
+                  <div className="flex justify-end mb-4">
+                    <Button onClick={() => setShowDatasetForm(true)} className="bg-emerald-700 text-white font-bold px-6 py-2 rounded-xl hover:bg-emerald-800">
+                      + Add Dataset
+                    </Button>
+                  </div>
+                )}
+                {filteredDatasetsForDisplay.length === 0 ? (
                   <div className="text-center text-gray-500 py-10">
                     <Database className="h-16 w-16 mx-auto text-gray-300 mb-4" />
                     <p>No datasets found</p>
@@ -683,7 +702,7 @@ export default function DataHub() {
                   </div>
                 ) : (
                   <div className="grid gap-4">
-                    {filteredDatasets.map((dataset) => (
+                    {filteredDatasetsForDisplay.map((dataset) => (
                       <Card key={dataset._id} className="hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                           <CardTitle className="text-lg font-medium">
@@ -785,45 +804,6 @@ export default function DataHub() {
                               </Badge>
                             )}
                           </div>
-                          {paper.accessLevel === 'open' ? (
-                            <div className="text-gray-800 mb-2">{paper.content || 'No content provided.'}</div>
-                          ) : paper.accessLevel === 'restricted' ? (
-                            <div className="text-red-600 font-semibold mb-2">Access Restricted</div>
-                          ) : (
-                            <div className="mb-2">
-                              <div className="text-amber-700 font-semibold mb-2">Access available upon request</div>
-                              {requestingPaperId === paper._id ? (
-                                <form
-                                  onSubmit={e => {
-                                    e.preventDefault();
-                                    toast.success('Access request sent!');
-                                    setRequestingPaperId(null);
-                                    setRequestPaperMessage("");
-                                  }}
-                                  className="flex flex-col gap-2"
-                                >
-                                  <textarea
-                                    className="border rounded p-2"
-                                    placeholder="Enter your request message"
-                                    value={requestPaperMessage}
-                                    onChange={e => setRequestPaperMessage(e.target.value)}
-                                    required
-                                  />
-                                  <div className="flex gap-2">
-                                    <button type="submit" className="bg-emerald-600 text-white px-3 py-1 rounded">Send Request</button>
-                                    <button type="button" className="bg-gray-200 px-3 py-1 rounded" onClick={() => setRequestingPaperId(null)}>Cancel</button>
-                                  </div>
-                                </form>
-                              ) : (
-                                <button
-                                  className="bg-amber-600 text-white px-3 py-1 rounded"
-                                  onClick={() => setRequestingPaperId(paper._id)}
-                                >
-                                  Request Access
-                                </button>
-                              )}
-                            </div>
-                          )}
                           <Link to={`/publications/${paper._id}`}>
                             <Button size="sm" className="mt-3">
                             View Details
@@ -890,22 +870,18 @@ export default function DataHub() {
                     <Input name="publicationDate" type="date" value={publicationForm.publicationDate} onChange={handlePublicationInput} required />
                   </div>
                   <div>
-                    <label className="block font-medium mb-1">Access Level</label>
-                    <select name="accessLevel" value={publicationForm.accessLevel} onChange={handlePublicationInput} className="w-full border rounded px-2 py-1">
-                      <option value="open">Open</option>
-                      <option value="restricted">Restricted</option>
-                      <option value="upon_request">Upon Request</option>
-                    </select>
+                    <label className="block font-medium mb-1">Trees Planted</label>
+                    <Input type="number" min={0} value={impact.treesPlanted} onChange={e => setImpact({ ...impact, treesPlanted: Number(e.target.value) })} required />
                   </div>
                   <div>
-                    <label className="block font-medium mb-1">Start Date</label>
-                    <Input name="startDate" type="date" value={publicationForm.startDate} onChange={handlePublicationInput} required />
+                    <label className="block font-medium mb-1">Wildlife Protected</label>
+                    <Input type="number" min={0} value={impact.wildlifeProtected} onChange={e => setImpact({ ...impact, wildlifeProtected: Number(e.target.value) })} required />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block font-medium mb-1">End Date</label>
-                    <Input name="endDate" type="date" value={publicationForm.endDate} onChange={handlePublicationInput} required />
+                    <label className="block font-medium mb-1">Area Restored</label>
+                    <Input type="number" min={0} value={impact.areaRestored} onChange={e => setImpact({ ...impact, areaRestored: Number(e.target.value) })} required />
                   </div>
                   <div>
                     <label className="block font-medium mb-1">DOI</label>
@@ -930,22 +906,68 @@ export default function DataHub() {
                     <Input name="publicationLink" value={publicationForm.publicationLink || ''} onChange={handlePublicationInput} placeholder="Publication Link" />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block font-medium mb-1">Trees Planted</label>
-                    <Input type="number" min={0} value={impact.treesPlanted} onChange={e => setImpact({ ...impact, treesPlanted: Number(e.target.value) })} required />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Wildlife Protected</label>
-                    <Input type="number" min={0} value={impact.wildlifeProtected} onChange={e => setImpact({ ...impact, wildlifeProtected: Number(e.target.value) })} required />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Area Restored</label>
-                    <Input type="number" min={0} value={impact.areaRestored} onChange={e => setImpact({ ...impact, areaRestored: Number(e.target.value) })} required />
-                  </div>
+                <div className="w-full">
+                  <label className="block font-medium mb-1">Associated Datasets</label>
+                  <input
+                    type="text"
+                    className="w-full border rounded px-2 py-1 mb-2"
+                    placeholder="Search datasets by title, category, or tag..."
+                    value={datasetSearchTerm || ''}
+                    onChange={e => setDatasetSearchTerm(e.target.value)}
+                  />
+                  {filteredDatasets.length === 0 ? (
+                    <div className="text-gray-500 text-sm mb-2">No datasets available. <button type="button" className="text-blue-600 underline" onClick={() => setShowDatasetForm(true)}>Create a new dataset</button></div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {selectedDatasets.map(dsId => {
+                          const ds = datasetsList.find(d => d._id === dsId);
+                          return ds ? (
+                            <div key={dsId} className="w-full bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2 flex flex-col md:flex-row md:items-center md:justify-between">
+                              <div>
+                                <div className="font-semibold text-blue-900">{ds.title} <span className="text-xs text-gray-500">({ds.category})</span></div>
+                                <div className="text-xs text-gray-700 mb-1 line-clamp-2">{ds.description}</div>
+                                <div className="flex flex-wrap gap-1 mb-1">
+                                  {ds.tags.map(tag => <span key={tag} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">{tag}</span>)}
+                                </div>
+                                <div className="text-xs text-gray-500">Access: {ds.accessLevel.replace('_', ' ')} | Owner: {ds.owner?.name || 'N/A'}</div>
+                              </div>
+                              <div className="flex gap-2 mt-2 md:mt-0">
+                                <button type="button" className="text-blue-600 underline text-xs" onClick={() => { setSelectedDataset(ds); setShowDatasetDialog(true); }}>View Details</button>
+                                <button type="button" className="text-red-600 text-lg ml-2" onClick={() => setSelectedDatasets(selectedDatasets.filter(id => id !== dsId))} title="Remove">&times;</button>
+                              </div>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                      <select
+                        className="w-full border rounded px-2 py-1"
+                        multiple
+                        value={selectedDatasets}
+                        onChange={e => {
+                          const options = Array.from(e.target.selectedOptions).map(o => o.value);
+                          // Prevent duplicates
+                          setSelectedDatasets(Array.from(new Set(options)));
+                        }}
+                        size={Math.min(6, filteredDatasets.length)}
+                      >
+                        {filteredDatasets.map(ds => (
+                          <option key={ds._id} value={ds._id} disabled={selectedDatasets.includes(ds._id)}>
+                            {ds.title} ({ds.category}) — {ds.owner?.name || 'N/A'}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="text-xs text-gray-500 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple datasets.</div>
+                      <Button
+                        type="button"
+                        className="mt-4 flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
+                        onClick={() => setShowDatasetForm(true)}
+                      >
+                        <span className="text-xl font-bold">+</span> Create New Dataset
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {/* Keep dynamic fields and dataset selection as full width for usability */}
-                {/* ...existing dynamic fields and dataset selection... */}
                 <Button type="submit" disabled={isPublishing} className="py-4 bg-blue-700 text-white font-extrabold text-lg uppercase tracking-wider rounded-xl hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-600 focus:ring-offset-2 transition duration-300 ease-in-out shadow-2xl transform hover:scale-105">
                   {isPublishing ? 'Publishing...' : 'Publish Research Paper'}
                 </Button>
@@ -993,14 +1015,6 @@ export default function DataHub() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block font-medium mb-1">Access Level</label>
-                    <select name="accessLevel" value={datasetForm.accessLevel} onChange={handleDatasetInput} className="w-full border rounded px-2 py-1">
-                      <option value="open">Open</option>
-                      <option value="restricted">Restricted</option>
-                      <option value="upon_request">Upon Request</option>
-                    </select>
-                  </div>
-                  <div className="col-span-2">
                     <label className="block font-medium mb-1">Download URL</label>
                     <Input name="downloadUrl" value={datasetForm.downloadUrl} onChange={handleDatasetInput} required placeholder="https://..." />
                   </div>
