@@ -11,7 +11,6 @@ const datasetSchema = new mongoose.Schema({
   description: { type: String, required: true },
   category: { type: String, required: true },
   location: { type: locationSchema, required: true },
-  accessLevel: { type: String, enum: ['open', 'restricted', 'upon_request'], default: 'open' },
   tags: [{ type: String }],
   createdAt: { type: Date, default: Date.now },
   downloads: { type: Number, default: 0 },
