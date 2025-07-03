@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,7 @@ import {
   Image,
 } from "lucide-react";
 import { THREAT_CATEGORIES } from "@/components/common/categories";
-import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, Marker, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 // Add your Mapbox API key here
@@ -79,8 +79,10 @@ export default function SubmitReport() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
-  const [mapCenter, setMapCenter] = useState({ lat: -1.9577, lng: 30.1127 }); // Default Rwanda
-  const [tempMarker, setTempMarker] = useState<{ lat: number; lng: number } | null>(null);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [address, setAddress] = useState('');
+  const [mapCenter, setMapCenter] = useState({ lat: -1.9577, lng: 30.1127 });
+  const searchBoxRef = useRef(null);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: 'AIzaSyCPYHYMBO101B9ajFYNrwt8fWqEUBzHz8M',
     libraries: ['places'],
@@ -171,6 +173,28 @@ export default function SubmitReport() {
     }
   };
 
+  const fetchAddressFromMapbox = async (lat: number, lng: number) => {
+    const resp = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}`
+    );
+    const data = await resp.json();
+    setAddress(data.features[0]?.place_name || '');
+    setFormData(prev => ({
+      ...prev,
+      location: { name: data.features[0]?.place_name || '', lat, lng }
+    }));
+  };
+
+  const handleMapClick = async (e: any) => {
+    if (e.latLng) {
+      const lat = e.latLng.lat();
+      const lng = e.latLng.lng();
+      setCoordinates({ lat, lng });
+      setMapCenter({ lat, lng });
+      await fetchAddressFromMapbox(lat, lng);
+    }
+  };
+
   const handleGetLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (position) => {
@@ -194,6 +218,20 @@ export default function SubmitReport() {
       });
     } else {
       alert('Geolocation is not supported by your browser.');
+    }
+  };
+
+  const onPlacesChanged = async () => {
+    const places = searchBoxRef.current?.getPlaces();
+    if (places && places.length > 0) {
+      const place = places[0];
+      const lat = place.geometry?.location?.lat();
+      const lng = place.geometry?.location?.lng();
+      if (lat && lng) {
+        setCoordinates({ lat, lng });
+        setMapCenter({ lat, lng });
+        await fetchAddressFromMapbox(lat, lng);
+      }
     }
   };
 
@@ -435,10 +473,12 @@ export default function SubmitReport() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Location</Label>
-                  <p className="text-sm text-gray-600">
-                    {formData.location.name}
-                  </p>
+                  <Label>Location Name</Label>
+                  <Input
+                    value={formData.location.name}
+                    readOnly
+                    placeholder="Location will be detected via GPS"
+                  />
                 </div>
               </div>
             </CardContent>
