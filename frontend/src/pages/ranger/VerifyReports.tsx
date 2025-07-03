@@ -519,73 +519,64 @@ export default function VerifyReports() {
               </CardContent>
             </Card>
           ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                   {filteredReports.map((report) => (
-                    <Card key={report._id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <span className="text-2xl">
-                          {getCategoryIcon(report.category)}
-                        </span>
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-gray-900">
-                            {report.title}
-                          </h3>
-                                <p className="text-sm text-gray-600 line-clamp-2">
-                                  {report.description}
-                          </p>
-                        </div>
-                      </div>
-                            <Badge className={getStatusColor(report.status)}>
-                              {getStatusIcon(report.status)}
-                              <span className="ml-1">{report.status}</span>
-                        </Badge>
-                    </div>
-
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                              {report.location.name}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(report.submittedAt)}
-                      </span>
-                            <span
-                              className={`flex items-center gap-1 ${getUrgencyColor(report.urgency)}`}
-                            >
-                              <AlertTriangle className="h-3 w-3" />
-                              {report.urgency} priority
-                            </span>
-                      <span className="flex items-center gap-1">
-                        <Camera className="h-3 w-3" />
-                        {report.photos.length} photos
-                      </span>
-                            {report.updates.length > 0 && (
-                      <span className="flex items-center gap-1">
-                                <MessageSquare className="h-3 w-3" />
-                                {report.updates.length} updates
-                      </span>
-                            )}
+                    <Card key={report._id} className="hover:shadow-md transition-shadow h-full min-h-[340px] flex flex-col">
+                      <CardContent className="p-6 flex flex-col flex-1">
+                        <div className="space-y-4 flex-1">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl">
+                                {getCategoryIcon(report.category)}
+                              </span>
+                              <div className="space-y-1">
+                                <h3 className="font-semibold text-gray-900">
+                                  {report.title}
+                                </h3>
+                                      <p className="text-sm text-gray-600 line-clamp-2">
+                                        {report.description}
+                                </p>
+                              </div>
+                            </div>
+                                <Badge className={getStatusColor(report.status)}>
+                                  {getStatusIcon(report.status)}
+                                  <span className="ml-1">{report.status}</span>
+                              </Badge>
                           </div>
-
-                          <div className="flex gap-2 mt-4">
-                          <Button
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                      {report.location.name}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(report.submittedAt)}
+                              </span>
+                              <span className={`flex items-center gap-1 ${getUrgencyColor(report.urgency)}`}> <AlertTriangle className="h-3 w-3" /> {report.urgency} priority </span>
+                              <span className="flex items-center gap-1"> <Camera className="h-3 w-3" /> {report.photos.length} photos </span>
+                              {report.updates.length > 0 && (
+                                <span className="flex items-center gap-1"> <MessageSquare className="h-3 w-3" /> {report.updates.length} updates </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col mt-auto">
+                          <div className="flex gap-2">
+                            <Button
                               asChild
                               size="sm"
                               className="bg-amber-600 hover:bg-amber-700"
                             >
                               <Link to={`/ranger/verify-reports?reportId=${report._id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
+                                <Eye className="h-4 w-4 mr-2" />
                                 View & Verify
                               </Link>
                             </Button>
-                      </div>
-                  </div>
-                </CardContent>
-              </Card>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
           )}
