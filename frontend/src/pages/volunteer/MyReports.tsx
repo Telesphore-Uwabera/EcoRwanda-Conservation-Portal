@@ -329,7 +329,7 @@ const MyReports = () => {
                 {report.photos && report.photos.length > 0 && (
                   <div className="h-48 overflow-hidden">
                     <img
-                      src={`http://localhost:8080/api/reports/${report._id}/photo/0`}
+                      src={report.photos[0]}
                       alt={report.title}
                       className="w-full h-full object-cover"
                     />

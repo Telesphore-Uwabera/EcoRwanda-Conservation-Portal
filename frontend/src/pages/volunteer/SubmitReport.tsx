@@ -41,6 +41,8 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material
 
 // Add your Mapbox API key here
 const MAPBOX_API_KEY = 'pk.eyJ1IjoidGVsZXNwaG9yZXV3YWJlcmEiLCJhIjoiY21jbWl2Z3A5MGdoMTJqcXE1bDZ5enNuayJ9.njrKk2Q8klZDkq2tpFW6rw';
+const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/dnlatyl5z/image/upload';
+const CLOUDINARY_UPLOAD_PRESET = 'ecorwanda';
 
 type FormDataType = {
   title: string;
@@ -249,32 +251,39 @@ export default function SubmitReport() {
     setIsSubmitting(true);
 
     try {
+      let photoUrls: string[] = [];
+      if (photos.length > 0) {
+        // Upload each photo to Cloudinary
+        for (const file of photos) {
+          const data = new FormData();
+          data.append('file', file);
+          data.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+          const res = await fetch(CLOUDINARY_UPLOAD_URL, {
+            method: 'POST',
+            body: data,
+          });
+          const result = await res.json();
+          if (result.secure_url) {
+            photoUrls.push(result.secure_url);
+          } else {
+            throw new Error('Image upload failed');
+          }
+        }
+      }
+
       if (isOnline) {
-        // Use FormData for file upload
-        const form = new FormData();
-        form.append('title', formData.title);
-        form.append('description', formData.description);
-        form.append('category', formData.category);
-        form.append('urgency', formData.urgency);
-        form.append('location[name]', formData.location.name);
-        form.append('location[lat]', String(formData.location.lat));
-        form.append('location[lng]', String(formData.location.lng));
-        if (formData.otherCategory) form.append('otherCategory', formData.otherCategory);
-        photos.forEach((file) => {
-          form.append('photos', file);
-        });
-        // Add any other fields as needed
-        await api.post('/reports', form, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        // Send only Cloudinary URLs to backend
+        const reportData = {
+          ...formData,
+          photos: photoUrls,
+        };
+        await api.post('/reports', reportData);
         console.log('Report submitted online');
       } else {
         // Store offline (without actual files)
         const reportData = {
           ...formData,
-          photos: photos.map((file) => file.name),
+          photos: photoUrls,
           submittedBy: user?._id,
           submittedAt: new Date().toISOString(),
           status: 'pending',
@@ -293,7 +302,6 @@ export default function SubmitReport() {
           urgency: '',
           location: { name: '', lat: 0, lng: 0 },
           otherCategory: '',
-          otherLocationName: ''
         });
         setPhotos([]);
         setSuccess(false);

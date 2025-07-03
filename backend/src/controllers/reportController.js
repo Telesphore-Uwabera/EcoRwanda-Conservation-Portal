@@ -57,16 +57,8 @@ exports.getReportById = async (req, res) => {
 // Create a new report
 exports.createReport = async (req, res) => {
   try {
-    // Handle uploaded images
-    const files = req.files || [];
-    const photos = files.map(file => ({
-      data: file.buffer,
-      contentType: file.mimetype,
-      filename: file.originalname,
-    }));
-
-    // Merge photos into report data
-    const reportData = { ...req.body, submittedBy: req.user.id, photos };
+    // Accept photos as array of Cloudinary URLs from req.body
+    const reportData = { ...req.body, submittedBy: req.user.id };
     const report = await WildlifeReport.create(reportData);
 
     // Log the activity (generic message, no 'by ...')
