@@ -17,6 +17,18 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Password strength validation
+    const strongPassword =
+      typeof password === 'string' &&
+      password.length >= 8 &&
+      /[a-z]/.test(password) &&
+      /[A-Z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[^A-Za-z0-9]/.test(password);
+    if (!strongPassword) {
+      return res.status(400).json({ message: 'Password is not strong enough' });
+    }
+
     // Prevent ranger registration through public endpoint
     if (role === 'ranger') {
       return res.status(403).json({ message: 'Ranger registration is not allowed through this endpoint. Please contact an administrator.' });

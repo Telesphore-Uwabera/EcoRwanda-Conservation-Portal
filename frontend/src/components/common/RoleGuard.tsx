@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,6 +17,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   fallback,
 }) => {
   const { user, isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -26,7 +27,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
     );
   }
 
-  if (!isAuthenticated || !user) {
+  if ((!isAuthenticated || !user) && location.pathname !== '/auth/login') {
     return <Navigate to="/auth/login" replace />;
   }
 

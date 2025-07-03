@@ -13,7 +13,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<React.ReactNode>("");
   const { login, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -33,6 +33,10 @@ export default function Login() {
     } catch (err: any) {
       if (err.response && err.response.data.errorCode === 'ACCOUNT_NOT_VERIFIED') {
         navigate('/auth/waiting-for-verification');
+      } else if (err.response?.data?.message === 'Invalid credentials') {
+        setError(
+          <>No account found with this email or password is incorrect. If you don't have an account, please <Link to="/auth/signup" className="text-emerald-600 underline">sign up here</Link>.</>
+        );
       } else {
         setError("Invalid email or password. Please try again.");
       }

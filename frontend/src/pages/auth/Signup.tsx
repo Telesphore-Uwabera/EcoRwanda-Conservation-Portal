@@ -97,8 +97,12 @@ export default function Signup() {
         location: "",
         organization: "",
       });
-    } catch (err) {
-      setError("Failed to create account. Please try again.");
+    } catch (err: any) {
+      if (err.response?.data?.message === 'User already exists') {
+        setError('A user with this email already exists. Please log in or use a different email.');
+      } else {
+        setError("Failed to create account. Please try again.");
+      }
     }
   };
 
@@ -330,7 +334,7 @@ export default function Signup() {
             className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
             disabled={loading || !passwordsMatch || passwordStrength !== 'Strong'}
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading ? "Signing Up..." : "Sign Up"}
           </Button>
 
           <div className="text-center">
