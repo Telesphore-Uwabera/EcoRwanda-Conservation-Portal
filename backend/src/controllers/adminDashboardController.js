@@ -49,9 +49,22 @@ exports.getDashboardStats = async (req, res) => {
         // TODO: Fetch recent activities (e.g., latest reports, new projects, user registrations)
         const recentActivities = [];
 
-        const projectStatus = await ResearchProject.aggregate([
-            { $group: { _id: "$status", count: { $sum: 1 } } },
-        ]);
+        // Aggregate project status using date logic (completed, active, planning)
+        const allProjects = await ResearchProject.find({});
+        const now = new Date();
+        let completed = 0, active = 0, planning = 0;
+        allProjects.forEach(p => {
+            const start = new Date(p.startDate);
+            const end = new Date(p.endDate);
+            if (end < now) completed++;
+            else if (start > now) planning++;
+            else active++;
+        });
+        const projectStatus = [
+            { _id: 'completed', count: completed },
+            { _id: 'active', count: active },
+            { _id: 'planning', count: planning },
+        ];
         console.log('projectStatus:', projectStatus);
 
         // Fetch latest update date for each status
