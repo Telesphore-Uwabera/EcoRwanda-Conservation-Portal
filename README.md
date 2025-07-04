@@ -15,6 +15,8 @@
 - [🎯 Project Overview](#-project-overview)
   - [🌟 Key Features](#-key-features)
 - [🖼️ Screenshots](#️-screenshots)
+- [📱 Responsiveness](#-responsiveness)
+- [🎥 Video Demo](#-video-demo)
 - [🛠️ Technology Stack](#️-technology-stack)
 - [📁 Project Structure](#-project-structure)
 - [⚙️ Setup & Installation](#️-setup--installation)
@@ -243,6 +245,16 @@ Below are screenshots of the EcoRwanda Conservation Portal, showcasing various f
 
 ![Screenshot 2025-07-04 003722](images/Screenshot%202025-07-04%20003722.png)
 *My Reports: Volunteer view of submitted wildlife and conservation reports*
+
+## 🎥 Video Demo
+
+Watch a walkthrough of the EcoRwanda Conservation Portal in action:
+
+**▶️ [EcoRwanda Demo Video (MP4, 21MB)](EcoRwanda%20Demo.mp4)**
+
+*The video demonstrates the platform's main features, including authentication, dashboard analytics, real-time collaboration, and responsive design on both desktop and mobile.*
+
+> **Note:** The video file `EcoRwanda Demo.mp4` is included in this repository for offline viewing. You can open it directly or upload it to your preferred video platform for sharing.
 
 ## 🛠️ Technology Stack
 
@@ -896,4 +908,4 @@ A: See the Deployment Guide section for Azure (backend) and Netlify (frontend) i
 
 *This project aims to support and enhance conservation efforts in Rwanda by providing a comprehensive digital platform for collaboration between all stakeholders in wildlife and environmental protection.* 
 
-*For more questions, open an issue on GitHub!* 
+*Here to conserve, Thank you so much!* 
