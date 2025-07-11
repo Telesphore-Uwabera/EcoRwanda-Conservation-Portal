@@ -1,4 +1,4 @@
-﻿# EcoRwanda Conservation Portal 🌿
+# EcoRwanda Conservation Portal 🌿
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Available-brightgreen)](https://ecorwandaconservationportal.netlify.app/)
 [![Backend API](https://img.shields.io/badge/Backend%20API-Live-blue)](https://ecorwanda-portal-eed6gfb3f7ftbkfv.southafricanorth-01.azurewebsites.net)

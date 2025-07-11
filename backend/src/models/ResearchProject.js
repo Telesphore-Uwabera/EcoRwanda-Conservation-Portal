@@ -125,7 +125,6 @@ const ResearchProjectSchema = new mongoose.Schema({
   },
 });
 
-// Update timestamps on save
 ResearchProjectSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();

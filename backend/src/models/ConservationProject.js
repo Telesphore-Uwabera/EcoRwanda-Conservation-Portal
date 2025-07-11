@@ -69,14 +69,27 @@ const ConservationProjectSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['wildlife', 'forest', 'water', 'community', 'research', 'other'],
+    enum: [
+      'wildlife',
+      'forest',
+      'water',
+      'community',
+      'research',
+      'climate',
+      'agriculture',
+      'energy',
+      'health',
+      'education',
+      'technology',
+      'other',
+    ],
   },
   images: [{
     type: String,
     trim: true,
   }],
   // Research publication fields
-  abstract: {
+  content: {
     type: String,
     trim: true,
   },
@@ -92,11 +105,6 @@ const ConservationProjectSchema = new mongoose.Schema({
   publicationDate: {
     type: Date,
   },
-  accessLevel: {
-    type: String,
-    enum: ['open', 'restricted', 'upon_request'],
-    default: 'open',
-  },
   datasets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Dataset' }],
   owners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, {
@@ -104,7 +112,6 @@ const ConservationProjectSchema = new mongoose.Schema({
   strict: false,
 });
 
-// Add index for efficient querying
 ConservationProjectSchema.index({ status: 1, startDate: 1 });
 
 module.exports = mongoose.model('ConservationProject', ConservationProjectSchema); 
