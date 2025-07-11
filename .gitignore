@@ -1,0 +1,12 @@
+node_modules
+node_modules
+backend/.env
+
+# sst
+/sst/
+
+# compressed files
+*.rar
+*.zip
+*.7z
+*.tar.gz
