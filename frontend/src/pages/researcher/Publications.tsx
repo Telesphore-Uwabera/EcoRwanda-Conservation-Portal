@@ -145,20 +145,20 @@ export default function Publications() {
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Research Publications</h1>
+    <div className="p-4 sm:p-6 max-w-full md:max-w-4xl mx-auto">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center md:text-left break-words">Research Publications</h1>
       {publications.length === 0 ? (
         <div className="text-gray-500 text-center">No publications found.</div>
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-4 sm:gap-6">
           {publications.map(pub => (
-            <Card key={pub._id} className="hover:shadow-md transition-shadow p-6">
+            <Card key={pub._id} className="hover:shadow-md transition-shadow p-4 sm:p-6 w-full">
               <CardHeader>
-                <CardTitle>{pub.title}</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">{pub.title}</CardTitle>
                 <CardDescription>{pub.category}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-4 mb-4 text-sm text-gray-600">
+                <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm text-gray-600 break-words w-full">
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Users className="h-3 w-3" />
                     Authors: {pub.authors && pub.authors.length > 0
@@ -205,82 +205,118 @@ export default function Publications() {
                   </Badge>
                 </div>
                 {pub.images && pub.images.length > 0 && (
-                  <img src={pub.images[0]} alt="Publication" style={{ maxWidth: 200, marginBottom: 8 }} />
+                  <div className="w-full flex justify-center my-2">
+                    <img src={pub.images[0]} alt="Publication" className="max-w-full h-auto rounded shadow" style={{ maxWidth: 200 }} />
+                  </div>
                 )}
-                <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Abstract:</span> {pub.abstract}</div>
-                <div className="space-y-4">
-                  <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Description:</span> {pub.description}</div>
-                  {pub.requirements && <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Requirements:</span> {pub.requirements}</div>}
+                <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Abstract:</span> {pub.abstract}</div>
+                <div className="space-y-4 w-full">
+                  <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Description:</span> {pub.description}</div>
+                  {pub.requirements && <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Requirements:</span> {pub.requirements}</div>}
                   {pub.skills && pub.skills.length > 0 && (
-                    <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Skills:</span> {pub.skills.join(', ')}</div>
+                    <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Skills:</span> {pub.skills.join(', ')}</div>
                   )}
                   {pub.images && pub.images.length > 0 && (
-                    <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Images:</span> {pub.images.join(', ')}</div>
+                    <div className="text-gray-800 whitespace-pre-line break-words w-full">
+                      <span className="font-semibold">Images:</span> {pub.images.map((img, idx) => (
+                        <React.Fragment key={idx}>
+                          {/^https?:\/\//.test(img) ? (
+                            <a href={img} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all mr-2">{img}</a>
+                          ) : (
+                            <span className="break-all mr-2">{img}</span>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
                   )}
                   {pub.datasets && pub.datasets.length > 0 && (
-                    <div className="text-gray-800">
+                    <div className="text-gray-800 break-words w-full">
                       <span className="font-semibold">Datasets:</span>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {pub.datasets.map((datasetId, index) => (
-                          <Button
-                            key={index}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDatasetClick(datasetId)}
-                            disabled={datasetLoading}
-                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            {datasetId}
-                          </Button>
+                          <React.Fragment key={index}>
+                            {/^https?:\/\//.test(datasetId) ? (
+                              <a href={datasetId} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all max-w-full">
+                                <ExternalLink className="h-3 w-3 mr-1 inline" />
+                                <span className="break-all max-w-[120px] inline-block">{datasetId}</span>
+                              </a>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDatasetClick(datasetId)}
+                                disabled={datasetLoading}
+                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 break-all max-w-full"
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                <span className="break-all max-w-[120px] inline-block">{datasetId}</span>
+                              </Button>
+                            )}
+                          </React.Fragment>
                         ))}
                       </div>
                     </div>
                   )}
                   {pub.volunteers && pub.volunteers.length > 0 && (
-                    <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Volunteers:</span> {pub.volunteers.join(', ')}</div>
+                    <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Volunteers:</span> {pub.volunteers.join(', ')}</div>
                   )}
                   {pub.impact && (
-                    <div className="text-gray-800 whitespace-pre-line">
+                    <div className="text-gray-800 whitespace-pre-line break-words w-full">
                       <span className="font-semibold">Impact:</span> Trees Planted: {pub.impact.treesPlanted}, Wildlife Protected: {pub.impact.wildlifeProtected}, Area Restored: {pub.impact.areaRestored}
                     </div>
                   )}
                   {pub.contributors && pub.contributors.length > 0 && (
-                    <div className="text-gray-800 whitespace-pre-line">
+                    <div className="text-gray-800 whitespace-pre-line break-words w-full">
                       <span className="font-semibold">Contributors:</span> {pub.contributors.map((c: any, idx: number) => `${c.name} (${c.role}${c.email ? ', ' + c.email : ''})`).join('; ')}
                     </div>
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Organization:</span> {pub.organization}</div>
-                      <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Location:</span> {pub.location}</div>
-                      <div className="text-gray-800"><span className="font-semibold">Created At:</span> {pub.createdAt ? new Date(pub.createdAt).toLocaleString() : 'N/A'}</div>
-                      <div className="text-gray-800"><span className="font-semibold">Updated At:</span> {pub.updatedAt ? new Date(pub.updatedAt).toLocaleString() : 'N/A'}</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    <div className="space-y-2 w-full">
+                      <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Organization:</span> {pub.organization}</div>
+                      <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Location:</span> {pub.location}</div>
+                      <div className="text-gray-800 break-words w-full"><span className="font-semibold">Created At:</span> {pub.createdAt ? new Date(pub.createdAt).toLocaleString() : 'N/A'}</div>
+                      <div className="text-gray-800 break-words w-full"><span className="font-semibold">Updated At:</span> {pub.updatedAt ? new Date(pub.updatedAt).toLocaleString() : 'N/A'}</div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 w-full">
                       {pub.references && pub.references.length > 0 && (
-                        <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">References:</span> {pub.references.join(', ')}</div>
+                        <div className="text-gray-800 whitespace-pre-line break-all w-full"><span className="font-semibold">References:</span> {pub.references.map((ref, idx) => (
+                          <React.Fragment key={idx}>
+                            {/^https?:\/\//.test(ref) ? (
+                              <a href={ref} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all mr-2">{ref}</a>
+                            ) : (
+                              <span className="break-all mr-2">{ref}</span>
+                            )}
+                          </React.Fragment>
+                        ))}</div>
                       )}
                       {pub.keywords && pub.keywords.length > 0 && (
-                        <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Keywords:</span> {pub.keywords.join(', ')}</div>
+                        <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Keywords:</span> {pub.keywords.join(', ')}</div>
                       )}
                       {pub.supplementaryFiles && pub.supplementaryFiles.length > 0 && (
-                        <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Supplementary Files:</span> {pub.supplementaryFiles.join(', ')}</div>
+                        <div className="text-gray-800 whitespace-pre-line break-all w-full"><span className="font-semibold">Supplementary Files:</span> {pub.supplementaryFiles.map((file, idx) => (
+                          <React.Fragment key={idx}>
+                            {/^https?:\/\//.test(file) ? (
+                              <a href={file} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all mr-2">{file}</a>
+                            ) : (
+                              <span className="break-all mr-2">{file}</span>
+                            )}
+                          </React.Fragment>
+                        ))}</div>
                       )}
                       {pub.doi && (
-                        <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">DOI:</span> {pub.doi}</div>
+                        <div className="text-gray-800 whitespace-pre-line break-all w-full"><span className="font-semibold">DOI:</span> {pub.doi}</div>
                       )}
                       {pub.fundingSource && (
-                        <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Funding Source:</span> {pub.fundingSource}</div>
+                        <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Funding Source:</span> {pub.fundingSource}</div>
                       )}
                       {pub.publicationLink && (
-                        <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Publication Link:</span> <a href={pub.publicationLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{pub.publicationLink}</a></div>
+                        <div className="text-gray-800 whitespace-pre-line break-all w-full"><span className="font-semibold">Publication Link:</span> <a href={pub.publicationLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{pub.publicationLink}</a></div>
                       )}
                       {pub.methodology && (
-                        <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Methodology:</span> {pub.methodology}</div>
+                        <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Methodology:</span> {pub.methodology}</div>
                       )}
                       {pub.ethicalApproval && (
-                        <div className="text-gray-800 whitespace-pre-line"><span className="font-semibold">Ethical Approval:</span> {pub.ethicalApproval}</div>
+                        <div className="text-gray-800 whitespace-pre-line break-words w-full"><span className="font-semibold">Ethical Approval:</span> {pub.ethicalApproval}</div>
                       )}
                     </div>
                   </div>
@@ -301,20 +337,20 @@ export default function Publications() {
                           className="flex flex-col gap-2"
                         >
                           <textarea
-                            className="border rounded p-2"
+                            className="border rounded p-2 min-h-[44px] w-full"
                             placeholder="Enter a request message"
                             value={requestMessage}
                             onChange={e => setRequestMessage(e.target.value)}
                             required
                           />
-                          <div className="flex gap-2">
-                            <button type="submit" className="bg-emerald-600 text-white px-3 py-1 rounded">Send Request</button>
-                            <button type="button" className="bg-gray-200 px-3 py-1 rounded" onClick={() => setRequestingId(null)}>Cancel</button>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <button type="submit" className="bg-emerald-600 text-white px-3 py-2 rounded w-full sm:w-auto min-h-[44px]">Send Request</button>
+                            <button type="button" className="bg-gray-200 px-3 py-2 rounded w-full sm:w-auto min-h-[44px]" onClick={() => setRequestingId(null)}>Cancel</button>
                           </div>
                         </form>
                       ) : (
                         <button
-                          className="bg-amber-600 text-white px-3 py-1 rounded"
+                          className="bg-amber-600 text-white px-3 py-2 rounded w-full sm:w-auto min-h-[44px]"
                           onClick={() => setRequestingId(pub._id)}
                         >
                           Request Access
@@ -331,9 +367,9 @@ export default function Publications() {
 
       {/* Dataset Dialog */}
       <Dialog open={showDatasetDialog} onOpenChange={setShowDatasetDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               <ExternalLink className="h-5 w-5" />
               Dataset Details
             </DialogTitle>
@@ -341,7 +377,7 @@ export default function Publications() {
           {selectedDataset && (
             <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{selectedDataset.title}</h3>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">{selectedDataset.title}</h3>
                 <p className="text-gray-600">{selectedDataset.description}</p>
               </div>
               
@@ -407,11 +443,11 @@ export default function Publications() {
                 </div>
               )}
               
-              <div className="flex gap-2 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
                 {selectedDataset.downloadUrl && (
                   <Button 
                     onClick={() => handleDownloadDataset(selectedDataset)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full sm:w-auto min-h-[44px]"
                   >
                     <Download className="h-4 w-4" />
                     Download Dataset
@@ -420,6 +456,7 @@ export default function Publications() {
                 <Button 
                   variant="outline" 
                   onClick={() => setShowDatasetDialog(false)}
+                  className="w-full sm:w-auto min-h-[44px]"
                 >
                   Close
                 </Button>
