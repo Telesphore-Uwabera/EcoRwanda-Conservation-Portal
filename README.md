@@ -35,6 +35,15 @@ A comprehensive **Eco-Volunteer and Research Collaboration Portal** designed to 
 - **Frontend**: [https://ecorwandaconservationportal.netlify.app/](https://ecorwandaconservationportal.netlify.app/)
 - **Backend API**: [https://ecorwanda-portal-eed6gfb3f7ftbkfv.southafricanorth-01.azurewebsites.net](https://ecorwanda-portal-eed6gfb3f7ftbkfv.southafricanorth-01.azurewebsites.net)
 
+## 🧪 Demo Login
+
+You can use the following demo credentials to log in as an admin and explore the platform:
+
+- **Email:** `admin@ecorwanda.org`
+- **Password:** `91073@Tecy`
+
+> _For demo/testing purposes only. Please do not use for production data._
+
 ## 🎯 Project Overview
 
 The EcoRwanda Conservation Portal is a full-stack web application that serves as a digital hub for conservation activities in Rwanda. It enables real-time collaboration between different stakeholders in wildlife conservation, research, and environmental protection.
