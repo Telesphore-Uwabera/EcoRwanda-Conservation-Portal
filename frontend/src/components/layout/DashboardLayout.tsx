@@ -383,6 +383,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <div className="text-center text-xs text-gray-500 mt-4">
           © 2025 EcoRwanda. All rights reserved.
         </div>
+        <div className="text-center mt-4">
+          <Link
+            to="/terms-and-conditions"
+            className="text-xs text-gray-400 hover:text-emerald-700 underline transition-colors duration-200"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Terms & Conditions
+          </Link>
+        </div>
       </aside>
 
       {/* Gap between sidebar and main content */}

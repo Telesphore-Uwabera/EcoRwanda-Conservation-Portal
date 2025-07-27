@@ -122,6 +122,16 @@ export default function Login() {
           </Link>
         </div>
       </form>
+      <div className="text-center mt-4">
+        <Link
+          to="/terms-and-conditions"
+          className="text-xs text-gray-400 hover:text-emerald-700 underline transition-colors duration-200"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Terms & Conditions
+        </Link>
+      </div>
     </AuthLayout>
   );
 }

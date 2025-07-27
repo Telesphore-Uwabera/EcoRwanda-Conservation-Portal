@@ -155,6 +155,16 @@ export default function Signup() {
           >
             Go to Login
           </Link>
+          <div className="text-center mt-4">
+            <Link
+              to="/terms-and-conditions"
+              className="text-xs text-gray-400 hover:text-emerald-700 underline transition-colors duration-200"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Terms & Conditions
+            </Link>
+          </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -343,6 +353,16 @@ export default function Signup() {
               className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
             >
               Already have an account? Sign in
+            </Link>
+          </div>
+          <div className="text-center mt-4">
+            <Link
+              to="/terms-and-conditions"
+              className="text-xs text-gray-400 hover:text-emerald-700 underline transition-colors duration-200"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Terms & Conditions
             </Link>
           </div>
         </form>

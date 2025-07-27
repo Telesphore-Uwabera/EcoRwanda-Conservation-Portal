@@ -11,6 +11,7 @@ import ThreatMap from "./components/common/ThreatMap";
 
 // Pages
 import NotFound from "./pages/NotFound";
+import TermsAndConditions from "./pages/TermsAndConditions";
 
 // Auth Pages
 import Login from "./pages/auth/Login";
@@ -75,6 +76,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public Routes */}
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="/" element={<Navigate to="/auth/login" replace />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
