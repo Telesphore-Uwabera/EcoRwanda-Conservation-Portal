@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "rm -rf node_modules package-lock.json && npm install",
     "build": "vite build",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
