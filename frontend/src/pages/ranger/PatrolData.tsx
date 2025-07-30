@@ -253,6 +253,13 @@ export default function PatrolData() {
   const filteredActivePatrolsAll = applyFilters(allPatrols.filter(p => calculatePatrolStatus(p) === 'in_progress'));
   const filteredCompletedPatrolsAll = applyFilters(allPatrols.filter(p => calculatePatrolStatus(p) === 'completed'));
 
+  // In Progress patrols: currently active patrols
+  const inProgressPatrols = patrols.filter((patrol) => {
+    const status = calculatePatrolStatus(patrol);
+    return status === 'in_progress';
+  });
+  const filteredInProgressPatrols = applyFilters(inProgressPatrols);
+
   const getStatusInfo = (status: string) => {
     switch (status) {
       case "completed": return { color: "bg-emerald-100 text-emerald-800", text: "Completed" };
@@ -454,6 +461,7 @@ export default function PatrolData() {
             <TabsList>
               <TabsTrigger value="recent">Recent Patrols ({filteredRecentPatrols.length})</TabsTrigger>
               <TabsTrigger value="scheduled">Scheduled ({filteredScheduledPatrols.length})</TabsTrigger>
+              <TabsTrigger value="in_progress">In Progress ({filteredInProgressPatrols.length})</TabsTrigger>
               <TabsTrigger value="cancelled">Cancelled ({filteredCancelledPatrols.length})</TabsTrigger>
             </TabsList>
             <div className="flex flex-wrap items-center gap-2">
@@ -645,6 +653,78 @@ export default function PatrolData() {
                   )}
                 </>
               ) : <div className="text-center py-12 text-gray-500">No scheduled patrols found.</div>}
+          </TabsContent>
+          <TabsContent value="in_progress">
+            {loading ? <div className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" /></div> :
+              filteredInProgressPatrols.length > 0 ? (
+                <>
+                  <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredInProgressPatrols.slice(0, 4).map((patrol) => (
+                      <Card key={patrol.id} onClick={() => handlePatrolDialog("edit", patrol)} className="min-w-[260px] max-w-full p-4 flex flex-col justify-between hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                          <CardTitle className="flex justify-between items-start">
+                            <span className="font-bold">{patrol.route}</span>
+                            <Badge className={getStatusInfo(patrol.status).color}>{getStatusInfo(patrol.status).text}</Badge>
+                          </CardTitle>
+                          <CardDescription>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Calendar className="mr-2 h-4 w-4" />
+                              <span>Started: {formatDate(patrol.patrolDate)} at {patrol.startTime || ''}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                              <Activity className="mr-2 h-4 w-4" />
+                              <span>Currently Active</span>
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Clock className="mr-2 h-4 w-4" />
+                              <span>Estimated Duration: {patrol.estimatedDuration ? `${patrol.estimatedDuration}h` : 'N/A'}</span>
+                              {patrol.actualDuration !== undefined && patrol.actualDuration !== null && (
+                                <span className="ml-4">Actual Duration: {patrol.actualDuration}h</span>
+                              )}
+                            </div>
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Users className="mr-2 h-4 w-4" />
+                            Assigned to: {patrol.ranger.firstName} {patrol.ranger.lastName}
+                          </div>
+                          {patrol.objectives && patrol.objectives.length > 0 && (
+                            <>
+                              <p className="text-sm font-semibold pt-2">Objectives:</p>
+                              <p className="text-sm line-clamp-2">{patrol.objectives.join(', ')}</p>
+                            </>
+                          )}
+                          {patrol.equipment && patrol.equipment.length > 0 && (
+                            <>
+                              <p className="text-sm font-semibold pt-2">Equipment:</p>
+                              <p className="text-sm line-clamp-2">{patrol.equipment.join(', ')}</p>
+                            </>
+                          )}
+                          {renderAttendees(patrol.attendees)}
+                          <div className="flex gap-2 pt-2">
+                            {(user?._id === patrol.ranger._id || user?.role === 'admin') && (
+                              <>
+                                <Button size="sm" variant="outline" onClick={(e) => handleEditPatrol(e, patrol)}>Edit</Button>
+                                <Button size="sm" variant="destructive" onClick={(e) => handleCancelPatrolClick(e, patrol.id)}>
+                                  Cancel
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {filteredInProgressPatrols.length > 4 && (
+                    <div className="flex justify-end mt-4">
+                      <Button asChild variant="outline">
+                        <Link to="/ranger/patrols?tab=in_progress">View All</Link>
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : <div className="text-center py-12 text-gray-500">No active patrols found.</div>}
           </TabsContent>
           <TabsContent value="cancelled">
             {loading ? <div className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" /></div> :
