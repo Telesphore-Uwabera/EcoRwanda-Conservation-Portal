@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { getDashboardRoute } from "@/lib/auth";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, FileText } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -125,10 +125,11 @@ export default function Login() {
       <div className="text-center mt-4">
         <Link
           to="/terms-and-conditions"
-          className="text-xs text-gray-400 hover:text-emerald-700 underline transition-colors duration-200"
+          className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 hover:bg-emerald-50 hover:text-emerald-700 border border-gray-200 hover:border-emerald-300 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
           target="_blank"
           rel="noopener noreferrer"
         >
+          <FileText className="h-3 w-3" />
           Terms & Conditions
         </Link>
       </div>

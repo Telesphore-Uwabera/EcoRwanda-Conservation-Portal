@@ -1,8 +1,18 @@
-import { ShieldCheck, UserCheck, Lock, Users, FileText, Database, KeyRound, MailCheck, AlertCircle } from "lucide-react";
+import { ShieldCheck, UserCheck, Lock, Users, FileText, Database, KeyRound, MailCheck, AlertCircle, ArrowLeft } from "lucide-react";
 import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const TermsAndConditions = () => (
   <div className="max-w-3xl mx-auto py-10 px-4 text-gray-800">
+    <div className="mb-6">
+      <Link to="/auth/login">
+        <Button variant="outline" className="inline-flex items-center gap-2 text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Login
+        </Button>
+      </Link>
+    </div>
     <div className="bg-white rounded-lg shadow p-6 mb-8">
       <h1 className="text-3xl font-bold text-center text-emerald-700 mb-2">Terms and Conditions</h1>
       <p className="text-center text-gray-500 mb-2">Transparent practices that prioritize your privacy and conservation experience on EcoRwanda Conservation Portal</p>
@@ -86,7 +96,16 @@ const TermsAndConditions = () => (
         <h3 className="font-semibold mb-1 flex items-center gap-2"><MailCheck className="h-4 w-4 text-emerald-700" /> Questions About Your Privacy?</h3>
         <p>Contact our Privacy Officer at <a href="mailto:privacy@ecorwanda.org" className="underline text-emerald-700">privacy@ecorwanda.org</a> or Data Protection Lead at <a href="mailto:dataprotection@ecorwanda.org" className="underline text-emerald-700">dataprotection@ecorwanda.org</a>.</p>
       </div>
-      <div className="text-xs text-gray-400 text-right">Last updated: July 7, 2025</div>
+      <div className="text-xs text-gray-400 text-right mb-6">Last updated: July 7, 2025</div>
+      
+      <div className="text-center pt-6 border-t border-gray-200">
+        <Link to="/auth/login">
+          <Button className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2">
+            <ArrowLeft className="h-4 w-4" />
+            Return to Login
+          </Button>
+        </Link>
+      </div>
     </div>
   </div>
 );
