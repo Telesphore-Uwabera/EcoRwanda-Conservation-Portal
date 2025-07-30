@@ -199,29 +199,18 @@ exports.createPatrol = async (req, res) => {
     const isFuturePatrol = patrolDateTime > now;
     const isPastPatrol = patrolDateTime <= now;
     
-    // Prevent scheduling patrols for past times
-    if (isPastPatrol && status === 'scheduled') {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Cannot schedule patrols for past dates or times. Please select a future date and time.' 
-      });
-    }
-    
     // Auto-set status based on date/time if not provided
     let finalStatus = status;
     if (!finalStatus) {
       finalStatus = isFuturePatrol ? 'scheduled' : 'in_progress';
     }
     
-    // Validate that future patrols should be scheduled
-    if (isFuturePatrol && finalStatus !== 'scheduled') {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Future patrols must be scheduled, not in progress' 
-      });
+    // For future patrols, ensure they are scheduled
+    if (isFuturePatrol) {
+      finalStatus = 'scheduled';
     }
     
-    // Additional validation: prevent past patrols from being scheduled
+    // For past patrols, ensure they are not scheduled
     if (isPastPatrol && finalStatus === 'scheduled') {
       return res.status(400).json({ 
         success: false, 
