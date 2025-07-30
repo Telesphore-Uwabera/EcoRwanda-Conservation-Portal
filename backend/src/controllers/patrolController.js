@@ -214,7 +214,7 @@ exports.createPatrol = async (req, res) => {
     if (isPastPatrol && finalStatus === 'scheduled') {
       return res.status(400).json({ 
         success: false, 
-        error: 'Cannot schedule patrols for past dates or times. Please select a future date and time.' 
+        error: 'Cannot schedule patrols for past dates. Please select today or a future date.' 
       });
     }
 

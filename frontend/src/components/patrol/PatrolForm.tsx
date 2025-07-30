@@ -176,15 +176,22 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
         patrolDateTime.setHours(hours, minutes, 0, 0);
       }
 
-      // For schedule mode, prevent past dates/times
-      if (mode === "schedule" && patrolDateTime <= now) {
-        toast({
-          title: "Validation Error",
-          description: "Cannot schedule patrols for past dates or times. Please select a future date and time.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
+      // For schedule mode, only prevent past DATES (not times on future dates)
+      if (mode === "schedule") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+        const patrolDateOnly = new Date(data.patrolDate);
+        patrolDateOnly.setHours(0, 0, 0, 0); // Start of patrol date
+        
+        if (patrolDateOnly < today) {
+          toast({
+            title: "Validation Error",
+            description: "Cannot schedule patrols for past dates. Please select today or a future date.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       // For new mode, allow dates up to 1 day in the past
