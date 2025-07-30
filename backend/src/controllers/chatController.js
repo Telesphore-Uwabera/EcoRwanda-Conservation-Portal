@@ -6,7 +6,7 @@ exports.getMessages = async (req, res) => {
     const messages = await ChatMessage.find({ replyTo: null })
       .populate('user', 'firstName lastName role')
       .populate({ path: 'replies', populate: { path: 'user', select: 'firstName lastName role' } })
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: -1 });
     res.json({ success: true, messages });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
