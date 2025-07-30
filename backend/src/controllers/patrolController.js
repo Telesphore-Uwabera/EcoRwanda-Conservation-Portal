@@ -220,9 +220,18 @@ exports.createPatrol = async (req, res) => {
       });
     }
     
+    // Ensure patrolDate is properly converted to a Date object
+    const patrolDate = new Date(req.body.patrolDate);
+    if (isNaN(patrolDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid patrol date format'
+      });
+    }
+
     const patrolData = { 
       ...req.body, 
-      patrolDate: new Date(req.body.patrolDate), // Convert string to Date object
+      patrolDate: patrolDate, // Convert string to Date object
       ranger: req.user._id,
       status: finalStatus
     };
@@ -238,10 +247,16 @@ exports.createPatrol = async (req, res) => {
   } catch (error) {
     console.error("Error creating patrol:", error);
     console.error("Request body:", req.body);
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
     
     // Provide more specific error messages for validation errors
     if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(err => err.message);
+      const validationErrors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message,
+        value: err.value
+      }));
       console.error("Validation errors:", validationErrors);
       return res.status(400).json({ 
         success: false, 

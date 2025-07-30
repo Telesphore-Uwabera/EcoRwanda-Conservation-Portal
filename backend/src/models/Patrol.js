@@ -58,7 +58,9 @@ const patrolSchema = new mongoose.Schema({
         required: true,
         validate: {
           validator: function(v) {
-            return /^\d{10}$/.test(v);
+            // Remove any non-digit characters and check if it's 10 digits
+            const cleanPhone = v.replace(/\D/g, '');
+            return cleanPhone.length === 10;
           },
           message: props => `${props.value} is not a valid 10-digit phone number!`
         }
