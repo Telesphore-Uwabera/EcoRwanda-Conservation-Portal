@@ -479,6 +479,19 @@ EcoRwanda-Conservation-Portal-main/
 │       ├── middleware/
 │       ├── models/
 │       ├── pages/
+│       │   ├── admin/
+│       │   ├── auth/
+│       │   ├── dashboard/
+│       │   ├── ranger/
+│       │   ├── researcher/
+│       │   ├── volunteer/
+│       │   ├── Index.tsx
+│       │   ├── NotFound.tsx
+│       │   ├── ProtectedAreaDetails.js
+│       │   ├── ProtectedAreas.js
+│       │   ├── ResearchProjectDetails.js
+│       │   ├── ResearchProjects.js
+│       │   └── TermsAndConditions.tsx
 │       ├── routes/
 │       ├── services/
 │       ├── types/

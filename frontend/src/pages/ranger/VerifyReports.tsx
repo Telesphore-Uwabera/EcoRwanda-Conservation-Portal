@@ -57,6 +57,7 @@ interface Report {
   submittedBy: { _id: string; firstName: string; lastName: string; email: string };
   submittedAt: string;
   photos: string[];
+  verificationNotes?: string;
   updates: Array<{ note: string; timestamp: string; updatedBy?: { _id: string; firstName: string; lastName: string } }>;
 }
 
@@ -141,16 +142,44 @@ export default function VerifyReports() {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case "poaching":
-        return "🎯";
-      case "habitat_destruction":
-        return "🌳";
-      case "wildlife_sighting":
+      case "wildlife":
         return "🦁";
+      case "poaching":
+        return "🚫";
+      case "habitat_destruction":
+        return "🏚️";
+      case "wildlife_sighting":
+        return "👁️";
       case "human_wildlife_conflict":
         return "⚠️";
       case "pollution":
-        return "🏭";
+        return "☣️";
+      case "invasive_species":
+        return "🦠";
+      case "illegal_logging":
+        return "🪓";
+      case "fire":
+        return "🔥";
+      case "disease_outbreak":
+        return "🦠";
+      case "illegal_mining":
+        return "⛏️";
+      case "deforestation":
+        return "🌲";
+      case "water_pollution":
+        return "💧";
+      case "air_pollution":
+        return "💨";
+      case "soil_erosion":
+        return "🏔️";
+      case "climate_impact":
+        return "🌡️";
+      case "endangered_species":
+        return "🐾";
+      case "conservation_success":
+        return "✅";
+      case "other":
+        return "📝";
       default:
         return "📝";
     }
@@ -229,6 +258,12 @@ export default function VerifyReports() {
   const handleUpdateStatus = async (newStatus: string) => {
     if (!selectedReport || !user || isUpdating) return;
 
+    // Validate that verification notes are provided for status changes
+    if (['verified', 'investigating', 'resolved', 'rejected'].includes(newStatus) && !verificationNotes.trim()) {
+      setUpdateError("Verification notes are required when updating status to verified, investigating, resolved, or rejected.");
+      return;
+    }
+
     setIsUpdating(true);
     setUpdateError(null);
     setUpdateSuccess(false);
@@ -236,7 +271,7 @@ export default function VerifyReports() {
     try {
       const updatePayload = {
         status: newStatus,
-        notes: verificationNotes,
+        verificationNotes: verificationNotes,
         updatedBy: user._id,
       };
       await api.put(`/reports/${selectedReport._id}`, updatePayload);
@@ -246,6 +281,7 @@ export default function VerifyReports() {
         return {
           ...prev,
           status: newStatus,
+          verificationNotes: verificationNotes,
           updates: [
             ...prev.updates,
             {
@@ -336,6 +372,15 @@ export default function VerifyReports() {
                 </div>
               )}
 
+              {selectedReport.verificationNotes && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">Verification Notes</h3>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-gray-800 text-sm">{selectedReport.verificationNotes}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="mt-6 space-y-4">
                 <h3 className="text-lg font-bold text-gray-900">Verification Action</h3>
                 {updateSuccess && (
@@ -356,6 +401,17 @@ export default function VerifyReports() {
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
+                    <Label htmlFor="notes">Verification Notes <span className="text-red-500">*</span></Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Add notes about the verification (required for status changes)..."
+                      value={verificationNotes}
+                      onChange={(e) => setVerificationNotes(e.target.value)}
+                      disabled={isUpdating}
+                      required
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="status-select">Update Status</Label>
                     <Select onValueChange={(value) => handleUpdateStatus(value)} value={selectedReport.status} disabled={isUpdating}>
                       <SelectTrigger id="status-select">
@@ -369,16 +425,6 @@ export default function VerifyReports() {
                         <SelectItem value="rejected">Rejected</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="notes">Verification Notes (Optional)</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Add notes about the verification..."
-                      value={verificationNotes}
-                      onChange={(e) => setVerificationNotes(e.target.value)}
-                      disabled={isUpdating}
-                    />
                   </div>
                 </div>
                 <Button

@@ -60,6 +60,7 @@ interface WildlifeReport {
   urgency: string;
   status: string;
   submittedAt: string;
+  verificationNotes?: string;
 }
 
 interface AvailableProject {
@@ -83,6 +84,14 @@ export default function VolunteerDashboard() {
   const [availableProjects, setAvailableProjects] = useState<AvailableProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedNotes, setExpandedNotes] = useState<{ [key: string]: boolean }>({});
+
+  const toggleNotes = (reportId: string) => {
+    setExpandedNotes(prev => ({
+      ...prev,
+      [reportId]: !prev[reportId]
+    }));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -262,11 +271,27 @@ export default function VolunteerDashboard() {
                         <Badge variant="outline" className="text-xs">
                           {report.urgency}
                         </Badge>
+                        {report.verificationNotes && report.status !== 'pending' && (
+                          <button
+                            onClick={() => toggleNotes(report._id)}
+                            className="text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-2 py-1 rounded border border-emerald-300 transition-colors duration-200"
+                          >
+                            Verification note
+                          </button>
+                        )}
                       </div>
                       <span className="text-xs text-gray-500">
                         {format(new Date(report.submittedAt), 'PPp')}
                       </span>
                     </div>
+                    {report.verificationNotes && report.status !== 'pending' && expandedNotes[report._id] && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="text-xs text-gray-500 mb-1">Verification Notes:</div>
+                        <p className="text-xs text-gray-700 bg-blue-50 p-2 rounded">
+                          {report.verificationNotes}
+                        </p>
+                      </div>
+                    )}
                   </Card>
                 ))}
               </div>

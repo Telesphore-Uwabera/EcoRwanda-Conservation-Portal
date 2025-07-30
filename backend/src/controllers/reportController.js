@@ -83,6 +83,14 @@ exports.updateReport = async (req, res) => {
     }
 
     if (status) {
+      // Require verification notes for status changes
+      if (['verified', 'investigating', 'resolved', 'rejected'].includes(status) && !verificationNotes) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Verification notes are required when updating status to verified, investigating, resolved, or rejected' 
+        });
+      }
+
       // Log the status change activity
       const message = `Report status updated to '${status}' by a ranger.`;
       await logActivity(message, req.user.id, `/ranger/verify-reports/${report._id}`);

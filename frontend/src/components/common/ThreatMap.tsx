@@ -35,10 +35,24 @@ interface WildlifeReport {
 
 // Define colors for each threat category for consistent styling
 const categoryColors: { [key: string]: string } = {
+  wildlife: "green",
   poaching: "red",
   habitat_destruction: "orange",
   wildlife_sighting: "blue",
   human_wildlife_conflict: "purple",
+  pollution: "brown",
+  invasive_species: "pink",
+  illegal_logging: "darkred",
+  fire: "red",
+  disease_outbreak: "yellow",
+  illegal_mining: "gray",
+  deforestation: "darkgreen",
+  water_pollution: "cyan",
+  air_pollution: "lightblue",
+  soil_erosion: "tan",
+  climate_impact: "orange",
+  endangered_species: "darkblue",
+  conservation_success: "green",
   other: "gray",
 };
 

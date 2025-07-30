@@ -20,6 +20,7 @@ const WildlifeReportSchema = new mongoose.Schema({
   category: {
     type: String,
     enum: [
+      'wildlife',
       'poaching',
       'habitat_destruction',
       'wildlife_sighting',
@@ -30,6 +31,13 @@ const WildlifeReportSchema = new mongoose.Schema({
       'fire',
       'disease_outbreak',
       'illegal_mining',
+      'deforestation',
+      'water_pollution',
+      'air_pollution',
+      'soil_erosion',
+      'climate_impact',
+      'endangered_species',
+      'conservation_success',
       'other'
     ],
     required: true,
@@ -59,6 +67,14 @@ const WildlifeReportSchema = new mongoose.Schema({
   },
   verifiedAt: {
     type: Date,
+  },
+  verificationNotes: {
+    type: String,
+    required: function() {
+      // Required only when status is 'verified', 'investigating', 'resolved', or 'rejected'
+      return ['verified', 'investigating', 'resolved', 'rejected'].includes(this.status);
+    },
+    trim: true,
   },
   updates: [
     {

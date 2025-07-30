@@ -13,7 +13,7 @@ import {
   Home,
   Menu,
   X,
-  Signal,
+  Wifi,
   WifiOff,
   Mountain,
   Leaf,
@@ -42,7 +42,7 @@ import { useMediaQuery } from '@mui/material';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ConnectionStatus } from "@/components/common/OfflineIndicator";
+
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleDisplayName, getRoleColor } from "@/lib/auth";
 import { useOfflineStatus } from "@/lib/offline";
@@ -342,7 +342,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="mt-2">
             {isOnline ? (
               <span className="text-emerald-600 text-sm flex items-center justify-center">
-                <Signal className="h-4 w-4 mr-1" /> Online
+                <Wifi className="h-4 w-4 mr-1" /> Online
               </span>
             ) : (
               <span className="text-amber-600 text-sm flex items-center justify-center">
