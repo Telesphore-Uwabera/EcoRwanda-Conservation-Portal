@@ -17,7 +17,10 @@ const autoUpdatePatrolStatuses = async (userId) => {
   
   for (const patrol of patrols) {
     try {
-      const patrolStart = new Date(patrol.patrolDate);
+      // Fix timezone issue by creating date properly
+      const patrolDateStr = patrol.patrolDate.toISOString().split('T')[0]; // Get YYYY-MM-DD
+      const patrolStart = new Date(patrolDateStr + 'T00:00:00'); // Force local timezone
+      
       if (patrol.startTime && typeof patrol.startTime === 'string') {
         const [hours, minutes] = patrol.startTime.split(':').map(Number);
         patrolStart.setHours(hours, minutes, 0, 0);
