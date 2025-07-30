@@ -177,7 +177,16 @@ exports.autoUpdatePatrolStatuses = autoUpdatePatrolStatuses;
 // Keep other functions like create, update, delete as they were, ensuring correct userId usage
 exports.createPatrol = async (req, res) => {
   try {
-    const { patrolDate, startTime, status } = req.body;
+    const { startTime, status } = req.body;
+    
+    // Ensure patrolDate is properly converted to a Date object
+    const patrolDate = new Date(req.body.patrolDate);
+    if (isNaN(patrolDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid patrol date format'
+      });
+    }
     
     // Validate patrol date and time
     const patrolDateTime = new Date(patrolDate);
@@ -217,15 +226,6 @@ exports.createPatrol = async (req, res) => {
       return res.status(400).json({ 
         success: false, 
         error: 'Cannot schedule patrols for past dates or times. Please select a future date and time.' 
-      });
-    }
-    
-    // Ensure patrolDate is properly converted to a Date object
-    const patrolDate = new Date(req.body.patrolDate);
-    if (isNaN(patrolDate.getTime())) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid patrol date format'
       });
     }
 
