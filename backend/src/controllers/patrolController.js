@@ -222,6 +222,7 @@ exports.createPatrol = async (req, res) => {
     
     const patrolData = { 
       ...req.body, 
+      patrolDate: new Date(req.body.patrolDate), // Convert string to Date object
       ranger: req.user._id,
       status: finalStatus
     };
@@ -236,10 +237,12 @@ exports.createPatrol = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating patrol:", error);
+    console.error("Request body:", req.body);
     
     // Provide more specific error messages for validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message);
+      console.error("Validation errors:", validationErrors);
       return res.status(400).json({ 
         success: false, 
         error: 'Validation failed', 
