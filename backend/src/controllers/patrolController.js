@@ -179,8 +179,9 @@ exports.createPatrol = async (req, res) => {
   try {
     const { startTime, status } = req.body;
     
-    // Ensure patrolDate is properly converted to a Date object
-    const patrolDate = new Date(req.body.patrolDate);
+    // Ensure patrolDate is properly converted to a Date object without timezone issues
+    const patrolDateStr = req.body.patrolDate; // Format: 'YYYY-MM-DD'
+    const patrolDate = new Date(patrolDateStr + 'T00:00:00'); // Force local timezone
     if (isNaN(patrolDate.getTime())) {
       return res.status(400).json({
         success: false,
@@ -196,8 +197,14 @@ exports.createPatrol = async (req, res) => {
     }
     
     const now = new Date();
-    const isFuturePatrol = patrolDateTime > now;
-    const isPastPatrol = patrolDateTime <= now;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    
+    const patrolDateOnly = new Date(patrolDate);
+    patrolDateOnly.setHours(0, 0, 0, 0); // Start of patrol date
+    
+    const isFuturePatrol = patrolDateOnly > today;
+    const isPastPatrol = patrolDateOnly < today;
     
     // Auto-set status based on date/time if not provided
     let finalStatus = status;
