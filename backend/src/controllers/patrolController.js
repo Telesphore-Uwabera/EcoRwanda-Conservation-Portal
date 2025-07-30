@@ -4,6 +4,9 @@ const Patrol = require('../models/Patrol');
 // --- Centralized Helper Functions ---
 
 // This function should be the single source of truth for status updates.
+// It automatically changes patrol statuses:
+// - "scheduled" -> "in_progress" when patrol start time arrives
+// - "in_progress" -> "completed" when patrol end time arrives
 const autoUpdatePatrolStatuses = async (userId) => {
   if (!userId) {
     console.error("autoUpdatePatrolStatuses called without userId");
@@ -30,15 +33,21 @@ const autoUpdatePatrolStatuses = async (userId) => {
       const patrolEnd = new Date(patrolStart.getTime() + durationHours * 60 * 60 * 1000);
       
       let changed = false;
+      
+      // Check if it's time to start the patrol (scheduled -> in_progress)
       if (patrol.status === "scheduled" && now >= patrolStart && now < patrolEnd) {
         patrol.status = "in_progress";
         changed = true;
-      } else if ((patrol.status === "scheduled" || patrol.status === "in_progress") && now >= patrolEnd) {
+        console.log(`Patrol ${patrol._id} status changed from scheduled to in_progress at ${now.toISOString()}`);
+      } 
+      // Check if patrol time has ended (in_progress -> completed)
+      else if ((patrol.status === "scheduled" || patrol.status === "in_progress") && now >= patrolEnd) {
         patrol.status = "completed";
         patrol.endTime = now;
         const actualDuration = (patrol.endTime - patrolStart) / (1000 * 60 * 60);
         patrol.actualDuration = Math.round(actualDuration * 100) / 100;
         changed = true;
+        console.log(`Patrol ${patrol._id} status changed to completed at ${now.toISOString()}`);
       }
 
       if (changed) {
