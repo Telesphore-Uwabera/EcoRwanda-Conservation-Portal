@@ -236,6 +236,17 @@ exports.createPatrol = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating patrol:", error);
+    
+    // Provide more specific error messages for validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Validation failed', 
+        details: validationErrors 
+      });
+    }
+    
     res.status(400).json({ success: false, error: error.message });
   }
 };

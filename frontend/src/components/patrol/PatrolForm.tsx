@@ -134,9 +134,21 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
   const removeAttendee = (index: number) => setAttendees(prev => prev.filter((_, i) => i !== index));
 
   const validateAttendees = () => {
-    const errors = attendees.map(a =>
-      /^\d{10}$/.test(a.phone) ? '' : 'Phone number must be exactly 10 digits.'
-    );
+    const errors = attendees.map(a => {
+      if (!a.name.trim() && !a.phone.trim()) {
+        return ''; // Empty attendee is fine, will be filtered out
+      }
+      if (!a.name.trim()) {
+        return 'Name is required.';
+      }
+      if (!a.phone.trim()) {
+        return 'Phone number is required.';
+      }
+      if (!/^\d{10}$/.test(a.phone)) {
+        return 'Phone number must be exactly 10 digits.';
+      }
+      return '';
+    });
     setAttendeeErrors(errors);
     return errors.every(e => !e);
   };
@@ -201,7 +213,7 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
 
       const patrolData = {
         ...data,
-        attendees,
+        attendees: attendees.filter(attendee => attendee.name.trim() && attendee.phone.trim()),
         status,
         objectives: data.objectives.split(",").map(obj => obj.trim()).filter(obj => obj.length > 0),
         equipment: data.equipment.split(",").map(eq => eq.trim()).filter(eq => eq.length > 0),
