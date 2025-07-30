@@ -144,6 +144,7 @@ exports.createResearchProject = async (req, res) => {
   try {
     const {
       title,
+      description,
       abstract,
       objectives = [],
       location = { name: '', lat: '', lng: '' },
@@ -157,7 +158,7 @@ exports.createResearchProject = async (req, res) => {
 
     const project = new ResearchProject({
       title,
-      description: abstract,
+      description: description || abstract, // Accept both description and abstract
       objectives: objectives,
       methodology: req.body.methodology,
       location: typeof location === 'object' ? location : { lat: 0, lng: 0, name: location },
