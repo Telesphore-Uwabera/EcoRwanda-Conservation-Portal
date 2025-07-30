@@ -87,6 +87,31 @@ const calculatePatrolStatus = (patrol) => {
   return patrol.status || 'scheduled';
 };
 
+// Helper to calculate time until scheduled patrol
+const getTimeUntilPatrol = (patrolDate: string, startTime: string) => {
+  try {
+    const patrolDateTime = new Date(patrolDate + 'T' + startTime);
+    const now = new Date();
+    const diffMs = patrolDateTime.getTime() - now.getTime();
+    
+    if (diffMs <= 0) return null;
+    
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays > 1 ? 's' : ''} ${diffHours}h ${diffMinutes}m`;
+    } else if (diffHours > 0) {
+      return `${diffHours}h ${diffMinutes}m`;
+    } else {
+      return `${diffMinutes}m`;
+    }
+  } catch {
+    return null;
+  }
+};
+
 // Helper to render attendees
 const renderAttendees = (attendees?: { name: string; phone: string }[]) => {
   if (!attendees || attendees.length === 0) return null;
@@ -127,6 +152,7 @@ export default function PatrolData() {
 
   const [allPatrols, setAllPatrols] = useState<Patrol[]>([]);
   const [loadingAllPatrols, setLoadingAllPatrols] = useState(true);
+  const [timeUpdate, setTimeUpdate] = useState(0); // For forcing re-renders of time displays
 
   const fetchPatrolData = useCallback(async () => {
     if (!user) return;
@@ -151,6 +177,15 @@ export default function PatrolData() {
   useEffect(() => {
     fetchPatrolData();
   }, [fetchPatrolData]);
+
+  // Update time displays every minute for scheduled patrols
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeUpdate(prev => prev + 1);
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const applyFilters = (patrols: Patrol[]) => {
     return patrols.filter((patrol) => {
@@ -177,7 +212,7 @@ export default function PatrolData() {
     });
   };
 
-  const filteredPatrols = useMemo(() => applyFilters(patrols), [patrols, searchTerm, statusFilter, dateFilter]);
+  const filteredPatrols = useMemo(() => applyFilters(patrols), [patrols, searchTerm, statusFilter, dateFilter, timeUpdate]);
 
   // Group filtered patrols by status
   const groupedFilteredPatrols = useMemo(() => {
@@ -190,7 +225,7 @@ export default function PatrolData() {
       }
     });
     return groups;
-  }, [filteredPatrols]);
+  }, [filteredPatrols, timeUpdate]);
 
   // Fix recent patrols logic: patrols created within the last 24 hours
   const now = new Date();
@@ -473,6 +508,17 @@ export default function PatrolData() {
                              <Calendar className="mr-2 h-4 w-4" />
                              <span>{formatDate(patrol.patrolDate)} at {patrol.startTime || ''}</span>
                            </div>
+                           {patrol.startTime && calculatePatrolStatus(patrol) === 'scheduled' && (
+                             <div className="flex items-center text-sm text-blue-600 font-medium mt-1">
+                               <Clock className="mr-2 h-4 w-4" />
+                               <span>
+                                 {(() => {
+                                   const timeUntil = getTimeUntilPatrol(patrol.patrolDate, patrol.startTime);
+                                   return timeUntil ? `Starts in ${timeUntil}` : null;
+                                 })()}
+                               </span>
+                             </div>
+                           )}
                            <div className="flex items-center text-sm text-muted-foreground">
                              <Clock className="mr-2 h-4 w-4" />
                              <span>Estimated Duration: {patrol.estimatedDuration ? `${patrol.estimatedDuration}h` : 'N/A'}</span>
@@ -562,7 +608,17 @@ export default function PatrolData() {
                             <span className="font-bold">{patrol.route}</span>
                             <Badge className={getStatusInfo(patrol.status).color}>{getStatusInfo(patrol.status).text}</Badge>
                           </CardTitle>
-                          <CardDescription>Scheduled for: {formatDate(patrol.patrolDate)} at {patrol.startTime}</CardDescription>
+                          <CardDescription>
+                            Scheduled for: {formatDate(patrol.patrolDate)} at {patrol.startTime}
+                            {patrol.startTime && (
+                              <div className="mt-1 text-sm text-blue-600 font-medium">
+                                {(() => {
+                                  const timeUntil = getTimeUntilPatrol(patrol.patrolDate, patrol.startTime);
+                                  return timeUntil ? `Starts in ${timeUntil}` : null;
+                                })()}
+                              </div>
+                            )}
+                          </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
                           <div className="flex items-center text-sm text-muted-foreground">

@@ -177,10 +177,63 @@ exports.autoUpdatePatrolStatuses = autoUpdatePatrolStatuses;
 // Keep other functions like create, update, delete as they were, ensuring correct userId usage
 exports.createPatrol = async (req, res) => {
   try {
-    const patrolData = { ...req.body, ranger: req.user._id };
+    const { patrolDate, startTime, status } = req.body;
+    
+    // Validate patrol date and time
+    const patrolDateTime = new Date(patrolDate);
+    if (startTime) {
+      const [hours, minutes] = startTime.split(':').map(Number);
+      patrolDateTime.setHours(hours, minutes, 0, 0);
+    }
+    
+    const now = new Date();
+    const isFuturePatrol = patrolDateTime > now;
+    const isPastPatrol = patrolDateTime <= now;
+    
+    // Prevent scheduling patrols for past times
+    if (isPastPatrol && status === 'scheduled') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Cannot schedule patrols for past dates or times. Please select a future date and time.' 
+      });
+    }
+    
+    // Auto-set status based on date/time if not provided
+    let finalStatus = status;
+    if (!finalStatus) {
+      finalStatus = isFuturePatrol ? 'scheduled' : 'in_progress';
+    }
+    
+    // Validate that future patrols should be scheduled
+    if (isFuturePatrol && finalStatus !== 'scheduled') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Future patrols must be scheduled, not in progress' 
+      });
+    }
+    
+    // Additional validation: prevent past patrols from being scheduled
+    if (isPastPatrol && finalStatus === 'scheduled') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Cannot schedule patrols for past dates or times. Please select a future date and time.' 
+      });
+    }
+    
+    const patrolData = { 
+      ...req.body, 
+      ranger: req.user._id,
+      status: finalStatus
+    };
+    
     const patrol = new Patrol(patrolData);
     await patrol.save();
-    res.status(201).json({ success: true, data: patrol });
+    
+    res.status(201).json({ 
+      success: true, 
+      data: patrol,
+      message: isFuturePatrol ? 'Patrol scheduled for future successfully' : 'Patrol created successfully'
+    });
   } catch (error) {
     console.error("Error creating patrol:", error);
     res.status(400).json({ success: false, error: error.message });

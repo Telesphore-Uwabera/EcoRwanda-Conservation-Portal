@@ -52,6 +52,25 @@ const patrolFormSchema = z.object({
   objectives: z.string().min(1, "At least one objective is required"),
   equipment: z.string().min(1, "At least one equipment item is required"),
   notes: z.string().optional(),
+}).refine((data) => {
+  // Custom validation for patrol date and time
+  const now = new Date();
+  const patrolDateTime = new Date(data.patrolDate);
+  
+  if (data.startTime) {
+    const [hours, minutes] = data.startTime.split(':').map(Number);
+    patrolDateTime.setHours(hours, minutes, 0, 0);
+  }
+  
+  // For scheduling mode, prevent past dates/times
+  // For other modes, allow dates up to 1 day in the past
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  
+  // This will be checked in the component based on mode
+  return true;
+}, {
+  message: "Patrol date and time validation will be handled in the component",
+  path: ["patrolDate"]
 });
 
 type PatrolFormValues = z.infer<typeof patrolFormSchema>;
@@ -69,6 +88,17 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [attendees, setAttendees] = useState([{ name: '', phone: '' }]);
   const [attendeeErrors, setAttendeeErrors] = useState<string[]>([]);
+
+  // Helper function to check if patrol is scheduled for future
+  const isFuturePatrol = (date: Date, time: string) => {
+    const now = new Date();
+    const patrolDateTime = new Date(date);
+    if (time) {
+      const [hours, minutes] = time.split(':').map(Number);
+      patrolDateTime.setHours(hours, minutes, 0, 0);
+    }
+    return patrolDateTime > now;
+  };
 
   const form = useForm<PatrolFormValues>({
     resolver: zodResolver(patrolFormSchema),
@@ -125,10 +155,54 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
         return;
       }
 
+      // Custom validation for patrol date and time based on mode
+      const now = new Date();
+      const patrolDateTime = new Date(data.patrolDate);
+      
+      if (data.startTime) {
+        const [hours, minutes] = data.startTime.split(':').map(Number);
+        patrolDateTime.setHours(hours, minutes, 0, 0);
+      }
+
+      // For schedule mode, prevent past dates/times
+      if (mode === "schedule" && patrolDateTime <= now) {
+        toast({
+          title: "Validation Error",
+          description: "Cannot schedule patrols for past dates or times. Please select a future date and time.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // For new mode, allow dates up to 1 day in the past
+      if (mode === "new") {
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        if (patrolDateTime < oneDayAgo) {
+          toast({
+            title: "Validation Error",
+            description: "Patrol date cannot be more than 1 day in the past.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Determine status based on patrol date/time
+      const isFuture = isFuturePatrol(data.patrolDate, data.startTime);
+      let status = patrol?.status || "scheduled";
+      
+      if (mode === "new") {
+        status = isFuture ? "scheduled" : "in_progress";
+      } else if (mode === "schedule") {
+        status = "scheduled";
+      }
+
       const patrolData = {
         ...data,
         attendees,
-        status: mode === "new" ? "in_progress" : mode === "schedule" ? "scheduled" : patrol.status,
+        status,
         objectives: data.objectives.split(",").map(obj => obj.trim()).filter(obj => obj.length > 0),
         equipment: data.equipment.split(",").map(eq => eq.trim()).filter(eq => eq.length > 0),
         patrolDate: data.patrolDate.toISOString().split('T')[0],
@@ -151,10 +225,11 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
           Authorization: `Bearer ${token}`,
         },
       });
+      const isFuture = isFuturePatrol(data.patrolDate, data.startTime);
       toast({
         title: "Success",
         description: mode === "new" 
-          ? "New patrol started successfully" 
+          ? (isFuture ? "Patrol scheduled for future successfully" : "New patrol started successfully")
           : "Patrol scheduled successfully",
       });
       }
@@ -178,6 +253,61 @@ export function PatrolForm({ onSuccess, onCancel, mode, patrol }: PatrolFormProp
     <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 bg-white shadow-md rounded-lg">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* Date/Time Validation Indicators */}
+          {(() => {
+            const currentDate = form.watch("patrolDate");
+            const currentTime = form.watch("startTime");
+            
+            if (!currentDate || !currentTime) return null;
+            
+            const now = new Date();
+            const patrolDateTime = new Date(currentDate);
+            const [hours, minutes] = currentTime.split(':').map(Number);
+            patrolDateTime.setHours(hours, minutes, 0, 0);
+            
+            const isFuture = patrolDateTime > now;
+            const isPast = patrolDateTime <= now;
+            
+            // Show future indicator
+            if (isFuture) {
+              return (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-blue-800 font-medium">
+                      Future Patrol Scheduled
+                    </span>
+                  </div>
+                  <p className="text-blue-700 text-sm mt-1">
+                    This patrol will be automatically started when the scheduled time arrives.
+                  </p>
+                </div>
+              );
+            }
+            
+            // Show past date warning for schedule mode
+            if (mode === "schedule" && isPast) {
+              return (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <span className="text-red-800 font-medium">
+                      Past Date/Time Selected
+                    </span>
+                  </div>
+                  <p className="text-red-700 text-sm mt-1">
+                    Cannot schedule patrols for past dates or times. Please select a future date and time.
+                  </p>
+                </div>
+              );
+            }
+            
+            return null;
+          })()}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
