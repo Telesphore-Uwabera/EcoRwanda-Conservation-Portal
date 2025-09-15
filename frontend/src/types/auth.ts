@@ -29,7 +29,9 @@ export interface SignupData {
   lastName: string;
   email: string;
   password: string;
-  role: string;
+  role: UserRole;
+  location?: string;
+  organization?: string;
 }
 
 export interface WildlifeReport {
