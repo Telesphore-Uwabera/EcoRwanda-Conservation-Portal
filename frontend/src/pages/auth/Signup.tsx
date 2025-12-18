@@ -378,7 +378,7 @@ export default function Signup() {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-md transition-all duration-200 shadow-sm hover:shadow-md"
         >
-          <span className="font-semibold">Telesphore Uwabera</span>
+          <span className="font-semibold">Contact Developer</span>
           <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
           </svg>
