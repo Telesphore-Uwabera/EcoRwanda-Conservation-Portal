@@ -371,7 +371,7 @@ export default function Signup() {
         </form>
       )}
       <div className="text-center mt-4 pt-4 border-t border-gray-200">
-        <p className="text-xs text-gray-400 mb-2">Designed by</p>
+        <p className="text-xs text-gray-400 mb-2">Feel Free to</p>
         <a
           href="https://uwaberatelesphore.netlify.app/"
           target="_blank"
