@@ -1,7 +1,7 @@
 # EcoRwanda Conservation Portal 🌿
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Available-brightgreen)](https://ecorwandaconservationportal.netlify.app/)
-[![Backend API](https://img.shields.io/badge/Backend%20API-Render-blue)](https://render.com)
+[![Backend API](https://img.shields.io/badge/Backend%20API-Live-blue)](https://ecorwanda-portal-eed6gfb3f7ftbkfv.southafricanorth-01.azurewebsites.net)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-black)](https://github.com/Telesphore-Uwabera/EcoRwanda-Conservation-Portal/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18.x-green.svg)](https://nodejs.org/)
@@ -33,7 +33,7 @@ A comprehensive **Eco-Volunteer and Research Collaboration Portal** designed to 
 ## 🚀 Live Deployment
 
 - **Frontend**: [https://ecorwandaconservationportal.netlify.app/](https://ecorwandaconservationportal.netlify.app/)
-- **Backend API**: Deployed on Render (update URL after deployment - see [Deployment Guide](#-deployment-guide))
+- **Backend API**: [https://ecorwanda-portal-eed6gfb3f7ftbkfv.southafricanorth-01.azurewebsites.net](https://ecorwanda-portal-eed6gfb3f7ftbkfv.southafricanorth-01.azurewebsites.net)
 
 ## 🧪 Demo Login
 
@@ -563,7 +563,7 @@ EcoRwanda-Conservation-Portal-main/
 3. **Environment configuration**
    By default, the frontend does not include a `.env` file. To run locally, create a `.env` file in the `frontend` directory with:
    ```env
-   VITE_API_URL=https://your-render-backend-url.onrender.com/api
+   VITE_API_URL=https://ecorwanda-portal-eed6gfb3f7ftbkfv.southafricanorth-01.azurewebsites.net/api
    ```
    For production, set the `VITE_API_URL` environment variable in the Netlify dashboard.
 
@@ -574,44 +574,13 @@ EcoRwanda-Conservation-Portal-main/
 
 ## 🌐 Deployment Guide
 
-### Backend Deployment (Render)
+### Backend Deployment (Azure App Service)
 
-**Option 1: Native Git Integration (Recommended)**
-
-1. Sign up for a free account at [Render.com](https://render.com)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repository: `Telesphore-Uwabera/EcoRwanda-Conservation-Portal`
-4. Configure the service:
-   - **Name**: `ecorwanda-backend`
-   - **Environment**: `Node`
-   - **Build Command**: `cd backend && npm install --legacy-peer-deps`
-   - **Start Command**: `cd backend && npm start`
-   - **Root Directory**: Leave empty (or use `backend` if deploying from subdirectory)
-5. Add all environment variables in Render dashboard (see Environment Variables section below)
-6. Click "Create Web Service" - Render will auto-deploy on every push to main branch
-
-**Option 2: Using render.yaml (Alternative)**
-
-1. The `render.yaml` file is already configured in the repository
-2. In Render dashboard, select "New +" → "Blueprint"
-3. Connect your GitHub repository
-4. Render will automatically detect and use the `render.yaml` configuration
-5. Add environment variables in the Render dashboard
-
-**Environment Variables to Set in Render:**
-- `MONGODB_URI` - Your MongoDB connection string
-- `JWT_SECRET` - Your JWT secret key
-- `EMAIL_HOST` - SMTP host (e.g., smtp.gmail.com)
-- `EMAIL_PORT` - SMTP port (e.g., 587)
-- `EMAIL_USER` - Your email address
-- `EMAIL_PASS` - Your email app password
-- `FRONTEND_URL` - https://ecorwandaconservationportal.netlify.app
-- `CLOUDINARY_CLOUD_NAME` - Your Cloudinary cloud name
-- `CLOUDINARY_API_KEY` - Your Cloudinary API key
-- `CLOUDINARY_API_SECRET` - Your Cloudinary API secret
-- `PORT` - Automatically set by Render (no need to set manually)
-
-**Note:** Render automatically sets the `PORT` environment variable. Your backend URL will be something like: `https://ecorwanda-backend.onrender.com`
+1. Set up Azure App Service and connect the GitHub repository
+2. Configure GitHub Actions using the provided `.github/workflows/azure-node-backend.yml` file
+3. Add environment variables in the Azure App Service configuration
+4. Push to the main branch to trigger automatic deployment
+5. Access the API at: https://ecorwanda-portal-eed6gfb3f7ftbkfv.southafricanorth-01.azurewebsites.net
 
 ### Frontend Deployment (Netlify)
 
@@ -620,7 +589,7 @@ EcoRwanda-Conservation-Portal-main/
    - **Build Command**: `npm run build`
    - **Publish Directory**: `dist`
    - **Base Directory**: `frontend/`
-3. Set the `VITE_API_URL` environment variable in the Netlify dashboard to your Render backend URL + `/api` (e.g., `https://ecorwanda-backend.onrender.com/api`)
+3. Set the `VITE_API_URL` environment variable in the Netlify dashboard to the Azure backend URL + `/api`
 4. Deploy and get the site URL
 
 ### Database Setup (MongoDB Atlas)
