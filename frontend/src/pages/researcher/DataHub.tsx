@@ -639,7 +639,8 @@ export default function DataHub() {
     for (let i = 0; i < files.length; i++) {
       const formData = new FormData();
       formData.append('file', files[i]);
-      formData.append('upload_preset', 'ecorwanda'); // Replace with your actual preset if different
+      formData.append('upload_preset', 'ecorwanda');
+      formData.append('folder', 'ecorwanda/data-hub');
       const res = await fetch('https://api.cloudinary.com/v1_1/dnlatyl5z/image/upload', {
         method: 'POST',
         body: formData,

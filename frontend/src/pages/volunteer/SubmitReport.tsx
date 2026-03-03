@@ -39,8 +39,8 @@ import { THREAT_CATEGORIES } from "@/components/common/categories";
 import { GoogleMap, Marker, useJsApiLoader, StandaloneSearchBox } from '@react-google-maps/api';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
-// Add the Mapbox API key here
-const MAPBOX_API_KEY = 'pk.eyJ1IjoidGVsZXNwaG9yZXV3YWJlcmEiLCJhIjoiY21jbWl2Z3A5MGdoMTJqcXE1bDZ5enNuayJ9.njrKk2Q8klZDkq2tpFW6rw';
+// Mapbox token from env (set VITE_MAPBOX_ACCESS_TOKEN in .env / Netlify)
+const MAPBOX_API_KEY = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ?? '';
 const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/dnlatyl5z/image/upload';
 const CLOUDINARY_UPLOAD_PRESET = 'ecorwanda';
 
@@ -258,6 +258,7 @@ export default function SubmitReport() {
           const data = new FormData();
           data.append('file', file);
           data.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+          data.append('folder', 'ecorwanda/wildlife-reports');
           const res = await fetch(CLOUDINARY_UPLOAD_URL, {
             method: 'POST',
             body: data,
