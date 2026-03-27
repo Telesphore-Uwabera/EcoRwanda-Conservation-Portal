@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "echo \"Root build not used (Render uses backend/)\""
+  },
   "dependencies": {
     "@types/react": "^19.1.8",
     "gridfs-stream": "^1.1.1",
