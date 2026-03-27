@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "echo \"Root build not used (Render uses backend/)\""
+    "build": "echo \"Root build not used (Render uses backend/)\"",
+    "start": "npm --prefix backend run start"
   },
   "dependencies": {
     "@types/react": "^19.1.8",
