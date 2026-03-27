@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "echo \"Root build not used (Render uses backend/)\"",
+    "build": "npm --prefix backend install --legacy-peer-deps",
     "start": "npm --prefix backend run start"
   },
   "dependencies": {
