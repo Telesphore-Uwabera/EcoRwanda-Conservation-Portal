@@ -1,28 +1,30 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
+
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 const sendEmail = async (options) => {
-  // 1. Create a transporter
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_PORT == 465, // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL;
+  const senderName = process.env.BREVO_SENDER_NAME || 'EcoRwanda Conservation Portal';
 
-  // 2. Define the email options
-  const mailOptions = {
-    from: `EcoRwanda Conservation Portal <${process.env.EMAIL_USER}>`,
-    to: options.email,
+  if (!apiKey) throw new Error('BREVO_API_KEY is not defined in environment variables');
+  if (!senderEmail) throw new Error('BREVO_SENDER_EMAIL is not defined in environment variables');
+
+  const payload = {
+    sender: { email: senderEmail, name: senderName },
+    to: [{ email: options.email }],
     subject: options.subject,
-    text: options.message,
-    // html: options.html // If you want to send HTML emails
+    textContent: options.message,
   };
 
-  // 3. Send the email
-  await transporter.sendMail(mailOptions);
+  await axios.post(BREVO_API_URL, payload, {
+    headers: {
+      'api-key': apiKey,
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    timeout: 15000,
+  });
 };
 
-module.exports = sendEmail; 
+module.exports = sendEmail;
