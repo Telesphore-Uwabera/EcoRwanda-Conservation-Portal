@@ -86,7 +86,7 @@ export default function SubmitReport() {
   const [mapCenter, setMapCenter] = useState({ lat: -1.9577, lng: 30.1127 });
   const searchBoxRef = useRef(null);
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyCPYHYMBO101B9ajFYNrwt8fWqEUBzHz8M',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '',
     libraries: ['places'],
   });
 
