@@ -1,6 +1,21 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+
+function normalizeMongoUri(raw) {
+  if (!raw) return raw;
+  let s = String(raw).trim();
+  // Render / dashboard paste mistakes: value includes the key again
+  while (s.startsWith('MONGODB_URI=')) {
+    s = s.slice('MONGODB_URI='.length).trim();
+  }
+  return s;
+}
+
+function maskMongoUri(uri) {
+  if (!uri || typeof uri !== 'string') return '(not set)';
+  return uri.replace(/(mongodb(?:\+srv)?:\/\/[^:]+:)[^@]+(@)/, '$1***$2');
+}
 const cors = require('cors');
 const http = require('http');
 const WebSocketService = require('./services/websocketService');
@@ -77,7 +92,8 @@ app.get('/', (req, res) => {
 });
 
 // Connect to MongoDB with detailed error handling
-if (!process.env.MONGODB_URI) {
+const mongoUri = normalizeMongoUri(process.env.MONGODB_URI);
+if (!mongoUri) {
   console.error('MONGODB_URI is not defined in environment variables');
   process.exit(1);
 }
@@ -87,7 +103,9 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-mongoose.connect(process.env.MONGODB_URI, {
+console.log('MongoDB URI (password masked):', maskMongoUri(mongoUri));
+
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
