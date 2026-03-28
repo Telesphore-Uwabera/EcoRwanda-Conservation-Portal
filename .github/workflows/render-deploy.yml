@@ -1,4 +1,11 @@
-name: Deploy Node.js Backend to Render
+# Optional: triggers a new Render deploy when you push to main.
+# Render also auto-deploys if the service is connected to this GitHub repo.
+#
+# To use this workflow, add a GitHub Actions secret:
+#   RENDER_DEPLOY_HOOK_URL = your deploy hook URL from Render
+#   (Render dashboard → your Web Service → Settings → Deploy Hook → Create hook)
+
+name: Trigger Render deploy
 
 on:
   push:
@@ -6,31 +13,15 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
+      - name: Trigger Render deploy hook
+        env:
+          HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          cd backend
-          npm install --legacy-peer-deps
-
-      - name: Build (if needed)
-        run: |
-          cd backend
-          npm run build || echo "No build step"
-
-      - name: 'Deploy to Render'
-        uses: johnbeynon/render-deploy@v0.0.8
-        with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
-          api-key: ${{ secrets.RENDER_API_KEY }}
-          clear-cache: false 
+          if [ -z "$HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL is not set — skipping (Render Git auto-deploy may still run)."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK_URL"

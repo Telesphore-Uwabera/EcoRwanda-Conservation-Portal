@@ -581,6 +581,7 @@ EcoRwanda-Conservation-Portal-main/
 2. Set **Build Command** to `npm install; npm run build` and **Start Command** to `npm run start` if deploying from the monorepo root (this installs `backend/` dependencies and starts the API).
 3. Configure environment variables in Render (see `backend/.env.example`): `MONGODB_URI`, `JWT_SECRET`, `FRONTEND_URL`, Brevo email vars, etc.
 4. Deploy and use your Render service URL as the backend base (for example `https://<your-service>.onrender.com`).
+5. **Optional GitHub Action** (`.github/workflows/render-deploy.yml`): create a **Deploy Hook** in Render (service **Settings → Deploy Hook**), then add a repository secret `RENDER_DEPLOY_HOOK_URL` with that URL. If the secret is omitted, the workflow still succeeds and Render can rely on its built-in Git auto-deploy instead.
 
 ### Frontend Deployment (Netlify)
 
