@@ -22,6 +22,7 @@ import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/config/api";
+import { resolveReportPhotoUrl } from "@/lib/reportPhotos";
 import {
   Camera,
   Search,
@@ -366,7 +367,7 @@ const MyReports = () => {
                 {report.photos && report.photos.length > 0 && (
                   <div className="h-48 overflow-hidden">
                     <img
-                      src={report.photos[0]}
+                      src={resolveReportPhotoUrl(report.photos[0])}
                       alt={report.title}
                       className="w-full h-full object-cover"
                     />

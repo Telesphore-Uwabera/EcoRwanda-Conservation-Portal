@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
-const crypto = require('crypto'); // Import crypto module
-const sendEmail = require('../utils/sendEmail'); // Import the sendEmail utility
+const sendEmail = require('../utils/sendEmail');
 const { logActivity } = require('../utils/activityLogger');
 // You might need a nodemailer transporter setup here or in a separate utility
 // const sendEmail = require('../utils/sendEmail'); // Assuming a utility to send emails
@@ -38,13 +38,15 @@ exports.register = async (req, res) => {
       return res.status(403).json({ message: 'Ranger registration is not allowed through this endpoint. Please contact an administrator.' });
     }
 
-    // Create new user
+    const roleNorm = typeof role === 'string' ? role.trim() : '';
+    const resolvedRole = ['volunteer', 'researcher'].includes(roleNorm) ? roleNorm : 'volunteer';
+
     const user = new User({
       email: emailNorm,
       password,
       firstName,
       lastName,
-      role: role || 'volunteer'
+      role: resolvedRole,
     });
 
     await user.save();
@@ -106,11 +108,10 @@ exports.login = async (req, res) => {
     }
     console.log('Password verified for user:', emailNorm);
 
-    // Check if user is verified
-    if (!user.verified && user.role !== 'administrator') {
-      return res.status(403).json({ 
+    if (!user.verified) {
+      return res.status(403).json({
         message: 'Your account has not been verified yet. Please wait for an administrator to approve your registration.',
-        errorCode: 'ACCOUNT_NOT_VERIFIED' 
+        errorCode: 'ACCOUNT_NOT_VERIFIED',
       });
     }
 

@@ -44,6 +44,7 @@ import {
   Loader2,
 } from "lucide-react";
 import api from "@/config/api";
+import { resolveReportPhotoUrl } from "@/lib/reportPhotos";
 import { THREAT_CATEGORIES } from "@/components/common/categories";
 
 interface Report {
@@ -365,7 +366,7 @@ export default function VerifyReports() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {selectedReport.photos.map((url, index) => (
                       <div key={index} className="relative aspect-video overflow-hidden rounded-md">
-                        <img src={url} alt={`Report Photo ${index + 1}`} className="w-full h-full object-cover" />
+                        <img src={resolveReportPhotoUrl(url)} alt={`Report Photo ${index + 1}`} className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>

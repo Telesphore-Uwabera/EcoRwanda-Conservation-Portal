@@ -101,10 +101,15 @@ exports.deleteUser = async (req, res) => {
 // @access  Private/Admin
 exports.registerUserByAdmin = async (req, res) => {
   const { firstName, lastName, email, password, role, location, organization } = req.body;
+  const emailNorm = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
   try {
+    if (!emailNorm) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
     // Check if user already exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: emailNorm });
     if (user) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -115,15 +120,16 @@ exports.registerUserByAdmin = async (req, res) => {
       return res.status(400).json({ message: 'Invalid role provided' });
     }
 
-    // Create new user
+    // Create new user — admin-provisioned accounts can sign in immediately
     user = new User({
       firstName,
       lastName,
-      email,
+      email: emailNorm,
       password, // Password will be hashed by pre-save hook in User model
       role,
       location,
       organization,
+      verified: true,
     });
 
     await user.save();

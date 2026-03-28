@@ -14,6 +14,7 @@ import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { useOfflineStatus } from "@/lib/offline";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/config/api"; // Import your API instance
+import { resolveReportPhotoUrl } from "@/lib/reportPhotos";
 import {
   Camera,
   MapPin,
@@ -255,7 +256,7 @@ export default function VolunteerDashboard() {
                     {report.photos && report.photos.length > 0 && (
                       <div className="mb-3">
                         <img 
-                          src={report.photos[0]} 
+                          src={resolveReportPhotoUrl(report.photos[0])} 
                           alt="Report" 
                           className="w-full h-32 object-cover rounded-md"
                         />
