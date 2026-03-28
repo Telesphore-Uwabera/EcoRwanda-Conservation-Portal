@@ -24,22 +24,53 @@ export default function Login() {
     try {
       await login({ email, password });
 
-      // Get user role and redirect to appropriate dashboard
       const storedUser = localStorage.getItem("eco-user");
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        navigate(getDashboardRoute(user.role));
+      if (!storedUser) {
+        setError("Signed in but session was not saved. Try clearing site data for this page and sign in again.");
+        return;
       }
+      const user = JSON.parse(storedUser);
+      const dashboard = getDashboardRoute(user.role);
+      if (!dashboard) {
+        setError(`Your account role (“${String(user.role)}”) is not recognized. Contact an administrator.`);
+        return;
+      }
+      navigate(dashboard);
     } catch (err: any) {
-      if (err.response && err.response.data.errorCode === 'ACCOUNT_NOT_VERIFIED') {
+      if (err.response?.data?.errorCode === 'ACCOUNT_NOT_VERIFIED') {
         navigate('/auth/waiting-for-verification');
-      } else if (err.response?.data?.message === 'Invalid credentials') {
-        setError(
-          <>No account found with this email or password is incorrect. If you don't have an account, please <Link to="/auth/signup" className="text-emerald-600 underline">sign up here</Link>.</>
-        );
-      } else {
-        setError("Invalid email or password. Please try again.");
+        return;
       }
+      const msg =
+        typeof err.response?.data?.message === 'string'
+          ? err.response.data.message
+          : '';
+      if (err.response?.status === 401 || msg === 'Invalid credentials') {
+        setError(
+          <>No account found with this email or the password is incorrect. If you don't have an account, please <Link to="/auth/signup" className="text-emerald-600 underline">sign up here</Link>.</>
+        );
+        return;
+      }
+      if (err.response?.status === 403 && msg) {
+        setError(msg);
+        return;
+      }
+      if (!err.response) {
+        const m = typeof err.message === 'string' ? err.message : '';
+        if (m.includes('Invalid response') || m.includes('Network Error')) {
+          setError(
+            m.includes('Invalid response')
+              ? 'The server response was unexpected. Try again or contact support.'
+              : 'Network error: the browser could not reach the API. Check Netlify env VITE_API_URL and that the backend is running.',
+          );
+          return;
+        }
+        setError(
+          'Cannot reach the server. Check your connection and that the API URL is set correctly for this site.',
+        );
+        return;
+      }
+      setError(msg || 'Something went wrong. Please try again.');
     }
   };
 

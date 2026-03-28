@@ -19,9 +19,22 @@ const api = axios.create({
   },
 });
 
+function isPublicAuthPath(url: string | undefined): boolean {
+  if (!url) return false;
+  // Axios may use `/auth/login` or `auth/login`; reset-password includes a token segment
+  return (
+    /(^|\/)auth\/(login|register|forgot-password)(\/|\?|$)/.test(url) ||
+    /(^|\/)auth\/reset-password\//.test(url)
+  );
+}
+
 // Add a request interceptor to add the auth token to requests
 api.interceptors.request.use(
   (config) => {
+    if (isPublicAuthPath(config.url)) {
+      delete config.headers.Authorization;
+      return config;
+    }
     const userStr = localStorage.getItem('eco-user');
     if (userStr) {
       try {
@@ -44,8 +57,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
+    if (
+      error.response?.status === 401 &&
+      !isPublicAuthPath(error.config?.url)
+    ) {
       localStorage.removeItem('eco-user');
       window.location.href = '/auth/login';
     }
