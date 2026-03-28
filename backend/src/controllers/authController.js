@@ -10,9 +10,13 @@ const { logActivity } = require('../utils/activityLogger');
 exports.register = async (req, res) => {
   try {
     const { email, password, firstName, lastName, role } = req.body;
+    const emailNorm = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    if (!emailNorm) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: emailNorm });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -36,7 +40,7 @@ exports.register = async (req, res) => {
 
     // Create new user
     const user = new User({
-      email,
+      email: emailNorm,
       password,
       firstName,
       lastName,
@@ -79,12 +83,17 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt for email:', email);
+    const emailNorm = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    console.log('Login attempt for email:', emailNorm);
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    if (!emailNorm || typeof password !== 'string') {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    // Find user by email (stored lowercase in schema; query must match)
+    const user = await User.findOne({ email: emailNorm });
     if (!user) {
-      console.log('User not found for email:', email);
+      console.log('User not found for email:', emailNorm);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     console.log('User found with role:', user.role);
@@ -92,10 +101,10 @@ exports.login = async (req, res) => {
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      console.log('Password mismatch for user:', email);
+      console.log('Password mismatch for user:', emailNorm);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    console.log('Password verified for user:', email);
+    console.log('Password verified for user:', emailNorm);
 
     // Check if user is verified
     if (!user.verified && user.role !== 'administrator') {
@@ -124,7 +133,7 @@ exports.login = async (req, res) => {
       organization: user.organization
     };
 
-    console.log('Login successful for user:', email, 'with role:', user.role);
+    console.log('Login successful for user:', emailNorm, 'with role:', user.role);
     res.json({
       message: 'Login successful',
       user: userData,

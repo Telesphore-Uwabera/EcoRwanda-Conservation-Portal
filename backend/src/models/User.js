@@ -65,32 +65,16 @@ userSchema.pre('save', async function(next) {
 
 // Method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
-    // First try direct comparison
-    const isMatch = await bcrypt.compare(candidatePassword, this.password);
-    if (isMatch) {
-      console.log('Password matched on first attempt');
-      return true;
-    }
-
-    // If first attempt fails, try comparing with a re-hashed version
-    // This handles cases where the password might have been hashed twice
-    const rehashedPassword = await bcrypt.hash(candidatePassword, 10);
-    const isMatchRehashed = await bcrypt.compare(rehashedPassword, this.password);
-    if (isMatchRehashed) {
-      console.log('Password matched after re-hashing');
-      return true;
-    }
-
-    console.log('Password comparison failed');
+  if (candidatePassword == null || typeof candidatePassword !== 'string') {
     return false;
+  }
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
     console.error('Error comparing passwords:', error);
     return false;
   }
 };
-
-userSchema.index({ email: 1 });
 
 const User = mongoose.model('User', userSchema);
 
